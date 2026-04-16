@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>邦典色彩解码 - 六大经典色系</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --tibetan-red: #9E2A2F;
+      --cream-white: #F5F5DC;
+      --warm-gray: #F8F4ED;
+      --dark-text: #2C2C2C;
+      --tibetan-blue: #1E3A5F;
+      --tibetan-yellow: #D4A84B;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Noto Sans SC', sans-serif;
+      background: linear-gradient(135deg, #F8F4ED 0%, #FEF2F2 100%);
+      color: var(--dark-text);
+      min-height: 100vh;
+    }
+
+    .font-serif { font-family: 'Noto Serif SC', serif; }
+
+    /* 导航栏样式 */
+    .nav-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+      background: rgba(248, 244, 237, 0.95);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+      padding: 1rem 2rem;
+    }
+
+    .nav-link {
+      position: relative;
+      color: #2C2C2C;
+      font-weight: 500;
+      transition: color 0.3s ease;
+      text-decoration: none;
+    }
+
+    .nav-link:hover {
+      color: var(--tibetan-red);
+    }
+
+    /* 主内容区 */
+    .main-content {
+      padding: 120px 2rem 4rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* 页面标题 */
+    .page-title {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .page-title h1 {
+      font-size: clamp(1.8rem, 5vw, 2.8rem);
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--tibetan-red), var(--tibetan-yellow));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 1rem;
+      font-family: 'Noto Serif SC', serif;
+    }
+
+    .page-title p {
+      color: #6B7280;
+      font-size: 1.1rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* 色彩展示卡片 */
+    .color-showcase {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+    }
+
+    .color-card {
+      background: white;
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      border-top: 4px solid;
+    }
+
+    .color-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+    }
+
+    .color-card.blue { border-color: #1E3A5F; }
+    .color-card.white { border-color: #CBD5E1; }
+    .color-card.green { border-color: #2C9678; }
+    .color-card.yellow { border-color: #D4A84B; }
+    .color-card.red { border-color: #9E2A2F; }
+    .color-card.black { border-color: #374151; }
+
+    .color-preview {
+      width: 100%;
+      height: 80px;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .color-preview.blue { background: linear-gradient(135deg, #1E3A5F, #3B82F6); }
+    .color-preview.white { background: linear-gradient(135deg, #FFFFFF, #F1F5F9); border: 2px solid #E2E8F0; }
+    .color-preview.green { background: linear-gradient(135deg, #2C9678, #10B981); }
+    .color-preview.yellow { background: linear-gradient(135deg, #D4A84B, #F59E0B); }
+    .color-preview.red { background: linear-gradient(135deg, #9E2A2F, #DC2626); }
+    .color-preview.black { background: linear-gradient(135deg, #1F2937, #374151); }
+
+    .color-card h3 {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 1.4rem;
+      margin-bottom: 0.5rem;
+      color: var(--dark-text);
+    }
+
+    .color-card .color-meaning {
+      font-size: 0.9rem;
+      color: #9E2A2F;
+      font-weight: 500;
+      margin-bottom: 1rem;
+    }
+
+    .color-card p {
+      color: #6B7280;
+      line-height: 1.7;
+      font-size: 0.95rem;
+    }
+
+    /* 返回按钮 */
+    .back-btn {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      padding: 12px 24px;
+      background: linear-gradient(135deg, var(--tibetan-red), var(--tibetan-yellow));
+      color: white;
+      border: none;
+      border-radius: 50px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(158, 42, 47, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 100;
+    }
+
+    .back-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(158, 42, 47, 0.4);
+    }
+
+    @media (max-width: 768px) {
+      .nav-header {
+        padding: 0.75rem 1rem;
+      }
+
+      .main-content {
+        padding: 100px 1rem 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 导航栏 -->
+  <header class="nav-header">
+    <div class="container mx-auto flex justify-between items-center">
+      <a href="index.html" class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-red-600 flex items-center justify-center">
+          <i class="fa fa-paint-brush text-white"></i>
+        </div>
+        <span class="font-bold text-xl" style="color: var(--tibetan-red);">邦典</span>
+      </a>
+      <nav class="flex gap-6 text-base">
+        <a href="index.html" class="nav-link">首页</a>
+        <a href="decode.html" class="nav-link">文化解码</a>
+        <a href="experience.html" class="nav-link">沉浸体验</a>
+        <a href="gam.html" class="nav-link">人生历程</a>
+        <a href="map.html" class="nav-link">数据可视化</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- 主内容区 -->
+  <main class="main-content">
+    <!-- 页面标题 -->
+    <div class="page-title">
+      <h1 class="font-serif">邦典六大经典色系</h1>
+      <p>探索邦典色彩的自然寓意与文化内涵</p>
+    </div>
+
+    <!-- 色彩展示 -->
+    <section class="color-showcase">
+      <div class="color-card blue">
+        <div class="color-preview blue"></div>
+        <h3>天空藏蓝</h3>
+        <div class="color-meaning">神圣 · 永恒 · 广阔</div>
+        <p>对应高原澄澈的天空，是藏族文化中神圣、永恒的象征。邦典中的蓝色条纹，或深如藏地晴空，或浅似雨后穹苍，寓意着万物生长的广阔空间，也寄托着对天地神灵的敬畏之心。染料取自蓼蓝草。</p>
+      </div>
+
+      <div class="color-card white">
+        <div class="color-preview white"></div>
+        <h3>雪山云白</h3>
+        <div class="color-meaning">纯洁 · 吉祥 · 神圣</div>
+        <p>取自雪山之巅的积雪与天际的流云，是纯洁、吉祥的代名词。在藏族文化中，白色象征着驱邪纳福的神圣力量，邦典中的白色条纹，既代表高原自然的纯净底色，也寓意着女性内心的澄澈与善良。染料取自天然矿物。</p>
+      </div>
+
+      <div class="color-card green">
+        <div class="color-preview green"></div>
+        <h3>森林青稞</h3>
+        <div class="color-meaning">生命 · 希望 · 丰收</div>
+        <p>源自草原的青草与河谷的林木，象征生命的繁衍与希望。青藏高原的绿色是生命力的具象体现，邦典中的绿色条纹，寄托着藏族人民对丰收、安康的祈愿，也暗含着对自然馈赠的感恩之情。染料取自天然植物汁。</p>
+      </div>
+
+      <div class="color-card yellow">
+        <div class="color-preview yellow"></div>
+        <h3>金沙暖阳</h3>
+        <div class="color-meaning">尊贵 · 富足 · 智慧</div>
+        <p>对应高原的土地与金色的阳光，是尊贵与富足的象征。黄色在藏族文化中与宗教、贵族文化关联紧密，同时也代表着土地孕育万物的滋养之力。染料取自姜黄。</p>
+      </div>
+
+      <div class="color-card red">
+        <div class="color-preview red"></div>
+        <h3>珊瑚绯红</h3>
+        <div class="color-meaning">热情 · 活力 · 勇气</div>
+        <p>取自高原的火焰、丹霞地貌与格桑花的艳色，象征着热情、活力与勇气。红色是驱邪避灾的吉祥色，邦典中的红色条纹，既代表着藏族人民热烈奔放的性格，也暗含着对生命力量的赞颂。染料取自茜草。</p>
+      </div>
+
+      <div class="color-card black">
+        <div class="color-preview black"></div>
+        <h3>大地岩石</h3>
+        <div class="color-meaning">坚实 · 稳重 · 传承</div>
+        <p>代表坚实、稳重与根基，象征高原的大地与岩石，寓意稳固与传承。染料取自天然矿物。昌都芒康县和甘孜嘉荣等地有佩戴素（黑色）邦典的习俗。</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- 返回按钮 -->
+  <button class="back-btn" onclick="window.history.back()">
+    <i class="fa fa-arrow-left"></i> 返回
+  </button>
+</body>
+</html>

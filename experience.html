@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>沉浸式体验 - 邦典藏族文化</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --tibetan-red: #9E2A2F;
+      --turquoise: #2C9678;
+      --earth-brown: #8B5A2B;
+      --cream-white: #F5F5DC;
+      --light-gold: #E6C8A0;
+      --warm-gray: #F8F4ED;
+      --dark-text: #2C2C2C;
+      --tibetan-blue: #1E3A5F;
+      --tibetan-yellow: #D4A84B;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Noto Sans SC', sans-serif;
+      background-color: var(--warm-gray);
+      color: var(--dark-text);
+      overflow-x: hidden;
+    }
+
+    .font-serif { font-family: 'Noto Serif SC', serif; }
+
+    /* 导航栏样式 */
+    .nav-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      padding: 1.25rem 2rem;
+      background: rgba(248, 244, 237, 0.95);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .nav-link {
+      position: relative;
+      color: var(--dark-text);
+      font-weight: 500;
+      transition: color 0.3s ease;
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--tibetan-red);
+      transition: width 0.3s ease;
+    }
+
+    .nav-link:hover::after,
+    .nav-link.active::after {
+      width: 100%;
+    }
+
+    .nav-link.active {
+      color: var(--tibetan-red);
+      font-weight: 600;
+    }
+
+    .card-hover { transition: all 0.4s ease; }
+    .card-hover:hover { transform: translateY(-8px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); }
+    
+    /* 模态框样式 */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    
+    .modal-content {
+      background-color: white;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 600px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+      animation: modalFadeIn 0.3s ease-out;
+    }
+    
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .color-card {
+      border-radius: 16px;
+      border: 2px solid #e2e8f0;
+      padding: 20px;
+      margin-bottom: 16px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .color-card.selected {
+      border-color: var(--tibetan-red);
+      background-color: #f8fafc;
+      transform: translateX(4px);
+    }
+    
+    .color-card.selected::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 6px;
+      height: 100%;
+      background-color: var(--tibetan-red);
+      border-radius: 16px 0 0 16px;
+    }
+    
+    .color-preview {
+      width: 100%;
+      height: 60px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .color-preview.white {
+      border: 2px solid #cbd5e1;
+    }
+    
+    .checkmark {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 24px;
+      height: 24px;
+      background-color: var(--tibetan-red);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      opacity: 0;
+      transform: scale(0.8);
+      transition: all 0.3s ease;
+    }
+    
+    .color-card.selected .checkmark {
+      opacity: 1;
+      transform: scale(1);
+    }
+    
+    /* 宣言结果样式 */
+    .declaration-result, .image-display-view {
+      display: none;
+    }
+    
+    .declaration-header {
+      padding: 20px;
+      text-align: center;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .selected-colors-preview {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    
+    .color-circle {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 2px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #1f2937;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .color-circle.white {
+      border: 2px solid #cbd5e1;
+      color: #1f2937;
+    }
+    
+    .declaration-content {
+      padding: 20px;
+    }
+    
+    .declaration-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--tibetan-red);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .declaration-text {
+      background-color: #f8fafc;
+      padding: 20px;
+      border-radius: 12px;
+      border-left: 4px solid var(--tibetan-red);
+      margin-bottom: 20px;
+      font-size: 15px;
+      line-height: 1.6;
+      color: #374151;
+    }
+    
+    .fusion-text {
+      background-color: #f0f9ff;
+      padding: 16px;
+      border-radius: 12px;
+      border-left: 4px solid #0ea5e9;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #0369a1;
+      margin-bottom: 20px;
+    }
+    
+    /* 图片展示样式 */
+    .bangdian-image {
+      width: 100%;
+      max-width: 380px;
+      margin: 20px auto;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+      background: #f9fafb;
+    }
+    
+    .bangdian-image img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    
+    .image-viewer-modal {
+      display: none;
+    }
+    
+    .image-viewer-content {
+      background-color: white;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 600px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+      animation: modalFadeIn 0.3s ease-out;
+    }
+    
+    .full-size-image {
+      width: 100%;
+      height: auto;
+      max-height: 70vh;
+      object-fit: contain;
+      border-radius: 12px;
+    }
+    
+    /* 自定义滚动条 */
+    .modal-content::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .modal-content::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 10px;
+    }
+    
+    .modal-content::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+    }
+    
+    /* 动画类 */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+      .modal-content {
+        border-radius: 16px;
+        max-height: 90vh;
+      }
+      .color-card {
+        padding: 16px;
+      }
+      .color-preview {
+        height: 50px;
+      }
+      .color-circle {
+        width: 50px;
+        height: 50px;
+        font-size: 14px;
+      }
+    }
+
+    /* 拼图游戏样式 */
+    .puzzle-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2px;
+      background: #e5e7eb;
+      padding: 2px;
+      border-radius: 8px;
+      max-width: 400px;
+      margin: 0 auto;
+      aspect-ratio: 1;
+      width: 100%;
+    }
+
+    .puzzle-piece {
+      background-size: 400% 400%;
+      background-repeat: no-repeat;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 1;
+      min-height: 80px;
+    }
+
+    .puzzle-piece:hover {
+      transform: scale(1.02);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 10;
+    }
+
+    .puzzle-piece.empty {
+      background: #f3f4f6;
+      cursor: default;
+    }
+
+    .puzzle-piece.correct {
+      box-shadow: inset 0 0 0 2px #10b981;
+    }
+
+    .puzzle-piece.dragging {
+      opacity: 0.5;
+      transform: scale(1.1);
+    }
+
+    .puzzle-content {
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 480px) {
+      .puzzle-container {
+        max-width: 280px;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-50 font-sans">
+  <!-- 导航栏 -->
+  <header class="nav-header">
+    <div class="container mx-auto flex justify-between items-center">
+      <a href="index.html" class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-red-600 flex items-center justify-center">
+          <i class="fa fa-paint-brush text-white"></i>
+        </div>
+        <span class="font-bold text-xl" style="color: var(--tibetan-red);">邦典</span>
+      </a>
+      <nav class="flex gap-6 text-base">
+        <a href="decode.html" class="nav-link">文化解码</a>
+        <a href="experience.html" class="nav-link active">沉浸式体验</a>
+        <a href="gam.html" class="nav-link">人生历程</a>
+        <a href="map.html" class="nav-link">体验地图</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- 沉浸式体验完整内容 -->
+  <section class="w-full min-h-screen pt-28 pb-16 px-5 md:px-8">
+    <div class="container mx-auto">
+      <div class="text-center mb-10 fade-in">
+        <span class="inline-block px-4 py-2 bg-gradient-to-r from-red-600 to-amber-500 text-white rounded-full text-sm font-medium mb-4">沉浸体验</span>
+        <h2 class="text-[clamp(1.8rem,5vw,2.6rem)] font-bold bg-gradient-to-r from-red-700 to-amber-600 bg-clip-text text-transparent mb-3 font-serif">我的邦典 · 专属设计工坊</h2>
+        <p class="text-slate-600 text-lg">基于文化解码的认知，亲手设计属于你的数字邦典</p>
+        <div class="w-20 h-1 bg-gradient-to-r from-red-700 to-amber-500 mx-auto mt-4"></div>
+      </div>
+
+      <!-- 设计工坊介绍 -->
+      <div class="max-w-4xl mx-auto mb-10 fade-in">
+        <div class="bg-white rounded-2xl p-8 shadow-xl border border-slate-100">
+          <div class="flex flex-col md:flex-row gap-8 items-center">
+            <div class="w-full md:w-1/2">
+              <img src="images/图片12.png" alt="邦典设计工坊" class="w-full rounded-xl shadow-lg">
+            </div>
+            <div class="w-full md:w-1/2">
+              <h3 class="text-2xl font-bold text-red-700 mb-4 font-serif">设计你的专属邦典</h3>
+              <p class="text-slate-600 mb-6 leading-relaxed">
+                邦典的六大经典色系——白、黄、红、蓝、绿、黑，每一种颜色都对应着高原的自然元素。选择三种颜色进行搭配，创作属于你的数字邦典，并生成专属的生命宣言。
+              </p>
+              <ul class="space-y-3 mb-6">
+                <li class="flex items-center text-slate-700">
+                  <i class="fa fa-check-circle text-emerald-600 mr-3"></i>
+                  <span>6大藏族经典色系自由搭配</span>
+                </li>
+                <li class="flex items-center text-slate-700">
+                  <i class="fa fa-check-circle text-emerald-600 mr-3"></i>
+                  <span>基于色彩组合生成专属宣言</span>
+                </li>
+                <li class="flex items-center text-slate-700">
+                  <i class="fa fa-check-circle text-emerald-600 mr-3"></i>
+                  <span>生成高清数字邦典图片</span>
+                </li>
+              </ul>
+              <button id="designBtn" class="w-full md:w-auto px-8 py-4 bg-gradient-to-r from-red-600 to-amber-500 text-white rounded-full font-semibold hover:from-red-700 hover:to-amber-600 transition-all duration-300 shadow-lg text-lg">
+                <i class="fa fa-palette mr-2"></i> 开始设计我的邦典
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 色彩预览 -->
+      <div class="max-w-4xl mx-auto mb-10 fade-in">
+        <h3 class="text-xl font-bold text-slate-800 mb-6 text-center font-serif">六大经典色系</h3>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div class="bg-white rounded-xl p-4 shadow-md text-center card-hover">
+            <div class="w-16 h-16 mx-auto rounded-full bg-white border-4 border-slate-300 mb-3"></div>
+            <h4 class="font-bold text-slate-800">雪山云白</h4>
+            <p class="text-xs text-slate-500 mt-1">纯洁·吉祥</p>
+          </div>
+          <div class="bg-white rounded-xl p-4 shadow-md text-center card-hover">
+            <div class="w-16 h-16 mx-auto rounded-full bg-amber-500 mb-3"></div>
+            <h4 class="font-bold text-slate-800">金沙暖阳</h4>
+            <p class="text-xs text-slate-500 mt-1">智慧·富足</p>
+          </div>
+          <div class="bg-white rounded-xl p-4 shadow-md text-center card-hover">
+            <div class="w-16 h-16 mx-auto rounded-full bg-red-700 mb-3"></div>
+            <h4 class="font-bold text-slate-800">珊瑚绯红</h4>
+            <p class="text-xs text-slate-500 mt-1">生命·热情</p>
+          </div>
+          <div class="bg-white rounded-xl p-4 shadow-md text-center card-hover">
+            <div class="w-16 h-16 mx-auto rounded-full bg-blue-900 mb-3"></div>
+            <h4 class="font-bold text-slate-800">天空藏蓝</h4>
+            <p class="text-xs text-slate-500 mt-1">神圣·永恒</p>
+          </div>
+          <div class="bg-white rounded-xl p-4 shadow-md text-center card-hover">
+            <div class="w-16 h-16 mx-auto rounded-full bg-emerald-600 mb-3"></div>
+            <h4 class="font-bold text-slate-800">森林青稞</h4>
+            <p class="text-xs text-slate-500 mt-1">生机·丰收</p>
+          </div>
+          <div class="bg-white rounded-xl p-4 shadow-md text-center card-hover">
+            <div class="w-16 h-16 mx-auto rounded-full bg-slate-800 mb-3"></div>
+            <h4 class="font-bold text-slate-800">大地岩石</h4>
+            <p class="text-xs text-slate-500 mt-1">坚实·传承</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 底部返回主页按钮 -->
+      <div class="text-center mt-12 fade-in">
+        <a href="index.html" class="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-red-600 to-amber-500 text-white rounded-full font-semibold hover:from-red-700 hover:to-amber-600 transition-colors duration-300 shadow-lg">
+          <i class="fa fa-home"></i> 返回首页
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 主模态框：颜色选择 + 宣言结果 + 图片展示 -->
+  <div id="colorModal" class="modal-overlay">
+    <div class="modal-content">
+      <!-- 颜色选择视图 -->
+      <div id="colorSelectionView">
+        <div class="sticky top-0 bg-white z-10 p-6 border-b border-slate-200">
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="text-xl font-bold text-red-700 flex items-center">
+              <i class="fa fa-palette mr-3"></i> 选择您的邦典色彩
+            </h3>
+            <button id="closeModal" class="text-slate-500 hover:text-slate-800 text-xl transition-colors">
+              <i class="fa fa-times"></i>
+            </button>
+          </div>
+          <p class="text-slate-600 text-sm">每种颜色都承载独特的藏族文化意义，请选择3种颜色进行搭配</p>
+          <div class="mt-4 bg-red-50 p-3 rounded-lg">
+            <div class="flex items-center text-sm text-red-700">
+              <i class="fa fa-info-circle mr-2"></i>
+              <span>已选择 <span id="selectedCount" class="font-bold">0</span> 种颜色（需要选择3种）</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="p-6" id="colorCardsContainer"></div>
+        
+        <div class="sticky bottom-0 bg-white border-t border-slate-200 p-6">
+          <div class="flex flex-col sm:flex-row gap-3">
+            <button id="cancelBtn" class="px-6 py-3 text-slate-700 font-medium hover:bg-slate-100 rounded-lg transition-colors flex-1">取消</button>
+            <button id="confirmBtn" class="px-6 py-3 bg-gradient-to-r from-red-600 to-amber-500 text-white font-semibold rounded-lg hover:from-red-700 hover:to-amber-600 transition-colors flex-1 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+              <i class="fa fa-check mr-2"></i> 确认选择 (0/3)
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 宣言结果视图 -->
+      <div id="declarationResultView" class="declaration-result">
+        <div class="declaration-header">
+          <h3 class="text-xl font-bold text-red-700 flex items-center justify-center">
+            <i class="fa fa-quote-left mr-3"></i> 您的邦典色彩宣言
+          </h3>
+          <p class="text-slate-600 text-sm mt-2">基于您选择的色彩组合，以下是您的专属邦典宣言</p>
+        </div>
+        
+        <div class="selected-colors-preview" id="selectedColorsPreview"></div>
+        
+        <div class="declaration-content">
+          <div class="declaration-title">
+            <i class="fa fa-paint-brush"></i>
+            <span>色彩融合</span>
+          </div>
+          <div class="fusion-text" id="fusionText"></div>
+          
+          <div class="declaration-title">
+            <i class="fa fa-flag"></i>
+            <span>邦典宣言</span>
+          </div>
+          <div class="declaration-text" id="declarationText"></div>
+          
+          <div class="mt-8 text-center">
+            <button id="generateBangdianBtn" class="px-8 py-4 bg-gradient-to-r from-red-600 to-amber-500 text-white font-bold rounded-full hover:from-red-700 hover:to-amber-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+              <i class="fa fa-image mr-2"></i> 生成专属邦典图
+            </button>
+            <p class="text-slate-500 text-sm mt-3">点击即刻生成您的专属邦典图案，感受色彩与文化交融之美</p>
+          </div>
+        </div>
+        
+        <div class="sticky bottom-0 bg-white border-t border-slate-200 p-6">
+          <div class="flex flex-col sm:flex-row gap-3">
+            <button id="backToSelectionBtn" class="px-6 py-3 text-slate-700 font-medium hover:bg-slate-100 rounded-lg transition-colors flex-1">
+              <i class="fa fa-arrow-left mr-2"></i> 重新选择颜色
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 图片展示视图 -->
+      <div id="imageDisplayView" class="image-display-view">
+        <div class="sticky top-0 bg-white z-10 p-6 border-b border-slate-200">
+          <div class="flex justify-between items-center">
+            <h3 class="text-xl font-bold text-red-700 flex items-center">
+              <i class="fa fa-picture-o mr-3"></i> 您的专属邦典
+            </h3>
+            <button id="closeImageDisplayBtn" class="text-slate-500 hover:text-slate-800 text-xl transition-colors">
+              <i class="fa fa-times"></i>
+            </button>
+          </div>
+          <p class="text-slate-600 text-sm mt-2">基于您的色彩选择生成的数字邦典，可保存或分享</p>
+        </div>
+        
+        <div class="p-6 text-center">
+          <!-- 生成的邦典图片容器 -->
+          <div id="generatedBangdianContainer" class="bangdian-image"></div>
+          
+          <div class="mt-6 flex flex-wrap gap-4 justify-center">
+            <button id="viewFullImageBtn" class="px-6 py-2.5 bg-red-100 text-red-700 font-semibold rounded-lg hover:bg-red-200 transition-colors inline-flex items-center gap-2">
+              <i class="fa fa-eye"></i> 查看高清大图
+            </button>
+            <button id="playPuzzleBtn" class="px-6 py-2.5 bg-amber-100 text-amber-700 font-semibold rounded-lg hover:bg-amber-200 transition-colors inline-flex items-center gap-2">
+              <i class="fa fa-puzzle-piece"></i> 玩拼图游戏
+            </button>
+            <button id="redesignFromImageBtn" class="px-6 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-lg hover:bg-slate-200 transition-colors inline-flex items-center gap-2">
+              <i class="fa fa-palette"></i> 重新设计
+            </button>
+          </div>
+          <p class="text-slate-400 text-xs mt-6">✨ 每一道纹样都承载着高原的色彩记忆，您的邦典独一无二</p>
+        </div>
+        
+        <div class="sticky bottom-0 bg-white border-t border-slate-200 p-6">
+          <button id="closeImageModalBtn" class="px-6 py-3 w-full text-slate-700 font-medium hover:bg-slate-100 rounded-lg transition-colors flex items-center justify-center gap-2">
+            <i class="fa fa-check-circle"></i> 完成体验
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 图片查看器模态框（高清大图） -->
+  <div id="imageViewerModal" class="modal-overlay image-viewer-modal">
+    <div class="image-viewer-content">
+      <div class="sticky top-0 bg-white z-10 p-6 border-b border-slate-200">
+        <div class="flex justify-between items-center">
+          <h3 class="text-xl font-bold text-red-700 flex items-center">
+            <i class="fa fa-image mr-3"></i> 高清邦典图片
+          </h3>
+          <button id="closeImageViewer" class="text-slate-500 hover:text-slate-800 text-xl transition-colors">
+            <i class="fa fa-times"></i>
+          </button>
+        </div>
+        <p class="text-slate-600 text-sm mt-1">您的专属邦典高清大图</p>
+      </div>
+      
+      <div class="p-6 text-center">
+        <div id="fullSizeImageContainer">
+          <img id="fullSizeImg" class="full-size-image" alt="高清邦典图片">
+        </div>
+        <div class="text-center mt-6">
+          <button id="closeViewerBtn" class="px-6 py-3 text-slate-700 font-medium hover:bg-slate-100 rounded-lg transition-colors">关闭</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 拼图游戏模态框 -->
+  <div id="puzzleModal" class="modal-overlay puzzle-modal">
+    <div class="puzzle-content">
+      <div class="sticky top-0 bg-white z-10 p-6 border-b border-slate-200">
+        <div class="flex justify-between items-center">
+          <h3 class="text-xl font-bold text-red-700 flex items-center">
+            <i class="fa fa-puzzle-piece mr-3"></i> 邦典拼图游戏
+          </h3>
+          <button id="closePuzzleModal" class="text-slate-500 hover:text-slate-800 text-xl transition-colors">
+            <i class="fa fa-times"></i>
+          </button>
+        </div>
+        <p class="text-slate-600 text-sm mt-2">将打乱的拼图块拖拽到正确位置，还原您的专属邦典</p>
+      </div>
+      
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+          <div class="flex gap-4">
+            <div class="bg-amber-50 px-4 py-2 rounded-lg">
+              <span class="text-amber-700 font-medium">移动次数：</span>
+              <span id="moveCount" class="text-amber-800 font-bold">0</span>
+            </div>
+            <div class="bg-red-50 px-4 py-2 rounded-lg">
+              <span class="text-red-700 font-medium">用时：</span>
+              <span id="timer" class="text-red-800 font-bold">00:00</span>
+            </div>
+          </div>
+          <button id="restartPuzzleBtn" class="px-4 py-2 bg-gradient-to-r from-red-600 to-amber-500 text-white rounded-lg hover:from-red-700 hover:to-amber-600 transition-colors font-medium">
+            <i class="fa fa-refresh mr-2"></i> 重新开始
+          </button>
+        </div>
+        
+        <div class="flex justify-center mb-4">
+          <div id="puzzleContainer" class="puzzle-container">
+            <!-- 拼图块将通过JS动态生成 -->
+          </div>
+        </div>
+        
+        <div class="flex justify-center gap-4">
+          <button id="showHintBtn" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-medium">
+            <i class="fa fa-lightbulb-o mr-2"></i> 查看提示
+          </button>
+          <button id="solvePuzzleBtn" class="px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors font-medium">
+            <i class="fa fa-magic mr-2"></i> 自动完成
+          </button>
+        </div>
+      </div>
+      
+      <div id="puzzleSuccess" class="hidden p-6 text-center">
+        <div class="mb-4">
+          <i class="fa fa-trophy text-6xl text-amber-500"></i>
+        </div>
+        <h4 class="text-2xl font-bold text-red-700 mb-2">恭喜完成！</h4>
+        <p class="text-slate-600 mb-4">您成功还原了邦典拼图</p>
+        <div class="flex justify-center gap-4 mb-4">
+          <div class="bg-amber-50 px-4 py-2 rounded-lg">
+            <span class="text-amber-700">移动次数：</span>
+            <span id="finalMoves" class="text-amber-800 font-bold">0</span>
+          </div>
+          <div class="bg-red-50 px-4 py-2 rounded-lg">
+            <span class="text-red-700">用时：</span>
+            <span id="finalTime" class="text-red-800 font-bold">00:00</span>
+          </div>
+        </div>
+        <button id="playAgainBtn" class="px-6 py-3 bg-gradient-to-r from-red-600 to-amber-500 text-white rounded-lg hover:from-red-700 hover:to-amber-600 transition-colors font-medium">
+          <i class="fa fa-play mr-2"></i> 再玩一次
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 颜色数据
+    const colorData = [
+      { id: 1, name: "白色", simpleName: "白", colorCode: "#FFFFFF", symbol: "雪山、云朵", meaning: "象征纯洁无瑕、质朴本真", declaration: "以雪域之白为底色，坚守初心本真，于纷繁之中不染尘俗，让设计与生活回归纯粹的本貌。" },
+      { id: 2, name: "黄色", simpleName: "黄", colorCode: "#F59E0B", symbol: "草原、金沙", meaning: "象征富足繁荣、生机盎然", declaration: "撷取高原金黄的生机，织就繁盛的愿景，让每一寸色彩都承载对生活的热忱，传递富足安康的祈愿。" },
+      { id: 3, name: "红色", simpleName: "红", colorCode: "#DC2626", symbol: "火焰、暖阳", meaning: "象征热情奔放、赤诚热烈", declaration: "以炽烈的红色为魂，怀揣赤诚之心，将民族文化的温度注入经纬，让设计迸发直击人心的力量。" },
+      { id: 4, name: "蓝色", simpleName: "蓝", colorCode: "#2563EB", symbol: "天空、湖泊", meaning: "象征深邃辽阔、宁静致远", declaration: "借天空湖泊的湛蓝，容纳天地的辽阔，于设计中沉淀思考，让作品承载深邃的文化底蕴与从容的气度。" },
+      { id: 5, name: "绿色", simpleName: "绿", colorCode: "#16A34A", symbol: "森林、青稞田", meaning: "象征生机活力、生生不息", declaration: "萃取草木的青绿生机，传承民族文化的生长之力，让传统在现代设计中焕发蓬勃的新生。" },
+      { id: 6, name: "黑色", simpleName: "黑", colorCode: "#1F2937", symbol: "大地、岩石", meaning: "象征沉稳坚韧、底蕴厚重", declaration: "以大地岩石的玄黑为基，承载千年文化的厚重，于沉稳中坚守传承，让每一道纹路都镌刻历史的印记。" }
+    ];
+
+    // 颜色搭配宣言数据 + 对应的图片URL (20种组合)
+    const colorCombinations = [
+      { colors: ["白", "黄", "红"], fusion: "纯洁本真为底，富足生机为韵，热烈赤诚为魂，是高原天地间最鲜活的生命图景。", declaration: "以雪域白坚守初心，以高原黄承载繁盛，以炽烈红传递赤诚，让设计织就民族文化里最鲜活的生活祈愿。", imageUrl: "1.jpg" },
+      { colors: ["白", "黄", "蓝"], fusion: "纯洁与智慧交织，宁静致远中蕴含生机，是高原晨曦与苍穹的和谐共鸣。", declaration: "以雪域白为纯净底色，以高原黄承载智慧，以天空蓝赋予深邃，让设计在宁静中绽放智慧的光芒。", imageUrl: "2.jpg" },
+      { colors: ["白", "黄", "绿"], fusion: "纯洁本真遇上生机活力，是高原春日里最动人的生命礼赞。", declaration: "以雪域白坚守初心，以高原黄承载希望，以森林绿注入生机，让设计如春日般充满生命的活力。", imageUrl: "3.jpg" },
+      { colors: ["白", "黄", "黑"], fusion: "纯洁本真与沉稳厚重并存，智慧在稳重中闪耀，是高原大地的坚实力量。", declaration: "以雪域白为纯净底色，以高原黄承载智慧，以大地黑赋予沉稳，让设计在稳重中展现智慧的深度。", imageUrl: "4.jpg" },
+      { colors: ["白", "红", "蓝"], fusion: "纯洁、热烈与深邃交织，是高原天地间最丰富的情感表达。", declaration: "以雪域白坚守初心，以炽烈红传递热情，以天空蓝赋予深邃，让设计承载最丰富的情感层次。", imageUrl: "5.jpg" },
+      { colors: ["白", "红", "绿"], fusion: "纯洁本真、热情奔放与生机活力交融，是高原春日里最鲜活的生命力。", declaration: "以雪域白为纯净底色，以炽烈红传递热情，以森林绿注入生机，让设计如春日般充满活力与热情。", imageUrl: "6.jpg" },
+      { colors: ["白", "红", "黑"], fusion: "纯洁本真与热情奔放，在沉稳厚重中绽放，是高原大地上的生命之火。", declaration: "以雪域白坚守初心，以炽烈红传递热情，以大地黑赋予沉稳，让设计在稳重中绽放生命的热情。", imageUrl: "7.jpg" },
+      { colors: ["白", "蓝", "绿"], fusion: "纯洁、深邃与生机交融，是高原天地间最宁静的生命律动。", declaration: "以雪域白为纯净底色，以天空蓝赋予深邃，以森林绿注入生机，让设计在宁静中展现生命的律动。", imageUrl: "8.jpg" },
+      { colors: ["白", "蓝", "黑"], fusion: "纯洁本真与深邃辽阔，在沉稳厚重中升华，是高原苍穹下的永恒宁静。", declaration: "以雪域白坚守初心，以天空蓝赋予深邃，以大地黑赋予沉稳，让设计在宁静中展现永恒的深邃。", imageUrl: "9.jpg" },
+      { colors: ["白", "绿", "黑"], fusion: "纯洁本真与生机活力，在沉稳厚重中生长，是高原大地上的生命之歌。", declaration: "以雪域白为纯净底色，以森林绿注入生机，以大地黑赋予沉稳，让设计在稳重中展现生命的活力。", imageUrl: "10.jpg" },
+      { colors: ["黄", "红", "蓝"], fusion: "富足、热情与深邃交织，是高原天地间最绚烂的生命礼赞。", declaration: "以高原黄承载富足，以炽烈红传递热情，以天空蓝赋予深邃，让设计承载最绚烂的生命礼赞。", imageUrl: "11.jpg" },
+      { colors: ["黄", "红", "绿"], fusion: "富足繁荣、热情奔放与生机活力交融，是高原春日里最热烈的生命颂歌。", declaration: "以高原黄承载富足，以炽烈红传递热情，以森林绿注入生机，让设计如春日般充满热烈的生命颂歌。", imageUrl: "12.jpg" },
+      { colors: ["黄", "红", "黑"], fusion: "富足繁荣与热情奔放，在沉稳厚重中闪耀，是高原大地上的金色火焰。", declaration: "以高原黄承载富足，以炽烈红传递热情，以大地黑赋予沉稳，让设计在稳重中闪耀金色的热情。", imageUrl: "13.jpg" },
+      { colors: ["黄", "蓝", "绿"], fusion: "富足、深邃与生机交融，是高原天地间最和谐的生命乐章。", declaration: "以高原黄承载富足，以天空蓝赋予深邃，以森林绿注入生机，让设计承载最和谐的生命乐章。", imageUrl: "14.jpg" },
+      { colors: ["黄", "蓝", "黑"], fusion: "富足繁荣与深邃辽阔，在沉稳厚重中升华，是高原苍穹下的金色宁静。", declaration: "以高原黄承载富足，以天空蓝赋予深邃，以大地黑赋予沉稳，让设计在宁静中展现金色的深邃。", imageUrl: "15.jpg" },
+      { colors: ["黄", "绿", "黑"], fusion: "富足繁荣与生机活力，在沉稳厚重中生长，是高原大地上的金色生机。", declaration: "以高原黄承载富足，以森林绿注入生机，以大地黑赋予沉稳，让设计在稳重中展现金色的生机。", imageUrl: "16.jpg" },
+      { colors: ["红", "蓝", "绿"], fusion: "热情、深邃与生机交融，是高原天地间最丰富的生命交响。", declaration: "以炽烈红传递热情，以天空蓝赋予深邃，以森林绿注入生机，让设计承载最丰富的生命交响。", imageUrl: "17.jpg" },
+      { colors: ["红", "蓝", "黑"], fusion: "热情奔放与深邃辽阔，在沉稳厚重中升华，是高原苍穹下的炽热宁静。", declaration: "以炽烈红传递热情，以天空蓝赋予深邃，以大地黑赋予沉稳，让设计在宁静中展现炽热的深邃。", imageUrl: "18.jpg" },
+      { colors: ["红", "绿", "黑"], fusion: "热情奔放与生机活力，在沉稳厚重中生长，是高原大地上的炽热生命。", declaration: "以炽烈红传递热情，以森林绿注入生机，以大地黑赋予沉稳，让设计在稳重中展现炽热的生命。", imageUrl: "19.jpg" },
+      { colors: ["蓝", "绿", "黑"], fusion: "深邃辽阔与生机活力，在沉稳厚重中升华，是高原苍穹下的宁静生机。", declaration: "以天空蓝赋予深邃，以森林绿注入生机，以大地黑赋予沉稳，让设计在宁静中展现深邃的生机。", imageUrl: "20.jpg" }
+    ];
+
+    let selectedColors = [];
+    let currentImageUrl = "";
+
+    // 生成颜色卡片
+    function generateColorCards() {
+      const container = document.getElementById('colorCardsContainer');
+      container.innerHTML = '';
+      
+      colorData.forEach(color => {
+        const card = document.createElement('div');
+        card.className = 'color-card';
+        card.dataset.id = color.id;
+        
+        card.innerHTML = `
+          <div class="color-preview ${color.name === '白色' ? 'white' : ''}" style="background: ${color.colorCode};">
+            <span style="color: ${color.name === '白色' ? '#333' : 'white'}; font-weight: 600;">${color.name}</span>
+            <div class="checkmark"><i class="fa fa-check"></i></div>
+          </div>
+          <div class="font-medium text-slate-800 mb-1">${color.name}</div>
+          <div class="text-sm text-slate-600 mb-2">象征：${color.symbol}</div>
+          <div class="text-sm text-slate-500">${color.meaning}</div>
+        `;
+        
+        card.addEventListener('click', () => toggleColorSelection(color.id, card));
+        container.appendChild(card);
+      });
+    }
+
+    // 切换颜色选择
+    function toggleColorSelection(colorId, card) {
+      const index = selectedColors.indexOf(colorId);
+      if (index > -1) {
+        selectedColors.splice(index, 1);
+        card.classList.remove('selected');
+      } else if (selectedColors.length < 3) {
+        selectedColors.push(colorId);
+        card.classList.add('selected');
+      }
+      
+      updateSelectedCount();
+    }
+
+    // 更新选择计数
+    function updateSelectedCount() {
+      const count = selectedColors.length;
+      document.getElementById('selectedCount').textContent = count;
+      const confirmBtn = document.getElementById('confirmBtn');
+      if (count === 3) {
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = `<i class="fa fa-check mr-2"></i> 确认选择 (3/3)`;
+      } else {
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = `<i class="fa fa-check mr-2"></i> 确认选择 (${count}/3)`;
+      }
+    }
+
+    // 显示宣言视图
+    function showDeclarationView() {
+      const selectedColorNames = selectedColors.map(id => {
+        const color = colorData.find(c => c.id === id);
+        return color.simpleName;
+      }).sort().join('、');
+
+      // 查找匹配的组合
+      const combination = colorCombinations.find(combo => {
+        const comboColors = combo.colors.sort().join('、');
+        return comboColors === selectedColorNames;
+      });
+
+      if (combination) {
+        currentImageUrl = combination.imageUrl;
+        document.getElementById('fusionText').textContent = combination.fusion;
+        document.getElementById('declarationText').textContent = combination.declaration;
+        
+        // 显示选中的颜色预览
+        const previewContainer = document.getElementById('selectedColorsPreview');
+        previewContainer.innerHTML = selectedColors.map(id => {
+          const color = colorData.find(c => c.id === id);
+          return `<div class="color-circle ${color.name === '白色' ? 'white' : ''}" style="background: ${color.colorCode}; color: ${color.name === '白色' ? '#333' : 'white'};">${color.simpleName}</div>`;
+        }).join('');
+        
+        document.getElementById('colorSelectionView').style.display = 'none';
+        document.getElementById('declarationResultView').style.display = 'block';
+      }
+    }
+
+    // 生成邦典图片
+    function generateBangdianImage() {
+      const container = document.getElementById('generatedBangdianContainer');
+      container.innerHTML = `<img src="${currentImageUrl}" alt="您的专属邦典" class="w-full h-auto">`;
+      
+      document.getElementById('declarationResultView').style.display = 'none';
+      document.getElementById('imageDisplayView').style.display = 'block';
+    }
+
+    // 查看高清大图
+    function viewFullSizeImage() {
+      const fullSizeImg = document.getElementById('fullSizeImg');
+      fullSizeImg.src = currentImageUrl;
+      document.getElementById('imageViewerModal').style.display = 'flex';
+    }
+
+    // 事件监听器
+    document.getElementById('designBtn').addEventListener('click', () => {
+      document.getElementById('colorModal').style.display = 'flex';
+      selectedColors = [];
+      generateColorCards();
+      updateSelectedCount();
+    });
+
+    document.getElementById('closeModal').addEventListener('click', () => {
+      document.getElementById('colorModal').style.display = 'none';
+    });
+
+    document.getElementById('cancelBtn').addEventListener('click', () => {
+      document.getElementById('colorModal').style.display = 'none';
+    });
+
+    document.getElementById('confirmBtn').addEventListener('click', () => {
+      if (selectedColors.length !== 3) { alert('请选择3种颜色进行搭配'); return; }
+      showDeclarationView();
+    });
+
+    document.getElementById('generateBangdianBtn').addEventListener('click', generateBangdianImage);
+
+    document.getElementById('backToSelectionBtn').addEventListener('click', () => {
+      document.getElementById('declarationResultView').style.display = 'none';
+      document.getElementById('colorSelectionView').style.display = 'block';
+    });
+
+    document.getElementById('closeImageDisplayBtn').addEventListener('click', () => {
+      document.getElementById('colorModal').style.display = 'none';
+      document.getElementById('imageDisplayView').style.display = 'none';
+    });
+
+    document.getElementById('viewFullImageBtn').addEventListener('click', viewFullSizeImage);
+
+    document.getElementById('redesignFromImageBtn').addEventListener('click', () => {
+      document.getElementById('imageDisplayView').style.display = 'none';
+      document.getElementById('colorSelectionView').style.display = 'block';
+      selectedColors = [];
+      generateColorCards();
+      updateSelectedCount();
+    });
+
+    document.getElementById('closeImageViewer').addEventListener('click', () => {
+      document.getElementById('imageViewerModal').style.display = 'none';
+    });
+
+    document.getElementById('closeViewerBtn').addEventListener('click', () => {
+      document.getElementById('imageViewerModal').style.display = 'none';
+    });
+
+    // 拼图游戏功能
+    let puzzlePieces = [];
+    let emptyIndex = 15;
+    let moveCount = 0;
+    let timerInterval = null;
+    let seconds = 0;
+    let puzzleImageUrl = '';
+
+    function initPuzzleGame() {
+      puzzleImageUrl = currentImageUrl;
+      
+      // 预加载图片
+      const img = new Image();
+      img.onload = function() {
+        puzzlePieces = Array.from({ length: 16 }, (_, i) => i);
+        emptyIndex = 15;
+        moveCount = 0;
+        seconds = 0;
+        document.getElementById('moveCount').textContent = '0';
+        document.getElementById('timer').textContent = '00:00';
+        document.getElementById('puzzleSuccess').classList.add('hidden');
+        document.getElementById('puzzleContainer').parentElement.classList.remove('hidden');
+        shufflePuzzle();
+        renderPuzzle();
+        startTimer();
+      };
+      img.onerror = function() {
+        alert('图片加载失败，请重新设计邦典');
+        document.getElementById('puzzleModal').style.display = 'none';
+      };
+      img.src = puzzleImageUrl;
+    }
+
+    function shufflePuzzle() {
+      for (let i = puzzlePieces.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [puzzlePieces[i], puzzlePieces[j]] = [puzzlePieces[j], puzzlePieces[i]];
+      }
+      emptyIndex = puzzlePieces.indexOf(15);
+    }
+
+    function renderPuzzle() {
+      const container = document.getElementById('puzzleContainer');
+      container.innerHTML = '';
+      
+      console.log('拼图图片URL:', puzzleImageUrl);
+      
+      puzzlePieces.forEach((pieceIndex, position) => {
+        const piece = document.createElement('div');
+        piece.className = 'puzzle-piece';
+        piece.dataset.position = position;
+        
+        if (pieceIndex === 15) {
+          piece.classList.add('empty');
+        } else {
+          const row = Math.floor(pieceIndex / 4);
+          const col = pieceIndex % 4;
+          piece.style.backgroundImage = `url('${puzzleImageUrl}')`;
+          piece.style.backgroundPosition = `${col * 33.333}% ${row * 33.333}%`;
+          piece.addEventListener('click', () => movePiece(position));
+        }
+        
+        container.appendChild(piece);
+      });
+    }
+
+    function movePiece(position) {
+      const row = Math.floor(position / 4);
+      const col = position % 4;
+      const emptyRow = Math.floor(emptyIndex / 4);
+      const emptyCol = emptyIndex % 4;
+      
+      const isAdjacent = (Math.abs(row - emptyRow) === 1 && col === emptyCol) ||
+                       (Math.abs(col - emptyCol) === 1 && row === emptyRow);
+      
+      if (isAdjacent) {
+        [puzzlePieces[position], puzzlePieces[emptyIndex]] = [puzzlePieces[emptyIndex], puzzlePieces[position]];
+        emptyIndex = position;
+        moveCount++;
+        document.getElementById('moveCount').textContent = moveCount;
+        renderPuzzle();
+        checkWin();
+      }
+    }
+
+    function checkWin() {
+      const isWin = puzzlePieces.every((piece, index) => piece === index);
+      if (isWin) {
+        stopTimer();
+        setTimeout(() => {
+          document.getElementById('puzzleContainer').parentElement.classList.add('hidden');
+          document.getElementById('puzzleSuccess').classList.remove('hidden');
+          document.getElementById('finalMoves').textContent = moveCount;
+          document.getElementById('finalTime').textContent = formatTime(seconds);
+        }, 300);
+      }
+    }
+
+    function startTimer() {
+      stopTimer();
+      seconds = 0;
+      timerInterval = setInterval(() => {
+        seconds++;
+        document.getElementById('timer').textContent = formatTime(seconds);
+      }, 1000);
+    }
+
+    function stopTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+    }
+
+    function formatTime(totalSeconds) {
+      const mins = Math.floor(totalSeconds / 60);
+      const secs = totalSeconds % 60;
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function showHint() {
+      const container = document.getElementById('puzzleContainer');
+      const pieces = container.querySelectorAll('.puzzle-piece:not(.empty)');
+      pieces.forEach(piece => {
+        const position = parseInt(piece.dataset.position);
+        const pieceIndex = puzzlePieces[position];
+        if (pieceIndex === position) {
+          piece.classList.add('correct');
+        }
+      });
+      setTimeout(() => {
+        pieces.forEach(piece => piece.classList.remove('correct'));
+      }, 2000);
+    }
+
+    function solvePuzzle() {
+      stopTimer();
+      puzzlePieces = Array.from({ length: 16 }, (_, i) => i);
+      emptyIndex = 15;
+      renderPuzzle();
+      checkWin();
+    }
+
+    // 拼图游戏事件监听
+    document.getElementById('playPuzzleBtn').addEventListener('click', () => {
+      document.getElementById('puzzleModal').style.display = 'flex';
+      initPuzzleGame();
+    });
+
+    document.getElementById('closePuzzleModal').addEventListener('click', () => {
+      document.getElementById('puzzleModal').style.display = 'none';
+      stopTimer();
+    });
+
+    document.getElementById('restartPuzzleBtn').addEventListener('click', () => {
+      initPuzzleGame();
+    });
+
+    document.getElementById('showHintBtn').addEventListener('click', showHint);
+    document.getElementById('solvePuzzleBtn').addEventListener('click', solvePuzzle);
+
+    document.getElementById('playAgainBtn').addEventListener('click', () => {
+      initPuzzleGame();
+    });
+
+    // 滚动显示动画
+    document.addEventListener('DOMContentLoaded', () => {
+      const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      }, observerOptions);
+
+      document.querySelectorAll('.fade-in').forEach(el => {
+        observer.observe(el);
+      });
+    });
+  </script>
+</body>
+</html>

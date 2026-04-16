@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>邦典图片展示 - 地区分类</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --tibetan-red: #9E2A2F;
+      --turquoise: #2C9678;
+      --earth-brown: #8B5A2B;
+      --cream-white: #F5F5DC;
+      --light-gold: #E6C8A0;
+      --warm-gray: #F8F4ED;
+      --dark-text: #2C2C2C;
+      --tibetan-blue: #1E3A5F;
+      --tibetan-yellow: #D4A84B;
+    }
+
+    body {
+      font-family: 'Noto Sans SC', sans-serif;
+      background: linear-gradient(135deg, var(--warm-gray) 0%, white 100%);
+      min-height: 100vh;
+    }
+
+    .font-serif { font-family: 'Noto Serif SC', serif; }
+
+    .nav-header {
+      background: rgba(248, 244, 237, 0.95);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .nav-link {
+      position: relative;
+      color: var(--dark-text);
+      font-weight: 500;
+      transition: color 0.3s ease;
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--tibetan-red);
+      transition: width 0.3s ease;
+    }
+
+    .nav-link:hover::after, .nav-link.active::after { width: 100%; }
+    .nav-link.active { color: var(--tibetan-red); font-weight: 600; }
+
+    .image-item {
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+      cursor: pointer;
+    }
+
+    .image-item:hover {
+      transform: scale(1.05);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(8px);
+    }
+
+    .modal-content {
+      max-width: 90%;
+      max-height: 90vh;
+      position: relative;
+    }
+
+    .region-tag {
+      transition: all 0.3s ease;
+    }
+
+    .region-tag:hover {
+      transform: scale(1.05);
+    }
+
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(158, 42, 47, 0.1);
+      color: var(--tibetan-red);
+    }
+
+    .region-card {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+  </style>
+</head>
+<body>
+  <!-- 导航栏 -->
+  <header class="nav-header fixed top-0 left-0 right-0 z-50 px-4 py-3">
+    <div class="container mx-auto flex justify-between items-center">
+      <a href="index.html" class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-red-600 flex items-center justify-center">
+          <i class="fa fa-paint-brush text-white"></i>
+        </div>
+        <span class="font-bold text-xl" style="color: var(--tibetan-red);">邦典</span>
+      </a>
+      <nav class="hidden md:flex gap-6 text-base">
+        <a href="decode.html" class="nav-link">文化解码</a>
+        <a href="ai-generator.html" class="nav-link">AI创作</a>
+        <a href="designer.html" class="nav-link">设计工坊</a>
+        <a href="bangdian-gallery.html" class="nav-link active">邦典图鉴</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- 页面标题 -->
+  <section class="pt-24 pb-12 px-4">
+    <div class="container mx-auto max-w-6xl">
+      <div class="text-center">
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-800 font-serif mb-4">邦典图鉴</h1>
+        <p class="text-gray-600 text-lg max-w-2xl mx-auto">探索西藏各地区独特的邦典艺术，感受传统服饰文化的魅力</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 地区分类导航 -->
+  <section class="px-4 pb-8">
+    <div class="container mx-auto max-w-6xl">
+      <div class="flex flex-wrap justify-center gap-3">
+        <button class="region-tag active px-5 py-2.5 rounded-full bg-gradient-to-r from-red-500 to-amber-500 text-white font-medium shadow-lg">
+          <i class="fa fa-map-marker mr-2"></i>全部地区
+        </button>
+        <button class="region-tag px-5 py-2.5 rounded-full bg-white text-gray-700 font-medium shadow hover:shadow-md border border-gray-100">
+          <i class="fa fa-map-marker mr-2"></i>拉萨
+        </button>
+        <button class="region-tag px-5 py-2.5 rounded-full bg-white text-gray-700 font-medium shadow hover:shadow-md border border-gray-100">
+          <i class="fa fa-map-marker mr-2"></i>山南
+        </button>
+        <button class="region-tag px-5 py-2.5 rounded-full bg-white text-gray-700 font-medium shadow hover:shadow-md border border-gray-100">
+          <i class="fa fa-map-marker mr-2"></i>日喀则
+        </button>
+        <button class="region-tag px-5 py-2.5 rounded-full bg-white text-gray-700 font-medium shadow hover:shadow-md border border-gray-100">
+          <i class="fa fa-map-marker mr-2"></i>那曲
+        </button>
+        <button class="region-tag px-5 py-2.5 rounded-full bg-white text-gray-700 font-medium shadow hover:shadow-md border border-gray-100">
+          <i class="fa fa-map-marker mr-2"></i>阿里
+        </button>
+        <button class="region-tag px-5 py-2.5 rounded-full bg-white text-gray-700 font-medium shadow hover:shadow-md border border-gray-100">
+          <i class="fa fa-map-marker mr-2"></i>昌都
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 地区展示卡片 -->
+  <section class="px-4 pb-16">
+    <div class="container mx-auto max-w-6xl">
+      <!-- 拉萨地区 -->
+      <div id="region-lasa" class="region-section mb-16">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+            <i class="fa fa-building text-white"></i>
+          </div>
+          <div>
+            <h2 class="text-2xl font-bold text-gray-800 font-serif">拉萨地区邦典</h2>
+            <p class="text-gray-500 text-sm">淡雅素净 · 细条纹风格 · 低饱和度配色</p>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="lasa-grid">
+          <!-- 动态生成的图片 -->
+        </div>
+
+        <div class="mt-4 p-4 bg-amber-50 rounded-xl border border-amber-100">
+          <div class="flex items-start gap-3">
+            <div class="feature-icon flex-shrink-0">
+              <i class="fa fa-info-circle"></i>
+            </div>
+            <div>
+              <h4 class="font-semibold text-gray-800">拉萨邦典特点</h4>
+              <p class="text-gray-600 text-sm mt-1">拉萨作为西藏首府，邦典风格素净淡雅，以细条纹和低饱和度配色为主。色彩多采用邻近色搭配，如黄色与红色、绿色与蓝色等，整体呈现端庄典雅的气质，适合城镇女性日常穿戴。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 山南地区 -->
+      <div id="region-shannan" class="region-section mb-16">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-teal-500 flex items-center justify-center">
+            <i class="fa fa-mountain text-white"></i>
+          </div>
+          <div>
+            <h2 class="text-2xl font-bold text-gray-800 font-serif">山南地区邦典</h2>
+            <p class="text-gray-500 text-sm">金刚五色 · 高饱和度 · 藏文化发祥地</p>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="shannan-grid">
+          <!-- 动态生成的图片 -->
+        </div>
+
+        <div class="mt-4 p-4 bg-green-50 rounded-xl border border-green-100">
+          <div class="flex items-start gap-3">
+            <div class="feature-icon flex-shrink-0">
+              <i class="fa fa-star"></i>
+            </div>
+            <div>
+              <h4 class="font-semibold text-gray-800">山南邦典特点</h4>
+              <p class="text-gray-600 text-sm mt-1">山南作为藏文化发祥地，邦典严格遵循金刚五色观（红、蓝、绿、黄、白），色彩鲜艳夺目。杰德秀镇是著名的邦典产地，生产的"谢玛"邦典被誉为最上等的邦典。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 日喀则地区 -->
+      <div id="region-rikaze" class="region-section mb-16">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center">
+            <i class="fa fa-temple text-white"></i>
+          </div>
+          <div>
+            <h2 class="text-2xl font-bold text-gray-800 font-serif">日喀则地区邦典</h2>
+            <p class="text-gray-500 text-sm">青绿梯度 · 强对比 · 高饱和度</p>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="rikaze-grid">
+          <!-- 动态生成的图片 -->
+        </div>
+
+        <div class="mt-4 p-4 bg-blue-50 rounded-xl border border-blue-100">
+          <div class="flex items-start gap-3">
+            <div class="feature-icon flex-shrink-0">
+              <i class="fa fa-snowflake-o"></i>
+            </div>
+            <div>
+              <h4 class="font-semibold text-gray-800">日喀则邦典特点</h4>
+              <p class="text-gray-600 text-sm mt-1">日喀则邦典以青绿梯度色谱为标志，单件织物呈现从墨绿至浅绿的连续色阶渐变，并间杂玫红色形成视觉冲击。高饱和度色相的对撞式组合，构成了该区域独特的地域识别符号。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 那曲地区 -->
+      <div id="region-naqu" class="region-section mb-16">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center">
+            <i class="fa fa-flag text-white"></i>
+          </div>
+          <div>
+            <h2 class="text-2xl font-bold text-gray-800 font-serif">那曲地区邦典</h2>
+            <p class="text-gray-500 text-sm">单色系主导 · 金色点缀 · 独特图案</p>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="naqu-grid">
+          <!-- 动态生成的图片 -->
+        </div>
+
+        <div class="mt-4 p-4 bg-yellow-50 rounded-xl border border-yellow-100">
+          <div class="flex items-start gap-3">
+            <div class="feature-icon flex-shrink-0">
+              <i class="fa fa-bull"></i>
+            </div>
+            <div>
+              <h4 class="font-semibold text-gray-800">那曲邦典特点</h4>
+              <p class="text-gray-600 text-sm mt-1">那曲地处羌塘高原，邦典以单色系为主导，黄色调称"色梯"，黑色调称"那梯"。面料厚实保暖，适应高原严寒气候，常以牦牛毛本色为主色调，具有独特的地域图案。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 阿里地区 -->
+      <div id="region-ali" class="region-section mb-16">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center">
+            <i class="fa fa-sun-o text-white"></i>
+          </div>
+          <div>
+            <h2 class="text-2xl font-bold text-gray-800 font-serif">阿里地区邦典</h2>
+            <p class="text-gray-500 text-sm">明亮强对比 · 暖色为主 · 高纯度</p>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="ali-grid">
+          <!-- 动态生成的图片 -->
+        </div>
+
+        <div class="mt-4 p-4 bg-orange-50 rounded-xl border border-orange-100">
+          <div class="flex items-start gap-3">
+            <div class="feature-icon flex-shrink-0">
+              <i class="fa fa-moon-o"></i>
+            </div>
+            <div>
+              <h4 class="font-semibold text-gray-800">阿里邦典特点</h4>
+              <p class="text-gray-600 text-sm mt-1">阿里地区邦典运用大面积亮色色块，构成明度纯度较高的色彩组合。在广袤的高原背景下，鲜艳的色彩如同阳光般耀眼，展现出独特的生命力和热情。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 昌都地区 -->
+      <div id="region-changdu" class="region-section mb-16">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-12 h-12 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center">
+            <i class="fa fa-flower text-white"></i>
+          </div>
+          <div>
+            <h2 class="text-2xl font-bold text-gray-800 font-serif">昌都地区邦典</h2>
+            <p class="text-gray-500 text-sm">渐变效果 · 丰富层次 · 白色面积大</p>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="changdu-grid">
+          <!-- 动态生成的图片 -->
+        </div>
+
+        <div class="mt-4 p-4 bg-pink-50 rounded-xl border border-pink-100">
+          <div class="flex items-start gap-3">
+            <div class="feature-icon flex-shrink-0">
+              <i class="fa fa-palette"></i>
+            </div>
+            <div>
+              <h4 class="font-semibold text-gray-800">昌都邦典特点</h4>
+              <p class="text-gray-600 text-sm mt-1">昌都邦典善于运用不同色阶的渐变色效果，白色面积占比大，色彩空间混合构成效果明显。由于昌都服饰本身色彩绚丽，邦典多选择相似色相搭配，呈现和谐优雅的视觉效果。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 图片预览模态框 -->
+  <div id="imageModal" class="modal-overlay">
+    <button id="closeModal" class="absolute top-6 right-6 w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm text-white flex items-center justify-center hover:bg-white/30 transition-colors z-10">
+      <i class="fa fa-times text-xl"></i>
+    </button>
+    <button id="prevBtn" class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm text-white flex items-center justify-center hover:bg-white/30 transition-colors">
+      <i class="fa fa-chevron-left text-xl"></i>
+    </button>
+    <button id="nextBtn" class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm text-white flex items-center justify-center hover:bg-white/30 transition-colors">
+      <i class="fa fa-chevron-right text-xl"></i>
+    </button>
+    <div class="modal-content">
+      <img id="previewImage" src="" alt="预览" class="max-w-full max-h-[80vh] rounded-lg shadow-2xl">
+      <div class="mt-4 text-center">
+        <h3 id="imageTitle" class="text-xl font-bold text-white">图片标题</h3>
+        <p id="imageDesc" class="text-gray-300 text-sm mt-1">图片描述</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 页脚 -->
+  <footer class="bg-gray-800 text-white py-12 px-4">
+    <div class="container mx-auto max-w-6xl">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div>
+          <h3 class="font-bold text-lg mb-4">邦典文化</h3>
+          <p class="text-gray-400 text-sm">探索藏族传统服饰文化，感受邦典艺术的独特魅力。</p>
+        </div>
+        <div>
+          <h3 class="font-bold text-lg mb-4">快速链接</h3>
+          <ul class="space-y-2 text-gray-400 text-sm">
+            <li><a href="decode.html" class="hover:text-white transition-colors">文化解码</a></li>
+            <li><a href="ai-generator.html" class="hover:text-white transition-colors">AI创作</a></li>
+            <li><a href="designer.html" class="hover:text-white transition-colors">设计工坊</a></li>
+            <li><a href="bangdian-gallery.html" class="hover:text-white transition-colors">邦典图鉴</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-bold text-lg mb-4">联系我们</h3>
+          <p class="text-gray-400 text-sm">邮箱: contact@bangdian.com</p>
+          <p class="text-gray-400 text-sm">电话: 400-xxx-xxxx</p>
+        </div>
+      </div>
+      <div class="mt-8 pt-8 border-t border-gray-700 text-center text-gray-400 text-sm">
+        <p>2024 邦典文化 - 传承非遗，弘扬传统</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // 邦典色彩方案 - 根据地区分类（严格遵循学术资料）
+    const bangdianColorSchemes = {
+      '拉萨': [
+        ['#8B7355', '#A08060', '#C4A574', '#D4B896', '#E8D5B7', '#F5E6D3'],
+        ['#6B5B4B', '#8B7B6B', '#A8A090', '#C4BCAC', '#DCD4C4', '#EEE8E0'],
+        ['#7A6A5A', '#9A8A7A', '#B8B0A0', '#D4CCC0', '#E8E0D8', '#F5F0E8'],
+        ['#5C4C3C', '#7C6C5C', '#9C8C7C', '#BCAC9C', '#DCD4C8', '#EDE8E0']
+      ],
+      '山南': [
+        ['#D4A574', '#9E2A2F', '#2C9678', '#1E3A5F', '#FFFFFF', '#FFD700'],
+        ['#E6C8A0', '#C73E3E', '#3DB48E', '#2D4A6F', '#FFFFFF', '#FFE066'],
+        ['#D4B896', '#8B2A2F', '#2A8A68', '#1A3050', '#FFFFFF', '#FFC700'],
+        ['#F0D0A8', '#A73E3E', '#4DB49E', '#3D5A7F', '#FFFFFF', '#FFE888']
+      ],
+      '日喀则': [
+        ['#2C9678', '#3DB48E', '#4ECDC4', '#1E3A5F', '#FF6B8A', '#D4A574'],
+        ['#2A8A68', '#3A9A78', '#4AB8B8', '#1A3050', '#FF5B7A', '#C89868'],
+        ['#3DB48E', '#4DC49E', '#5ED4C4', '#2D4A6F', '#FF8FA3', '#E6C8A0'],
+        ['#2C7A68', '#3C8A78', '#4C9A88', '#1E2A4F', '#FF4B6A', '#BC8858']
+      ],
+      '那曲': [
+        ['#D4A574', '#E6C8A0', '#F0D8B8', '#D4B896', '#C8A888', '#4A4A4A'],
+        ['#FFD700', '#FFE066', '#FFE888', '#FFC700', '#FFB800', '#3A3A3A'],
+        ['#4A4A4A', '#5A5A5A', '#6A6A6A', '#4A4A4A', '#5A5A5A', '#D4A574'],
+        ['#E6C8A0', '#F0D8B8', '#F5E4C8', '#E8D4A8', '#DCC498', '#5A5A5A']
+      ],
+      '阿里': [
+        ['#FF6B8A', '#FF8FA3', '#FFA0B3', '#2C9678', '#1E3A5F', '#D4A574'],
+        ['#FF8C00', '#FFA500', '#FFB520', '#3DB48E', '#2D4A6F', '#E6C8A0'],
+        ['#FF5B7A', '#FF7F9A', '#FF9FB3', '#2A8A68', '#1A3050', '#D4B896'],
+        ['#FFD700', '#FFE066', '#FFE888', '#4DB49E', '#3D5A7F', '#F0D8B8']
+      ],
+      '昌都': [
+        ['#FFFFFF', '#F5F5F5', '#E8E8E8', '#D4A574', '#C73E3E', '#3DB48E'],
+        ['#FFFFFF', '#FAFAFA', '#F0F0F0', '#E6C8A0', '#D74E4E', '#4DC49E'],
+        ['#FFFFFF', '#F8F8F8', '#ECECEC', '#D4B896', '#B73E3E', '#2A8A68'],
+        ['#FFFFFF', '#FDFDFD', '#F5F5F5', '#F0D8B8', '#E75E5E', '#5DC4AE']
+      ]
+    };
+
+    // 条纹宽度方案
+    const stripePatterns = [
+      [15, 25, 10, 35, 15, 40, 12, 28, 18, 32],
+      [20, 30, 15, 25, 20, 35, 10, 40, 15, 28],
+      [25, 15, 30, 12, 35, 18, 25, 10, 30, 20],
+      [18, 32, 12, 28, 22, 38, 10, 42, 16, 26],
+      [30, 20, 15, 35, 18, 28, 22, 32, 14, 36]
+    ];
+
+    // 生成真实邦典风格图案
+    const generateBangdianPattern = (region, index) => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 360;
+      canvas.height = 240;
+      const ctx = canvas.getContext('2d');
+
+      // 根据地区选择颜色方案
+      const colorSchemes = bangdianColorSchemes[region] || bangdianColorSchemes['拉萨'];
+      const colors = colorSchemes[index % colorSchemes.length];
+      const stripes = stripePatterns[index % stripePatterns.length];
+
+      // 绘制顶部装饰区域（传统邦典的"卓嘎"）
+      const drawTopDecoration = () => {
+        // 顶部黄色装饰条
+        ctx.fillStyle = '#D4A574';
+        ctx.fillRect(0, 0, 360, 6);
+        
+        // 装饰图案
+        ctx.fillStyle = '#9E2A2F';
+        const patternSize = 27;
+        for (let i = 0; i < 360; i += patternSize) {
+          ctx.beginPath();
+          ctx.moveTo(i + patternSize/2, 12);
+          ctx.lineTo(i + patternSize/4, 30);
+          ctx.lineTo(i + 3*patternSize/4, 30);
+          ctx.closePath();
+          ctx.fill();
+        }
+        
+        // 分隔线
+        ctx.fillStyle = '#1E3A5F';
+        ctx.fillRect(0, 33, 360, 2);
+      };
+
+      drawTopDecoration();
+
+      // 绘制水平条纹（邦典最核心的特征）
+      let y = 40;
+      for (let i = 0; i < stripes.length; i++) {
+        const color = colors[i % colors.length];
+        
+        // 绘制纯色条纹（传统邦典风格）
+        ctx.fillStyle = color;
+        ctx.fillRect(0, y, 360, stripes[i]);
+        
+        // 添加细微的羊毛质感纹理
+        ctx.globalAlpha = 0.03;
+        for (let tx = 0; tx < 360; tx += 5) {
+          for (let ty = y; ty < y + stripes[i]; ty += 5) {
+            ctx.fillStyle = Math.random() > 0.6 ? '#fff' : '#000';
+            ctx.fillRect(tx, ty, 2, 2);
+          }
+        }
+        ctx.globalAlpha = 1;
+        
+        // 添加细白线分隔
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.fillRect(0, y + stripes[i] - 1, 360, 1);
+        
+        y += stripes[i];
+        if (y >= 235) break;
+      }
+
+      // 添加侧边边框
+      ctx.strokeStyle = '#4169E1';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(0, 0, 360, 240);
+
+      return canvas.toDataURL('image/png');
+    };
+
+    // 邦典名称和描述数据
+    const regionData = {
+      '拉萨': [
+        { name: '查钦样式', desc: '传统宽条纹彩虹色' },
+        { name: '噶察样式', desc: '白底间色细条纹' },
+        { name: '日常邦典', desc: '素雅邻近色搭配' },
+        { name: '素色邦典', desc: '低饱和灰色调' }
+      ],
+      '山南': [
+        { name: '谢玛邦典', desc: '最上等精纺邦典' },
+        { name: '马森穹朱', desc: '传统色彩搭配' },
+        { name: '盛装邦典', desc: '婚礼庆典专用' },
+        { name: '囊布邦典', desc: '粗制日常款' }
+      ],
+      '日喀则': [
+        { name: '降查样式', desc: '蓝绿冷色调搭配' },
+        { name: '欧穷样式', desc: '蓝棕对比配色' },
+        { name: '宽条纹邦典', desc: '大面积色块' },
+        { name: '传统藏色', desc: '高饱和强对比' }
+      ],
+      '那曲': [
+        { name: '色梯样式', desc: '黄色调邦典' },
+        { name: '那梯样式', desc: '黑色调邦典' },
+        { name: '牦牛纹邦典', desc: '独特地域图案' },
+        { name: '牧区邦典', desc: '厚实耐用保暖' }
+      ],
+      '阿里': [
+        { name: '暖色邦典', desc: '红橙黄配色' },
+        { name: '高对比邦典', desc: '强烈视觉冲击' },
+        { name: '高原风格', desc: '阳光色系' },
+        { name: '传统纹样', desc: '地域特色鲜明' }
+      ],
+      '昌都': [
+        { name: '渐变邦典', desc: '多色阶渐变' },
+        { name: '白底间色', desc: '白色面积大' },
+        { name: '空间混合', desc: '色彩视觉混合' },
+        { name: '传统五色', desc: '藏式经典配色' }
+      ]
+    };
+
+    // 初始化地区画廊
+    const initRegionGallery = () => {
+      const regions = ['拉萨', '山南', '日喀则', '那曲', '阿里', '昌都'];
+      const grids = ['lasa-grid', 'shannan-grid', 'rikaze-grid', 'naqu-grid', 'ali-grid', 'changdu-grid'];
+
+      regions.forEach((region, regionIndex) => {
+        const grid = document.getElementById(grids[regionIndex]);
+        const data = regionData[region];
+        
+        data.forEach((item, itemIndex) => {
+          const imageDataUrl = generateBangdianPattern(region, itemIndex);
+          
+          const card = document.createElement('div');
+          card.className = 'image-item rounded-xl overflow-hidden shadow-lg';
+          card.innerHTML = `
+            <img src="${imageDataUrl}" alt="${item.name}" class="w-full h-40 object-cover">
+            <div class="p-3 bg-white">
+              <h3 class="font-semibold text-gray-800 text-sm">${item.name}</h3>
+              <p class="text-gray-500 text-xs mt-1">${item.desc}</p>
+            </div>
+          `;
+          card.addEventListener('click', () => {
+            openPreview(imageDataUrl, item.name, item.desc);
+          });
+          grid.appendChild(card);
+        });
+      });
+    };
+
+    // 预览图片
+    const modal = document.getElementById('imageModal');
+    const previewImage = document.getElementById('previewImage');
+    const imageTitle = document.getElementById('imageTitle');
+    const imageDesc = document.getElementById('imageDesc');
+    const closeModal = document.getElementById('closeModal');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    let allImages = [];
+    let currentIndex = 0;
+
+    const openPreview = (src, title, desc) => {
+      // 重新收集所有图片
+      allImages = [];
+      document.querySelectorAll('.image-item').forEach((item, index) => {
+        const img = item.querySelector('img');
+        const title = item.querySelector('h3').textContent;
+        const desc = item.querySelector('p').textContent;
+        allImages.push({ src: img.src, title, desc });
+      });
+      
+      currentIndex = allImages.findIndex(img => img.src === src);
+      updatePreview();
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    };
+
+    const updatePreview = () => {
+      const image = allImages[currentIndex];
+      previewImage.src = image.src;
+      imageTitle.textContent = image.title;
+      imageDesc.textContent = image.desc;
+    };
+
+    closeModal.addEventListener('click', () => {
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+    });
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    });
+
+    prevBtn.addEventListener('click', () => {
+      currentIndex = currentIndex > 0 ? currentIndex - 1 : allImages.length - 1;
+      updatePreview();
+    });
+
+    nextBtn.addEventListener('click', () => {
+      currentIndex = currentIndex < allImages.length - 1 ? currentIndex + 1 : 0;
+      updatePreview();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (modal.style.display === 'flex') {
+        if (e.key === 'ArrowLeft') prevBtn.click();
+        if (e.key === 'ArrowRight') nextBtn.click();
+        if (e.key === 'Escape') closeModal.click();
+      }
+    });
+
+    // 地区筛选
+    document.querySelectorAll('.region-tag').forEach(tag => {
+      tag.addEventListener('click', () => {
+        document.querySelectorAll('.region-tag').forEach(t => t.classList.remove('active', 'bg-gradient-to-r', 'from-red-500', 'to-amber-500', 'text-white', 'shadow-lg'));
+        tag.classList.add('active', 'bg-gradient-to-r', 'from-red-500', 'to-amber-500', 'text-white', 'shadow-lg');
+
+        const region = tag.textContent.replace('地区', '').trim();
+        
+        document.querySelectorAll('.region-section').forEach(section => {
+          if (region === '全部') {
+            section.style.display = 'block';
+          } else {
+            const sectionId = section.id.replace('region-', '');
+            const regionMap = { '拉萨': 'lasa', '山南': 'shannan', '日喀则': 'rikaze', '那曲': 'naqu', '阿里': 'ali', '昌都': 'changdu' };
+            if (sectionId === regionMap[region]) {
+              section.style.display = 'block';
+            } else {
+              section.style.display = 'none';
+            }
+          }
+        });
+      });
+    });
+
+    // 页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', () => {
+      initRegionGallery();
+    });
+  </script>
+</body>
+</html>

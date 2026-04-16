@@ -1,0 +1,772 @@
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>邦典 | 经纬之间，藏家故事 - 藏族文化数字体验平台</title>
+  <meta name="description" content="探索国家级非物质文化遗产藏族邦典，体验传统与科技融合的文化之旅">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --tibetan-red: #9E2A2F;
+      --turquoise: #2C9678;
+      --earth-brown: #8B5A2B;
+      --cream-white: #F5F5DC;
+      --light-gold: #E6C8A0;
+      --warm-gray: #F8F4ED;
+      --dark-text: #2C2C2C;
+      --tibetan-blue: #1E3A5F;
+      --tibetan-yellow: #D4A84B;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Noto Sans SC', sans-serif;
+      background-color: var(--warm-gray);
+      color: var(--dark-text);
+      overflow-x: hidden;
+    }
+
+    .font-serif { font-family: 'Noto Serif SC', serif; }
+
+    /* 粒子背景 */
+    #particle-canvas {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none;
+    }
+
+    /* 导航栏 */
+    .nav-header {
+      position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); padding: 1.25rem 2rem;
+    }
+
+    .nav-header.scrolled {
+      background: rgba(248, 244, 237, 0.95); backdrop-filter: blur(20px);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08); padding: 0.75rem 2rem;
+    }
+
+    .nav-header.scrolled .nav-link { color: var(--dark-text); }
+    .nav-header.scrolled .logo-text { color: var(--tibetan-red); }
+
+    .nav-link {
+      position: relative; color: white; font-weight: 500; transition: color 0.3s ease;
+    }
+
+    .nav-link::after {
+      content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px;
+      background: var(--tibetan-red); transition: width 0.3s ease;
+    }
+
+    .nav-link:hover::after { width: 100%; }
+
+    /* Hero Section */
+    .hero-section {
+      position: relative; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      overflow: hidden; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    }
+
+    .hero-bg {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: url('images/feng.png') center/cover; opacity: 0.4;
+    }
+
+    .hero-overlay {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(180deg, rgba(26, 26, 46, 0.7) 0%, rgba(22, 33, 62, 0.5) 50%, rgba(15, 52, 96, 0.8) 100%);
+    }
+
+    .hero-content {
+      position: relative; z-index: 10; text-align: center; color: white;
+      padding: 2rem; max-width: 1000px;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(0.9rem, 2vw, 1.1rem); letter-spacing: 0.3em;
+      text-transform: uppercase; opacity: 0.8; margin-bottom: 1.5rem;
+      animation: fadeInUp 1s ease-out;
+    }
+
+    .hero-title {
+      font-size: clamp(2.5rem, 6vw, 5rem); font-weight: 700; line-height: 1.2;
+      margin-bottom: 1.5rem; animation: fadeInUp 1s ease-out 0.2s both;
+    }
+
+    .hero-title span { display: block; }
+
+    .hero-title .highlight {
+      background: linear-gradient(135deg, var(--light-gold), var(--tibetan-yellow));
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-description {
+      font-size: clamp(1rem, 2vw, 1.25rem); line-height: 1.8; opacity: 0.9;
+      max-width: 700px; margin: 0 auto 2.5rem;
+      animation: fadeInUp 1s ease-out 0.4s both;
+    }
+
+    .hero-cta {
+      display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+      animation: fadeInUp 1s ease-out 0.6s both;
+    }
+
+    .btn-primary {
+      padding: 1rem 2.5rem; background: linear-gradient(135deg, var(--tibetan-red), #c73e3e);
+      color: white; border-radius: 50px; font-weight: 600; text-decoration: none;
+      transition: all 0.3s ease; box-shadow: 0 10px 30px rgba(158, 42, 47, 0.3);
+      display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px); box-shadow: 0 15px 40px rgba(158, 42, 47, 0.4);
+    }
+
+    .btn-secondary {
+      padding: 1rem 2.5rem; background: transparent; color: white;
+      border: 2px solid rgba(255, 255, 255, 0.5); border-radius: 50px;
+      font-weight: 600; text-decoration: none; transition: all 0.3s ease;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1); border-color: white;
+    }
+
+    /* 滚动提示 */
+    .scroll-indicator {
+      position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+      color: white; opacity: 0.7; animation: bounce 2s infinite; cursor: pointer;
+    }
+
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
+      40% { transform: translateX(-50%) translateY(-10px); }
+      60% { transform: translateX(-50%) translateY(-5px); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 核心价值卡片 */
+    .values-section { padding: 6rem 2rem; position: relative; }
+
+    .section-header { text-align: center; margin-bottom: 4rem; }
+
+    .section-tag {
+      display: inline-block; padding: 0.5rem 1.5rem;
+      background: linear-gradient(135deg, var(--tibetan-red), var(--turquoise));
+      color: white; border-radius: 50px; font-size: 0.875rem; font-weight: 500;
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-size: clamp(2rem, 4vw, 3rem); font-weight: 700;
+      color: var(--dark-text); margin-bottom: 1rem;
+    }
+
+    .section-subtitle {
+      font-size: 1.125rem; color: #666; max-width: 600px; margin: 0 auto;
+    }
+
+    .values-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem; max-width: 1400px; margin: 0 auto;
+    }
+
+    .value-card {
+      background: white; border-radius: 20px; padding: 2.5rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative; overflow: hidden;
+    }
+
+    .value-card::before {
+      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+      background: linear-gradient(90deg, var(--tibetan-red), var(--turquoise));
+      transform: scaleX(0); transition: transform 0.4s ease;
+    }
+
+    .value-card:hover {
+      transform: translateY(-10px); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+    }
+
+    .value-card:hover::before { transform: scaleX(1); }
+
+    .value-icon {
+      width: 70px; height: 70px; border-radius: 20px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.75rem; margin-bottom: 1.5rem; transition: transform 0.3s ease;
+    }
+
+    .value-card:hover .value-icon { transform: scale(1.1) rotate(5deg); }
+
+    .value-icon.nature { background: linear-gradient(135deg, #E8F5E9, #C8E6C9); color: var(--turquoise); }
+    .value-icon.faith { background: linear-gradient(135deg, #FFF3E0, #FFE0B2); color: var(--tibetan-yellow); }
+    .value-icon.life { background: linear-gradient(135deg, #FCE4EC, #F8BBD9); color: var(--tibetan-red); }
+    .value-icon.women { background: linear-gradient(135deg, #E3F2FD, #BBDEFB); color: var(--tibetan-blue); }
+
+    .value-title {
+      font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem;
+      color: var(--dark-text);
+    }
+
+    .value-description { color: #666; line-height: 1.7; font-size: 0.95rem; }
+
+    /* 非遗特色展示 */
+    .heritage-section {
+      padding: 6rem 2rem; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      position: relative; overflow: hidden;
+    }
+
+    .heritage-section::before {
+      content: ''; position: absolute; top: -50%; right: -20%;
+      width: 80%; height: 100%; background: radial-gradient(circle, rgba(230, 200, 160, 0.1) 0%, transparent 70%);
+    }
+
+    .heritage-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 4rem;
+      max-width: 1200px; margin: 0 auto; position: relative; z-index: 1;
+    }
+
+    .heritage-visual {
+      position: relative; display: flex; align-items: center; justify-content: center;
+    }
+
+    .bangdian-showcase {
+      width: 100%; max-width: 380px; aspect-ratio: 3/4;
+      border-radius: 20px; overflow: hidden;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+      position: relative;
+    }
+
+    .bangdian-showcase img {
+      width: 100%; height: 100%; object-fit: contain;
+    }
+
+    .bangdian-frame {
+      position: absolute; inset: 8px; border: 2px solid rgba(230, 200, 160, 0.3);
+      border-radius: 12px; pointer-events: none;
+    }
+
+    .heritage-info { color: white; }
+
+    .heritage-info h3 {
+      font-size: 2rem; font-weight: 700; margin-bottom: 1rem;
+      font-family: 'Noto Serif SC', serif;
+    }
+
+    .heritage-info p {
+      color: rgba(255, 255, 255, 0.8); line-height: 1.8;
+      margin-bottom: 1.5rem;
+    }
+
+    .heritage-highlight {
+      display: flex; gap: 1.5rem; flex-wrap: wrap;
+    }
+
+    .highlight-item {
+      flex: 1; min-width: 120px;
+      background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);
+      padding: 1.5rem; border-radius: 12px; text-align: center;
+      transition: transform 0.3s ease;
+    }
+
+    .highlight-item:hover { transform: translateY(-5px); }
+
+    .highlight-number {
+      font-size: 2rem; font-weight: 700;
+      background: linear-gradient(135deg, var(--light-gold), var(--tibetan-yellow));
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .highlight-label {
+      font-size: 0.85rem; color: rgba(255, 255, 255, 0.7);
+      margin-top: 0.5rem;
+    }
+
+    /* 特色功能展示 */
+    .features-section { padding: 6rem 2rem; }
+
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem; max-width: 1400px; margin: 0 auto;
+    }
+
+    .feature-card {
+      background: white; border-radius: 20px; overflow: hidden;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .feature-card:hover {
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
+    }
+
+    .feature-image {
+      height: 180px; overflow: hidden; position: relative;
+    }
+
+    .feature-image img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform 0.6s ease;
+    }
+
+    .feature-card:hover .feature-image img { transform: scale(1.1); }
+
+    .feature-badge {
+      position: absolute; top: 1rem; right: 1rem;
+      background: rgba(255, 255, 255, 0.95); padding: 0.5rem 1rem;
+      border-radius: 50px; font-size: 0.8rem; font-weight: 600;
+      color: var(--tibetan-red); backdrop-filter: blur(10px);
+    }
+
+    .feature-content { padding: 1.5rem; }
+
+    .feature-title {
+      font-size: 1.25rem; font-weight: 700; margin-bottom: 0.75rem;
+      color: var(--dark-text);
+    }
+
+    .feature-description {
+      color: #666; line-height: 1.6; font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    .feature-btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      color: var(--tibetan-red); font-weight: 600; text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .feature-btn:hover {
+      color: #7A1F23; transform: translateX(5px);
+    }
+
+    /* 文化传承者展示 */
+    .masters-section {
+      padding: 6rem 2rem; background: linear-gradient(180deg, var(--warm-gray) 0%, white 100%);
+    }
+
+    .masters-showcase {
+      max-width: 1200px; margin: 0 auto;
+    }
+
+    .masters-carousel {
+      display: flex; gap: 2rem; overflow-x: auto;
+      padding-bottom: 1rem; scroll-snap-type: x mandatory;
+    }
+
+    .masters-carousel::-webkit-scrollbar { height: 6px; }
+    .masters-carousel::-webkit-scrollbar-track { background: #f0f0f0; border-radius: 3px; }
+    .masters-carousel::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+
+    .master-card {
+      flex: 0 0 300px; background: white; border-radius: 20px;
+      padding: 2rem; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+      scroll-snap-align: center; transition: transform 0.3s ease;
+    }
+
+    .master-card:hover { transform: translateY(-5px); }
+
+    .master-avatar {
+      width: 100px; height: 100px; border-radius: 50%;
+      margin: 0 auto 1.5rem; background: linear-gradient(135deg, var(--light-gold), var(--tibetan-yellow));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3rem; color: white;
+    }
+
+    .master-name {
+      text-align: center; font-size: 1.25rem; font-weight: 700;
+      color: var(--dark-text); margin-bottom: 0.5rem;
+    }
+
+    .master-title {
+      text-align: center; font-size: 0.9rem; color: var(--tibetan-red);
+      margin-bottom: 1rem;
+    }
+
+    .master-desc {
+      text-align: center; color: #666; font-size: 0.9rem; line-height: 1.6;
+    }
+
+    /* 页脚 */
+    .footer {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: white; padding: 4rem 2rem 2rem;
+    }
+
+    .footer-content {
+      max-width: 1200px; margin: 0 auto;
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem;
+    }
+
+    .footer-brand h3 {
+      font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem;
+      background: linear-gradient(135deg, var(--light-gold), var(--tibetan-yellow));
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .footer-brand p { color: rgba(255, 255, 255, 0.7); line-height: 1.8; }
+
+    .footer-title { font-weight: 600; margin-bottom: 1rem; color: var(--light-gold); }
+
+    .footer-links { list-style: none; }
+    .footer-links li { margin-bottom: 0.75rem; }
+    .footer-links a {
+      color: rgba(255, 255, 255, 0.7); text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    .footer-links a:hover { color: var(--light-gold); }
+
+    .footer-bottom {
+      max-width: 1200px; margin: 3rem auto 0; padding-top: 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      text-align: center; color: rgba(255, 255, 255, 0.5); font-size: 0.9rem;
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 1024px) {
+      .heritage-grid { grid-template-columns: 1fr; gap: 3rem; }
+      .footer-content { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      .hero-title { font-size: 2rem; }
+      .masters-carousel { gap: 1rem; }
+      .master-card { flex: 0 0 260px; }
+      .footer-content { grid-template-columns: 1fr; text-align: center; }
+    }
+
+    /* 动画类 */
+    .fade-in {
+      opacity: 0; transform: translateY(30px);
+      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+  <!-- 粒子背景 -->
+  <canvas id="particle-canvas"></canvas>
+
+  <!-- 导航栏 -->
+  <header class="nav-header" id="navbar">
+    <div class="container mx-auto flex justify-between items-center">
+      <a href="index.html" class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-red-600 flex items-center justify-center">
+          <i class="fa fa-paint-brush text-white"></i>
+        </div>
+        <span class="logo-text text-2xl font-bold text-white transition-colors duration-300">邦典</span>
+      </a>
+      <nav class="hidden md:flex gap-8">
+        <a href="decode.html" class="nav-link">文化解码</a>
+        <a href="designer.html" class="nav-link">AI创作</a>
+        <a href="bangdian-gallery.html" class="nav-link">邦典图鉴</a>
+        <a href="life-journey.html" class="nav-link">邦典家族</a>
+      </nav>
+      <button id="loginBtn" class="px-4 py-2 bg-gradient-to-r from-red-600 to-amber-500 text-white rounded-lg hover:from-red-700 hover:to-amber-600 transition-colors font-medium">
+        <i class="fa fa-user-circle mr-2"></i> 登录
+      </button>
+      <button class="md:hidden text-white text-2xl" id="mobile-menu-btn">
+        <i class="fa fa-bars"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section" id="home">
+    <div class="hero-bg"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <p class="hero-subtitle font-serif">Tibetan Bangdian Culture</p>
+      <h1 class="hero-title font-serif">
+        <span>邦典</span>
+        <span class="highlight">经纬之间，藏家故事</span>
+      </h1>
+      <p class="hero-description">
+        雪域腰间的六色密码，一部无声的成长传记。探索国家级非物质文化遗产——藏族邦典的深厚内涵，体验传统与科技融合的文化之旅。
+      </p>
+      <div class="hero-cta">
+        <a href="experience.html" class="btn-primary">
+          <i class="fa fa-headphones"></i> 沉浸式体验
+        </a>
+        <a href="gam.html" class="btn-secondary">
+          <i class="fa fa-heart"></i> 人生历程
+        </a>
+      </div>
+    </div>
+    <div class="scroll-indicator" onclick="document.getElementById('values').scrollIntoView({behavior: 'smooth'})">
+      <i class="fa fa-chevron-down text-2xl"></i>
+    </div>
+  </section>
+
+  <!-- 非遗特色展示 -->
+  <section class="heritage-section">
+    <div class="section-header fade-in" style="margin-bottom: 2rem;">
+      <span class="section-tag" style="background: linear-gradient(135deg, var(--light-gold), var(--tibetan-yellow));">非遗瑰宝</span>
+      <h2 class="section-title font-serif" style="color: white;">藏族邦典的独特魅力</h2>
+    </div>
+
+    <div class="heritage-grid">
+      <div class="heritage-info fade-in">
+        <h3>穿在身上的文化史诗</h3>
+        <p>邦典是藏族女性腰间的彩条围裙，以羊毛为原料，采用传统腰机织造。其六色条纹象征着雪山、草原、火焰、天空、森林与大地，承载着藏族人民对自然的敬畏与热爱。</p>
+        <p>2006年，邦典织造技艺被列入国家级非物质文化遗产名录，成为中华民族珍贵的文化瑰宝。</p>
+        
+        <div class="heritage-highlight">
+          <div class="highlight-item">
+            <div class="highlight-number">6</div>
+            <div class="highlight-label">经典色系</div>
+          </div>
+          <div class="highlight-item">
+            <div class="highlight-number">8</div>
+            <div class="highlight-label">核心工序</div>
+          </div>
+          <div class="highlight-item">
+            <div class="highlight-number">5000</div>
+            <div class="highlight-label">年历史传承</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="heritage-visual fade-in">
+        <div class="bangdian-showcase">
+          <img src="images/zhan.png" alt="藏族邦典">
+          <div class="bangdian-frame"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 特色功能展示 -->
+  <section class="features-section">
+    <div class="section-header fade-in">
+      <span class="section-tag">特色功能</span>
+      <h2 class="section-title font-serif">探索邦典世界</h2>
+      <p class="section-subtitle">从文化解码到AI创作，开启你的邦典之旅</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card fade-in">
+        <div class="feature-image">
+          <img src="images/图片3.png" alt="文化解码">
+          <div class="feature-badge">深入了解</div>
+        </div>
+        <div class="feature-content">
+          <h3 class="feature-title">文化解码</h3>
+          <p class="feature-description">深入探索邦典的历史渊源、色彩寓意、地域特征与社会功能，了解这一国家级非遗的丰富内涵。</p>
+          <a href="decode.html" class="feature-btn">
+            开始探索 <i class="fa fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-image">
+          <img src="images/图片4.png" alt="AI创作">
+          <div class="feature-badge">创意工具</div>
+        </div>
+        <div class="feature-content">
+          <h3 class="feature-title">AI艺术创作</h3>
+          <p class="feature-description">输入你的创意灵感，AI将为你生成独特的邦典图案，体验传统与科技的完美融合。</p>
+          <a href="designer.html" class="feature-btn">
+            开始创作 <i class="fa fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-image">
+          <img src="images/图片2.png" alt="邦典图鉴">
+          <div class="feature-badge">视觉盛宴</div>
+        </div>
+        <div class="feature-content">
+          <h3 class="feature-title">邦典图鉴</h3>
+          <p class="feature-description">按地区分类浏览不同风格的邦典，从拉萨到阿里，感受各地区独特的审美与文化特色。</p>
+          <a href="bangdian-gallery.html" class="feature-btn">
+            浏览图鉴 <i class="fa fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="feature-card fade-in">
+        <div class="feature-image">
+          <img src="images/图片1.png" alt="邦典家族">
+          <div class="feature-badge">五彩斑斓</div>
+        </div>
+        <div class="feature-content">
+          <h3 class="feature-title">邦典家族</h3>
+          <p class="feature-description">走进五彩斑斓的邦典世界！丝线、氆氇、棉布各有特色，彩虹色、白底纹、黄调款争奇斗艳，快来认识这些美丽的邦典姐妹。</p>
+          <a href="life-journey.html" class="feature-btn">
+            认识它们 <i class="fa fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 非遗传承者展示 -->
+  <section class="masters-section">
+    <div class="section-header fade-in">
+      <span class="section-tag">非遗传承</span>
+      <h2 class="section-title font-serif">传承者风采</h2>
+      <p class="section-subtitle">致敬那些守护邦典技艺的非遗传承人们</p>
+    </div>
+
+    <div class="masters-showcase">
+      <div class="masters-carousel">
+        <div class="master-card fade-in">
+          <div class="master-avatar">
+            <i class="fa fa-user"></i>
+          </div>
+          <h4 class="master-name">嘎日奶奶</h4>
+          <p class="master-title">国家级非遗传承人</p>
+          <p class="master-desc">从事邦典织造六十余年，精通传统染色与织造技艺，致力于培养新一代传承人。</p>
+        </div>
+
+        <div class="master-card fade-in">
+          <div class="master-avatar">
+            <i class="fa fa-user"></i>
+          </div>
+          <h4 class="master-name">曲珍拉姆</h4>
+          <p class="master-title">山南地区传承人</p>
+          <p class="master-desc">擅长"谢玛"邦典精纺技艺，作品曾多次获得国家级奖项，推动邦典走向世界。</p>
+        </div>
+
+        <div class="master-card fade-in">
+          <div class="master-avatar">
+            <i class="fa fa-user"></i>
+          </div>
+          <h4 class="master-name">德庆措吉</h4>
+          <p class="master-title">青年传承人</p>
+          <p class="master-desc">90后新一代传承人，将现代设计理念融入传统技艺，创新邦典的现代表达方式。</p>
+        </div>
+
+        <div class="master-card fade-in">
+          <div class="master-avatar">
+            <i class="fa fa-user"></i>
+          </div>
+          <h4 class="master-name">洛桑次仁</h4>
+          <p class="master-title">工艺研究者</p>
+          <p class="master-desc">长期研究邦典色彩规律与地域特征，致力于邦典文化的学术研究与传播。</p>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin-top: 2rem;">
+        <a href="masters.html" class="btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+          <i class="fa fa-users"></i> 了解更多传承者故事
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // 粒子背景动画
+    const canvas = document.getElementById('particle-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let animationId;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 2 + 0.5;
+        this.speedX = (Math.random() - 0.5) * 0.5;
+        this.speedY = (Math.random() - 0.5) * 0.5;
+        this.opacity = Math.random() * 0.5 + 0.1;
+      }
+
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x > canvas.width) this.x = 0;
+        if (this.x < 0) this.x = canvas.width;
+        if (this.y > canvas.height) this.y = 0;
+        if (this.y < 0) this.y = canvas.height;
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(230, 200, 160, ${this.opacity})`;
+        ctx.fill();
+      }
+    }
+
+    function initParticles() {
+      particles = [];
+      const particleCount = Math.min(100, Math.floor((canvas.width * canvas.height) / 15000));
+      for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle());
+      }
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(particle => { particle.update(); particle.draw(); });
+      
+      particles.forEach((a, index) => {
+        particles.slice(index + 1).forEach(b => {
+          const dx = a.x - b.x;
+          const dy = a.y - b.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < 100) {
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(230, 200, 160, ${0.1 * (1 - distance / 100)})`;
+            ctx.lineWidth = 0.5;
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+          }
+        });
+      });
+      animationId = requestAnimationFrame(animateParticles);
+    }
+
+    resizeCanvas();
+    initParticles();
+    animateParticles();
+    window.addEventListener('resize', () => { resizeCanvas(); initParticles(); });
+
+    // 导航栏滚动效果
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 100);
+    });
+
+    // 滚动显示动画
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+    // 移动端菜单
+    document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+      alert('移动端菜单功能开发中，请使用桌面端获得最佳体验');
+    });
+
+    // 页面卸载时清理动画
+    window.addEventListener('beforeunload', () => cancelAnimationFrame(animationId));
+  </script>
+</body>
+</html>

@@ -1,0 +1,514 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>用户中心 - 邦典</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Noto Sans SC', sans-serif;
+      background:
+        radial-gradient(circle at 12% 10%, rgba(190, 24, 93, 0.08), transparent 28%),
+        radial-gradient(circle at 88% 0%, rgba(245, 158, 11, 0.12), transparent 30%),
+        linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+    }
+
+    .panel-card {
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .panel-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 36px rgba(15, 23, 42, 0.1);
+    }
+
+    .soft-input {
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      transition: all 0.2s ease;
+    }
+
+    .soft-input:focus {
+      border-color: #dc2626;
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-800">
+  <header class="bg-white/90 backdrop-blur border-b border-slate-200 sticky top-0 z-20">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <a href="index.html" class="text-red-700 font-bold text-xl">邦典</a>
+      <div class="flex items-center gap-2">
+        <a href="index.html" class="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200">
+          <i class="fa fa-home mr-1"></i> 返回首页
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <section class="rounded-3xl p-6 md:p-9 bg-gradient-to-r from-red-700 via-red-600 to-amber-500 text-white shadow-xl border border-white/20">
+      <p class="text-sm opacity-90 mb-2">个人空间</p>
+      <h1 class="text-2xl md:text-3xl font-bold mb-2">用户中心</h1>
+      <p class="opacity-95">管理个人资料、账号安全与登录状态。</p>
+    </section>
+
+    <div id="notLogin" class="hidden mt-6 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-5">
+      当前未登录，请先返回首页登录后再进入用户中心。
+    </div>
+
+    <div id="centerPanel" class="hidden mt-6 grid lg:grid-cols-3 gap-6">
+      <aside class="lg:col-span-1 space-y-6">
+        <div class="panel-card bg-white rounded-2xl p-6">
+          <div class="flex items-center gap-4">
+            <div id="avatar" class="w-16 h-16 rounded-full bg-gradient-to-br from-red-600 to-amber-500 text-white font-bold text-2xl flex items-center justify-center overflow-hidden">
+              <img id="avatarImage" alt="头像" class="hidden w-full h-full object-cover">
+              <span id="avatarText">用</span>
+            </div>
+            <div>
+              <p id="welcomeName" class="font-semibold text-lg">用户</p>
+              <p class="text-sm text-slate-500">欢迎回来，继续你的邦典之旅</p>
+            </div>
+          </div>
+          <div class="mt-3">
+            <input id="avatarUploadInput" type="file" accept="image/*" class="hidden">
+            <button id="uploadAvatarBtn" class="text-sm px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200">
+              <i class="fa fa-camera mr-1"></i> 上传头像
+            </button>
+          </div>
+          <div class="mt-5 space-y-2 text-sm">
+            <p class="flex items-center gap-2"><i class="fa fa-id-card-o text-slate-400 w-4"></i> <span id="cardUsername">-</span></p>
+            <p class="flex items-center gap-2"><i class="fa fa-phone text-slate-400 w-4"></i> <span id="cardPhone">未填写手机号</span></p>
+            <p class="flex items-start gap-2"><i class="fa fa-pencil text-slate-400 w-4 mt-1"></i> <span id="cardBio">这个人很酷，还没写签名。</span></p>
+          </div>
+        </div>
+
+        <div class="panel-card bg-white rounded-2xl p-6">
+          <h2 class="font-semibold mb-4">账号概览</h2>
+          <div class="grid grid-cols-2 gap-3 text-sm">
+            <div class="rounded-xl bg-slate-50 p-3">
+              <p class="text-slate-500">身份类型</p>
+              <p id="cardType" class="font-semibold mt-1">普通用户</p>
+            </div>
+            <div class="rounded-xl bg-slate-50 p-3">
+              <p class="text-slate-500">资料完整度</p>
+              <p id="profileRate" class="font-semibold mt-1">0%</p>
+            </div>
+            <div class="rounded-xl bg-slate-50 p-3 col-span-2">
+              <p class="text-slate-500">账号创建时间</p>
+              <p id="createdAt" class="font-semibold mt-1">-</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <section class="lg:col-span-2 space-y-6">
+        <div class="panel-card bg-white rounded-2xl p-6 md:p-8">
+          <h2 class="text-xl font-semibold mb-4">基础资料</h2>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm text-slate-600 mb-1">用户名</label>
+              <input id="usernameInput" type="text" class="soft-input w-full px-4 py-2 rounded-lg focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-sm text-slate-600 mb-1">手机号</label>
+              <input id="phoneInput" type="tel" class="soft-input w-full px-4 py-2 rounded-lg focus:outline-none" placeholder="例如 13800000000">
+            </div>
+          </div>
+          <div class="mt-4">
+            <label class="block text-sm text-slate-600 mb-1">个性签名</label>
+            <textarea id="bioInput" rows="4" class="soft-input w-full px-4 py-2 rounded-lg focus:outline-none" placeholder="写一句你的文化宣言"></textarea>
+          </div>
+          <button id="saveProfileBtn" class="mt-5 px-6 py-2.5 bg-gradient-to-r from-red-600 to-amber-500 text-white rounded-lg font-semibold hover:from-red-700 hover:to-amber-600">
+            <i class="fa fa-save mr-1"></i> 保存资料
+          </button>
+        </div>
+
+        <div class="panel-card bg-white rounded-2xl p-6 md:p-8">
+          <h2 class="text-xl font-semibold mb-4">账号安全</h2>
+          <div class="grid md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm text-slate-600 mb-1">原密码</label>
+              <input id="oldPasswordInput" type="password" class="soft-input w-full px-4 py-2 rounded-lg focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-sm text-slate-600 mb-1">新密码</label>
+              <input id="newPasswordInput" type="password" class="soft-input w-full px-4 py-2 rounded-lg focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-sm text-slate-600 mb-1">确认新密码</label>
+              <input id="confirmPasswordInput" type="password" class="soft-input w-full px-4 py-2 rounded-lg focus:outline-none">
+            </div>
+          </div>
+          <label class="mt-3 inline-flex items-center gap-2 text-sm text-slate-600">
+            <input id="showPasswordToggle" type="checkbox">
+            显示密码输入内容
+          </label>
+          <button id="savePasswordBtn" class="mt-5 px-6 py-2.5 bg-slate-800 text-white rounded-lg font-semibold hover:bg-slate-900">
+            <i class="fa fa-shield mr-1"></i> 更新密码
+          </button>
+        </div>
+
+        <div class="panel-card bg-white rounded-2xl p-6 md:p-8">
+          <h2 class="text-xl font-semibold mb-4">我的作品 / 收藏</h2>
+          <p class="text-sm text-slate-500 mb-4">这里展示你在“沉浸式体验”中生成并保存的邦典作品。</p>
+          <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 mb-4">
+            <p class="text-sm font-medium text-slate-700 mb-3">发布新作品</p>
+            <div class="space-y-3">
+              <input id="newWorkTitleInput" type="text" class="soft-input w-full px-4 py-2 rounded-lg focus:outline-none" placeholder="请输入作品标题">
+              <textarea id="newWorkDescriptionInput" rows="3" class="soft-input w-full px-4 py-2 rounded-lg focus:outline-none" placeholder="请输入作品描述（至少10个字）"></textarea>
+              <button id="publishWorkBtn" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                <i class="fa fa-plus mr-1"></i> 发布作品
+              </button>
+            </div>
+          </div>
+          <ul id="workList" class="mt-2 space-y-3 text-sm"></ul>
+        </div>
+
+        <div class="panel-card bg-white rounded-2xl p-6 md:p-8">
+          <h2 class="text-xl font-semibold mb-4">我的宣言收藏</h2>
+          <ul id="declarationList" class="space-y-3 text-sm"></ul>
+        </div>
+
+        <div class="panel-card bg-white rounded-2xl p-6 md:p-8">
+          <button id="toggleRecentVisitBtn" class="w-full flex items-center justify-between text-left">
+            <h2 class="text-xl font-semibold">最近浏览</h2>
+            <i id="recentVisitArrow" class="fa fa-chevron-down text-slate-500 transition-transform"></i>
+          </button>
+          <div id="recentVisitWrapper" class="hidden mt-4">
+            <ul id="recentVisitList" class="space-y-2 text-sm"></ul>
+          </div>
+        </div>
+
+        <div class="panel-card bg-white rounded-2xl p-6 md:p-8">
+          <h2 class="text-xl font-semibold mb-4">账号操作</h2>
+          <div class="flex flex-wrap gap-3">
+            <button id="logoutBtn" class="px-5 py-2.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200">
+              <i class="fa fa-sign-out mr-1"></i> 退出登录
+            </button>
+            <button id="deleteAccountBtn" class="px-5 py-2.5 rounded-lg bg-red-50 text-red-700 hover:bg-red-100">
+              <i class="fa fa-trash mr-1"></i> 注销账号
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const API_BASE_URL = 'http://localhost:3000/api';
+
+    function getToken() {
+      return localStorage.getItem('token');
+    }
+
+    function getCurrentUser() {
+      const userRaw = localStorage.getItem('user');
+      if (!userRaw) return null;
+      try {
+        return JSON.parse(userRaw);
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function saveCurrentUser(user) {
+      localStorage.setItem('user', JSON.stringify(user));
+    }
+
+    async function requestApi(path, options = {}) {
+      const token = getToken();
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(options.headers || {})
+      };
+
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${API_BASE_URL}${path}`, {
+        ...options,
+        headers
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || '请求失败');
+      }
+      return data;
+    }
+
+    function getProfileRate(user) {
+      let score = 0;
+      if (user.username) score += 40;
+      if (user.phone) score += 30;
+      if (user.bio) score += 30;
+      return score;
+    }
+
+    function refreshUserCard(user) {
+      const first = (user.username || '用').charAt(0);
+      const avatarImage = document.getElementById('avatarImage');
+      const avatarText = document.getElementById('avatarText');
+      if (user.avatarUrl) {
+        avatarImage.src = user.avatarUrl;
+        avatarImage.classList.remove('hidden');
+        avatarText.classList.add('hidden');
+      } else {
+        avatarImage.classList.add('hidden');
+        avatarText.classList.remove('hidden');
+        avatarText.textContent = first;
+      }
+      document.getElementById('welcomeName').textContent = user.username || '用户';
+      document.getElementById('cardUsername').textContent = user.username || '-';
+      document.getElementById('cardPhone').textContent = user.phone || '未填写手机号';
+      document.getElementById('cardBio').textContent = user.bio || '这个人很酷，还没写签名。';
+      document.getElementById('cardType').textContent = user.type === 'admin' ? '管理员' : '普通用户';
+      document.getElementById('profileRate').textContent = getProfileRate(user) + '%';
+      document.getElementById('createdAt').textContent = user.createdAt || '-';
+    }
+
+    function renderWorks(works) {
+      const list = document.getElementById('workList');
+      if (!works.length) {
+        list.innerHTML = '<li class="text-slate-500">暂无作品记录，先发布你的第一件作品吧。</li>';
+        return;
+      }
+
+      list.innerHTML = works.map((item, index) => {
+        const statusMap = {
+          pending: '待审核',
+          approved: '已通过',
+          rejected: '未通过'
+        };
+        const statusText = statusMap[item.status] || item.status;
+        const createdTime = item.created_at ? new Date(item.created_at).toLocaleString('zh-CN') : '-';
+        return `<li class="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2 gap-3">
+          <div class="min-w-0">
+            <p class="font-medium truncate">${item.title}</p>
+            <p class="text-slate-500 text-xs truncate">${createdTime} · ${statusText}</p>
+            <p class="text-slate-600 text-xs mt-1 line-clamp-2">${item.description}</p>
+          </div>
+        </li>`;
+      }).join('');
+    }
+
+    function renderRecentVisits(user) {
+      const list = document.getElementById('recentVisitList');
+      const visits = user.recentVisits || [];
+      if (!visits.length) {
+        list.innerHTML = '<li class="text-slate-500">暂无浏览记录。</li>';
+        return;
+      }
+
+      list.innerHTML = visits.map((item) => {
+        return `<li class="rounded-lg border border-slate-200 px-3 py-2 flex items-center justify-between">
+          <span>${item.page}</span>
+          <span class="text-xs text-slate-500">${item.time}</span>
+        </li>`;
+      }).join('');
+    }
+
+    function renderDeclarations(user) {
+      const list = document.getElementById('declarationList');
+      const declarations = user.favoriteDeclarations || [];
+      if (!declarations.length) {
+        list.innerHTML = '<li class="text-slate-500">暂无收藏宣言，可在沉浸式体验中收藏。</li>';
+        return;
+      }
+
+      list.innerHTML = declarations.map((item, index) => {
+        const colorText = Array.isArray(item.colors) && item.colors.length ? item.colors.join(' / ') : '未标注配色';
+        return `<li class="rounded-lg border border-slate-200 px-3 py-3">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="text-slate-700">${item.text}</p>
+              <p class="text-xs text-slate-500 mt-2">${colorText} · ${item.time}</p>
+            </div>
+            <button data-index="${index}" class="delete-declaration-btn text-red-600 hover:text-red-700 flex-shrink-0">
+              <i class="fa fa-trash"></i>
+            </button>
+          </div>
+        </li>`;
+      }).join('');
+    }
+
+    async function initUserCenter() {
+      const token = getToken();
+      if (!token) {
+        document.getElementById('notLogin').classList.remove('hidden');
+        return;
+      }
+
+      let currentUser = getCurrentUser() || {};
+
+      try {
+        const profileRes = await requestApi('/auth/me');
+        currentUser = {
+          ...currentUser,
+          id: profileRes.user.id,
+          username: profileRes.user.username,
+          type: profileRes.user.role,
+          createdAt: currentUser.createdAt || new Date().toLocaleString('zh-CN')
+        };
+        saveCurrentUser(currentUser);
+      } catch (error) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        document.getElementById('notLogin').classList.remove('hidden');
+        alert('登录状态已失效，请重新登录');
+        return;
+      }
+
+      if (!Array.isArray(currentUser.recentVisits)) currentUser.recentVisits = [];
+      if (!Array.isArray(currentUser.favoriteDeclarations)) currentUser.favoriteDeclarations = [];
+      currentUser.recentVisits.unshift({ page: '用户中心', time: new Date().toLocaleString('zh-CN') });
+      currentUser.recentVisits = currentUser.recentVisits.slice(0, 20);
+      saveCurrentUser(currentUser);
+
+      document.getElementById('centerPanel').classList.remove('hidden');
+      document.getElementById('usernameInput').value = currentUser.username || '';
+      document.getElementById('phoneInput').value = currentUser.phone || '';
+      document.getElementById('bioInput').value = currentUser.bio || '';
+      refreshUserCard(currentUser);
+      renderRecentVisits(currentUser);
+      renderDeclarations(currentUser);
+
+      async function refreshMyWorks() {
+        try {
+          const res = await requestApi('/works/my');
+          renderWorks(res.works || []);
+        } catch (error) {
+          renderWorks([]);
+          alert(`加载作品失败：${error.message}`);
+        }
+      }
+
+      await refreshMyWorks();
+
+      document.getElementById('toggleRecentVisitBtn').addEventListener('click', () => {
+        const wrapper = document.getElementById('recentVisitWrapper');
+        const arrow = document.getElementById('recentVisitArrow');
+        const isHidden = wrapper.classList.contains('hidden');
+        if (isHidden) {
+          wrapper.classList.remove('hidden');
+          arrow.classList.add('rotate-180');
+        } else {
+          wrapper.classList.add('hidden');
+          arrow.classList.remove('rotate-180');
+        }
+      });
+
+      document.getElementById('uploadAvatarBtn').addEventListener('click', () => {
+        document.getElementById('avatarUploadInput').click();
+      });
+
+      document.getElementById('avatarUploadInput').addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+          alert('请上传图片文件');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+          currentUser.avatarUrl = reader.result;
+          saveCurrentUser(currentUser);
+          refreshUserCard(currentUser);
+          alert('头像已更新');
+        };
+        reader.readAsDataURL(file);
+      });
+
+      document.getElementById('saveProfileBtn').addEventListener('click', () => {
+        const username = document.getElementById('usernameInput').value.trim();
+        const phone = document.getElementById('phoneInput').value.trim();
+        const bio = document.getElementById('bioInput').value.trim();
+
+        if (!username) {
+          alert('用户名不能为空');
+          return;
+        }
+        if (phone && !/^1[3-9]\d{9}$/.test(phone)) {
+          alert('手机号格式不正确');
+          return;
+        }
+
+        currentUser.username = username;
+        currentUser.phone = phone;
+        currentUser.bio = bio;
+        saveCurrentUser(currentUser);
+        refreshUserCard(currentUser);
+        alert('资料保存成功');
+      });
+
+      document.getElementById('showPasswordToggle').addEventListener('change', (event) => {
+        const type = event.target.checked ? 'text' : 'password';
+        document.getElementById('oldPasswordInput').type = type;
+        document.getElementById('newPasswordInput').type = type;
+        document.getElementById('confirmPasswordInput').type = type;
+      });
+
+      document.getElementById('savePasswordBtn').addEventListener('click', () => {
+        alert('密码修改接口正在开发中，当前版本暂不支持在线修改。');
+      });
+
+      document.getElementById('publishWorkBtn').addEventListener('click', async () => {
+        const title = document.getElementById('newWorkTitleInput').value.trim();
+        const description = document.getElementById('newWorkDescriptionInput').value.trim();
+
+        if (!title || !description) {
+          alert('请填写完整作品标题和描述');
+          return;
+        }
+
+        try {
+          await requestApi('/works', {
+            method: 'POST',
+            body: JSON.stringify({ title, description })
+          });
+          document.getElementById('newWorkTitleInput').value = '';
+          document.getElementById('newWorkDescriptionInput').value = '';
+          await refreshMyWorks();
+          alert('作品发布成功，当前状态为待审核');
+        } catch (error) {
+          alert(`发布失败：${error.message}`);
+        }
+      });
+
+      document.getElementById('declarationList').addEventListener('click', (event) => {
+        const target = event.target.closest('.delete-declaration-btn');
+        if (!target) return;
+        const index = Number(target.getAttribute('data-index'));
+        currentUser.favoriteDeclarations.splice(index, 1);
+        saveCurrentUser(currentUser);
+        renderDeclarations(currentUser);
+      });
+
+      document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        alert('已退出登录');
+        window.location.href = 'index.html';
+      });
+
+      document.getElementById('deleteAccountBtn').addEventListener('click', () => {
+        const ok = confirm('确认注销当前账号？本地资料将被清空，且不可恢复。');
+        if (!ok) return;
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        alert('账号已注销');
+        window.location.href = 'index.html';
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', initUserCenter);
+  </script>
+</body>
+</html>

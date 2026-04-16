@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文化解码 - 邦典藏族文化</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --tibetan-red: #9E2A2F;
+      --tibetan-blue: #1E3A5F;
+      --tibetan-yellow: #D4A84B;
+      --tibetan-green: #2C9678;
+      --warm-gray: #F8F4ED;
+    }
+
+    body {
+      font-family: 'Noto Sans SC', sans-serif;
+      background-color: #F8F4ED;
+      color: #2C2C2C;
+      overflow-x: hidden;
+    }
+
+    .font-serif { font-family: 'Noto Serif SC', serif; }
+
+    .nav-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+      padding: 1rem 2rem;
+      background: rgba(248, 244, 237, 0.95);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .nav-link {
+      position: relative;
+      color: #2C2C2C;
+      font-weight: 500;
+      transition: color 0.3s ease;
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--tibetan-red);
+      transition: width 0.3s ease;
+    }
+
+    .nav-link:hover::after, .nav-link.active::after { width: 100%; }
+    .nav-link.active { color: var(--tibetan-red); font-weight: 600; }
+
+    .hero-section {
+      background: linear-gradient(135deg, rgba(158, 42, 47, 0.1) 0%, rgba(212, 168, 75, 0.1) 30%, rgba(30, 58, 95, 0.1) 70%, rgba(44, 150, 120, 0.1) 100%);
+      padding: 5rem 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .section-card {
+      padding: 5rem 2rem;
+      position: relative;
+      background: linear-gradient(180deg, #F8F4ED 0%, #FAF7F2 100%);
+    }
+
+    .section-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0,0,0,0.08), transparent);
+    }
+
+    .section-tag {
+      display: inline-block;
+      padding: 8px 24px;
+      background: linear-gradient(135deg, var(--tibetan-red), #8B4545);
+      color: white;
+      border-radius: 24px;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 15px rgba(158, 42, 47, 0.25);
+    }
+
+    .section-title {
+      font-family: 'Noto Serif SC', serif;
+      font-size: clamp(1.8rem, 5vw, 2.8rem);
+      font-weight: 700;
+      color: #2C2C2C;
+      margin-bottom: 0.8rem;
+    }
+
+    .section-desc {
+      font-size: 16px;
+      color: #6B6B6B;
+      line-height: 1.8;
+      margin-bottom: 3rem;
+    }
+
+    .color-item {
+      width: 100px;
+      height: 120px;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 13px;
+      transition: transform 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .color-item:hover {
+      transform: translateY(-8px) scale(1.05);
+    }
+
+    .color-item::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: rgba(255,255,255,0.3);
+    }
+
+    .timeline-item {
+      position: relative;
+      padding-left: 3rem;
+      padding-bottom: 3rem;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--tibetan-red), var(--tibetan-yellow));
+      border: 4px solid white;
+      box-shadow: 0 2px 10px rgba(158, 42, 47, 0.3);
+    }
+
+    .timeline-item::after {
+      content: '';
+      position: absolute;
+      left: 7px;
+      top: 20px;
+      width: 2px;
+      height: calc(100% - 10px);
+      background: linear-gradient(180deg, var(--tibetan-red), var(--tibetan-yellow));
+    }
+
+    .timeline-item:last-child::after {
+      display: none;
+    }
+
+    .region-card {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .region-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    }
+
+    .region-stripe {
+      height: 4px;
+      background: linear-gradient(90deg, var(--tibetan-red), var(--tibetan-yellow), var(--tibetan-green), var(--tibetan-blue));
+    }
+
+    .feature-card {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+      transition: transform 0.3s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-3px);
+    }
+
+    .feature-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: white;
+      margin-bottom: 1.2rem;
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(8px);
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 700px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 2.5rem;
+      position: relative;
+    }
+
+    .close-modal {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #F5F5F5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .close-modal:hover {
+      background: #E8E8E8;
+    }
+
+    .bd-pattern {
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 20px,
+        rgba(158, 42, 47, 0.03) 20px,
+        rgba(158, 42, 47, 0.03) 21px
+      );
+    }
+
+    .custom-list li {
+      position: relative;
+      padding-left: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .custom-list li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--tibetan-red);
+    }
+  </style>
+</head>
+<body>
+  <header class="nav-header">
+    <div class="container mx-auto flex justify-between items-center">
+      <a href="index.html" class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-red-600 flex items-center justify-center">
+          <i class="fa fa-paint-brush text-white"></i>
+        </div>
+        <span class="font-bold text-xl" style="color: var(--tibetan-red);">邦典</span>
+      </a>
+      <nav class="hidden md:flex gap-6 text-base">
+        <a href="decode.html" class="nav-link active">文化解码</a>
+        <a href="ai-generator.html" class="nav-link">AI创作</a>
+        <a href="designer.html" class="nav-link">设计工坊</a>
+        <a href="bangdian-gallery.html" class="nav-link">邦典图鉴</a>
+        <a href="masters.html" class="nav-link">非遗传承</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="pt-20">
+    <div class="hero-section">
+      <div class="container mx-auto max-w-5xl text-center">
+        <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/80 rounded-full mb-6">
+          <i class="fa fa-book-open text-tibetan-red"></i>
+          <span class="text-sm text-gray-600">深入了解邦典文化</span>
+        </div>
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold font-serif text-gray-800 mb-4">
+          邦典：雪域高原的<span class="text-tibetan-red">生命密码</span>
+        </h1>
+        <p class="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+          一条彩色条纹围裙，承载着藏族千年文化记忆，见证着女性从少女到长者的生命历程，<br>
+          是藏族非物质文化遗产中最具代表性的服饰符号之一
+        </p>
+        <div class="mt-8 flex justify-center gap-4 flex-wrap">
+          <span class="px-4 py-2 bg-white/60 backdrop-blur rounded-full text-sm text-gray-600">国家级非遗</span>
+          <span class="px-4 py-2 bg-white/60 backdrop-blur rounded-full text-sm text-gray-600">藏族服饰文化</span>
+          <span class="px-4 py-2 bg-white/60 backdrop-blur rounded-full text-sm text-gray-600">活态传承</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="container mx-auto max-w-5xl">
+        <div class="text-center mb-10">
+          <span class="section-tag">历史渊源</span>
+          <h2 class="section-title">千年传承的纺织史诗</h2>
+          <p class="section-desc">从新石器时代到现代，邦典的演变见证了藏族文明的发展脉络</p>
+        </div>
+
+        <div class="relative">
+          <div class="absolute left-6 top-0 bottom-0 w-1 bg-gradient-to-b from-amber-400 via-red-500 via-blue-700 to-green-600 rounded-full"></div>
+          
+          <div class="space-y-8 pl-16">
+            <div class="timeline-item bg-white rounded-xl p-6 shadow-md">
+              <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 w-20 text-center">
+                  <div class="text-2xl font-bold text-tibetan-red font-serif">5000年前</div>
+                  <div class="text-xs text-gray-500">新石器时代</div>
+                </div>
+                <div>
+                  <h4 class="font-bold text-gray-800 mb-2">卡若遗址见证早期纺织</h4>
+                  <p class="text-gray-600 text-sm leading-relaxed">西藏昌都卡若遗址出土的131枚骨针、208件骨角质锥形工具及6件陶质纺轮等文物，证明早在5000年前，西藏地区就已经有了纺织活动。新疆哈密地区出土的毛织品中发现的"五颜六色的红、绿、棕、黑条纹"，表明当时已出现条纹元素的纺织品。</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="timeline-item bg-white rounded-xl p-6 shadow-md">
+              <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 w-20 text-center">
+                  <div class="text-2xl font-bold text-tibetan-red font-serif">7世纪</div>
+                  <div class="text-xs text-gray-500">吐蕃时期</div>
+                </div>
+                <div>
+                  <h4 class="font-bold text-gray-800 mb-2">毛纺织业成为重要经济部门</h4>
+                  <p class="text-gray-600 text-sm leading-relaxed">吐蕃王朝时期，牧业发达，毛纺织业成为重要经济部门。敦煌吐蕃文书记载了对牧区的"大料集"和赋税征收。赞普松赞干布时期开展颜料草贸易，说明当时不仅纺织毛料，还具备染色技术。都兰热水墓葬出土的彩色服饰进一步证明了吐蕃时期染色技艺的发展。</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="timeline-item bg-white rounded-xl p-6 shadow-md">
+              <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 w-20 text-center">
+                  <div class="text-2xl font-bold text-tibetan-red font-serif">11世纪</div>
+                  <div class="text-xs text-gray-500">分裂割据时期</div>
+                </div>
+                <div>
+                  <h4 class="font-bold text-gray-800 mb-2">邦典形制基本确立</h4>
+                  <p class="text-gray-600 text-sm leading-relaxed">英国藏学家Hugh Richardson对11世纪艾旺寺壁画的考证表明，供养人眷属服饰中的横条纹布形制与现代邦典存在显著相似性。江孜地区氆氇生产已非常出名，形成专门市集。廖东凡先生考证证实，11世纪前后江孜地区生产氆氇和氆氇制品就已闻名遐迩。</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="timeline-item bg-white rounded-xl p-6 shadow-md">
+              <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 w-20 text-center">
+                  <div class="text-2xl font-bold text-tibetan-red font-serif">15世纪</div>
+                  <div class="text-xs text-gray-500">帕竹时期</div>
+                </div>
+                <div>
+                  <h4 class="font-bold text-gray-800 mb-2">杰德秀"谢玛"邦典诞生</h4>
+                  <p class="text-gray-600 text-sm leading-relaxed">山南杰德秀镇兴起"谢玛"邦典纺织，这是最上等的邦典，选用羊颈部最柔软的毛纺织，代表了邦典工艺的最高水平。15世纪中叶是藏地手工业极大发展的重要时期，邦典开始在市面上进行大量的生产流通。</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="timeline-item bg-white rounded-xl p-6 shadow-md">
+              <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 w-20 text-center">
+                  <div class="text-2xl font-bold text-tibetan-red font-serif">17-19世纪</div>
+                  <div class="text-xs text-gray-500">清朝时期</div>
+                </div>
+                <div>
+                  <h4 class="font-bold text-gray-800 mb-2">氆氇生产规模化发展</h4>
+                  <p class="text-gray-600 text-sm leading-relaxed">清朝初年，青藏高原地区的毛纺织业进一步发展成熟，生产规模进一步扩大。五世达赖以来，杰德秀镇设立了西藏历史上第一个彩染中心，每年为西藏地方政府提供颜色各异的氆氇。民主革命前，每家每户按土地多少向宗政府交纳氆氇来换取银钱。</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="timeline-item bg-white rounded-xl p-6 shadow-md">
+              <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 w-20 text-center">
+                  <div class="text-2xl font-bold text-tibetan-red font-serif">2006年</div>
+                  <div class="text-xs text-gray-500">现代</div>
+                </div>
+                <div>
+                  <h4 class="font-bold text-gray-800 mb-2">列入国家级非遗名录</h4>
+                  <p class="text-gray-600 text-sm leading-relaxed">藏族邦典织造技艺被列入第一批国家级非物质文化遗产名录。随着国家扶持，各种纺织行业顺势而起，邦典产品不断更新迭代，有关邦典元素的创新产品层出不穷，机织邦典逐渐取代手工邦典，西藏邦典行业在发展中面临机遇和挑战。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card bg-white">
+      <div class="container mx-auto max-w-5xl">
+        <div class="text-center mb-10">
+          <span class="section-tag">色彩解码</span>
+          <h2 class="section-title">雪域六色密码</h2>
+          <p class="section-desc">每一种颜色都承载着高原的自然意象与哲学根源</p>
+        </div>
+
+        <div class="flex justify-center gap-4 flex-wrap mb-8">
+          <div class="color-item bg-gradient-to-b from-white to-gray-200" onclick="showColorDetail('白色')">
+            <span class="text-gray-700">雪山云白</span>
+            <span class="text-xs opacity-80 mt-1">纯洁清净</span>
+          </div>
+          <div class="color-item bg-gradient-to-b from-yellow-400 to-yellow-600" onclick="showColorDetail('黄色')">
+            <span>金沙暖阳</span>
+            <span class="text-xs opacity-80 mt-1">宗教尊崇</span>
+          </div>
+          <div class="color-item bg-gradient-to-b from-red-600 to-red-800" onclick="showColorDetail('红色')">
+            <span>珊瑚绯红</span>
+            <span class="text-xs opacity-80 mt-1">生命活力</span>
+          </div>
+          <div class="color-item bg-gradient-to-b from-blue-800 to-blue-950" onclick="showColorDetail('蓝色')">
+            <span>天空藏蓝</span>
+            <span class="text-xs opacity-80 mt-1">辽阔深邃</span>
+          </div>
+          <div class="color-item bg-gradient-to-b from-green-500 to-green-700" onclick="showColorDetail('绿色')">
+            <span>森林青稞</span>
+            <span class="text-xs opacity-80 mt-1">生机希望</span>
+          </div>
+          <div class="color-item bg-gradient-to-b from-gray-700 to-gray-900" onclick="showColorDetail('黑色')">
+            <span>大地岩石</span>
+            <span class="text-xs opacity-80 mt-1">厚重坚实</span>
+          </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6 mb-8">
+          <div class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center">
+                <i class="fa fa-mountain text-white"></i>
+              </div>
+              <h4 class="font-bold text-gray-800 font-serif">色彩的自然本源</h4>
+            </div>
+            <p class="text-gray-600 text-sm leading-relaxed">邦典的六大色系并非随意选择，而是来源于藏族先民对高原自然的深刻观察：白色来自雪山，黄色来自金沙，红色来自珊瑚与火焰，蓝色来自天空与湖泊，绿色来自森林与青稞，黑色来自大地与岩石。这种"师法自然"的色彩观，体现了人与自然和谐共生的生态智慧。</p>
+          </div>
+          <div class="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl p-6">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center">
+                <i class="fa fa-book text-white"></i>
+              </div>
+              <h4 class="font-bold text-gray-800 font-serif">宗教哲学内涵</h4>
+            </div>
+            <p class="text-gray-600 text-sm leading-relaxed">在藏传佛教中，这六种颜色分别对应六种智慧：白色象征清净觉悟，黄色代表增长功德，红色寓意权势力量，蓝色象征诛灭降伏，绿色代表成就发展，黑色则寓意保护和坚定。邦典的色彩搭配，暗含着深刻的宗教哲学和宇宙观。</p>
+          </div>
+        </div>
+
+        <div class="bg-gradient-to-r from-tibetan-red/5 via-tibetan-yellow/5 to-tibetan-blue/5 rounded-2xl p-6">
+          <h4 class="font-bold text-gray-800 mb-4 font-serif">天然染料与染色工艺</h4>
+          <div class="grid md:grid-cols-3 gap-4">
+            <div class="bg-white rounded-xl p-4">
+              <h5 class="font-semibold text-gray-700 mb-2">植物染料</h5>
+              <ul class="text-sm text-gray-600 custom-list">
+                <li>秋洛（亚大黄）：染黄、铁锈红色</li>
+                <li>秋朵：染金黄色</li>
+                <li>蕞（野生灌木）：染紫红色</li>
+                <li>茜草根：染朱红色</li>
+                <li>核桃皮：染棕色、黑色</li>
+              </ul>
+            </div>
+            <div class="bg-white rounded-xl p-4">
+              <h5 class="font-semibold text-gray-700 mb-2">矿物染料</h5>
+              <ul class="text-sm text-gray-600 custom-list">
+                <li>汀（蓝色矿石）：染深浅蓝色</li>
+                <li>赭石：染红褐色、土黄色</li>
+                <li>绿松石粉：染蓝绿色</li>
+                <li>蓝草：染靛蓝色</li>
+                <li>藏红花：染金黄至橙红色</li>
+              </ul>
+            </div>
+            <div class="bg-white rounded-xl p-4">
+              <h5 class="font-semibold text-gray-700 mb-2">媒染剂</h5>
+              <ul class="text-sm text-gray-600 custom-list">
+                <li>青稞：加速红色着色，不易脱色</li>
+                <li>铁盐：使褐色变黑</li>
+                <li>酸奶：使红色变紫色</li>
+                <li>粗如（酸性泥土）：固色作用</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="container mx-auto max-w-5xl">
+        <div class="text-center mb-10">
+          <span class="section-tag">地域特征</span>
+          <h2 class="section-title">六大地区的邦典特色</h2>
+          <p class="section-desc">不同地域的邦典在色彩、纹样和工艺上呈现鲜明特色，反映当地的自然环境与人文风貌</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="region-card">
+            <div class="region-stripe" style="background: linear-gradient(90deg, #8B7355, #A08060, #C4A574, #8B7355)"></div>
+            <div class="p-5">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-300 to-orange-400 flex items-center justify-center">
+                  <i class="fa fa-building text-white"></i>
+                </div>
+                <h4 class="font-bold text-gray-800">拉萨地区</h4>
+              </div>
+              <p class="text-sm text-gray-600 mb-3">淡雅素净，细条纹风格，低饱和度配色。色彩多采用邻近色搭配（如黄红、绿蓝），呈现端庄典雅的气质，符合拉萨作为政治文化中心的庄重氛围。</p>
+              <div class="flex flex-wrap gap-2">
+                <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">细条纹</span>
+                <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">低饱和</span>
+                <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">邻近色</span>
+                <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">丝质/氆氇</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="region-card">
+            <div class="region-stripe" style="background: linear-gradient(90deg, #D4A574, #9E2A2F, #2C9678, #1E3A5F)"></div>
+            <div class="p-5">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-teal-500 flex items-center justify-center">
+                  <i class="fa fa-mountain text-white"></i>
+                </div>
+                <h4 class="font-bold text-gray-800">山南地区</h4>
+              </div>
+              <p class="text-sm text-gray-600 mb-3">金刚五色，高饱和度，藏文化发祥地。杰德秀镇生产的"谢玛"邦典被誉为最上等的邦典，选用羊颈部最柔软的毛纺织。兼具拉萨的雅致与日喀则的浓烈。</p>
+              <div class="flex flex-wrap gap-2">
+                <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">金刚五色</span>
+                <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">高饱和</span>
+                <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">谢玛工艺</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="region-card">
+            <div class="region-stripe" style="background: linear-gradient(90deg, #1E3A5F, #2C9678, #3DB48E, #1E3A5F)"></div>
+            <div class="p-5">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center">
+                  <i class="fa fa-temple text-white"></i>
+                </div>
+                <h4 class="font-bold text-gray-800">日喀则地区</h4>
+              </div>
+              <p class="text-sm text-gray-600 mb-3">青绿梯度，强对比，高饱和度。单件织物呈现从墨绿至浅绿的连续色阶渐变，形成独特的地域识别符号。配合邦典呢做成的同花色围腰和金属扣穿戴。</p>
+              <div class="flex flex-wrap gap-2">
+                <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">青绿渐变</span>
+                <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">强对比</span>
+                <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">高饱和</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="region-card">
+            <div class="region-stripe" style="background: linear-gradient(90deg, #D4A574, #E6C8A0, #4A4A4A, #D4A574)"></div>
+            <div class="p-5">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center">
+                  <i class="fa fa-flag text-white"></i>
+                </div>
+                <h4 class="font-bold text-gray-800">那曲地区</h4>
+              </div>
+              <p class="text-sm text-gray-600 mb-3">单色系主导，金色点缀，独特图案。面料厚实保暖，适应高原严寒气候，具有独特的地域图案（象征多子多福、吉祥的含义）。</p>
+              <div class="flex flex-wrap gap-2">
+                <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">单色系</span>
+                <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">厚实保暖</span>
+                <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">地域图案</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="region-card">
+            <div class="region-stripe" style="background: linear-gradient(90deg, #FF6B8A, #FF8C00, #D4A574, #FF6B8A)"></div>
+            <div class="p-5">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center">
+                  <i class="fa fa-sun-o text-white"></i>
+                </div>
+                <h4 class="font-bold text-gray-800">阿里地区</h4>
+              </div>
+              <p class="text-sm text-gray-600 mb-3">明亮强对比，暖色为主，高纯度。鲜艳的色彩如同阳光般耀眼，展现出独特的生命力和热情，适应阿里高原强烈的日照环境。</p>
+              <div class="flex flex-wrap gap-2">
+                <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">暖色调</span>
+                <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">强对比</span>
+                <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">高纯度</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="region-card">
+            <div class="region-stripe" style="background: linear-gradient(90deg, #FFFFFF, #D4A574, #C73E3E, #FFFFFF)"></div>
+            <div class="p-5">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center">
+                  <i class="fa fa-flower text-white"></i>
+                </div>
+                <h4 class="font-bold text-gray-800">昌都地区</h4>
+              </div>
+              <p class="text-sm text-gray-600 mb-3">渐变效果，丰富层次，白色面积大。善于运用不同色阶的渐变色，色彩空间混合构成效果明显，呈现独特的视觉韵律。</p>
+              <div class="flex flex-wrap gap-2">
+                <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">渐变</span>
+                <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">白色为主</span>
+                <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">空间混合</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card bg-white">
+      <div class="container mx-auto max-w-5xl">
+        <div class="text-center mb-10">
+          <span class="section-tag">分类体系</span>
+          <h2 class="section-title">邦典的分类与命名</h2>
+          <p class="section-desc">不同分类方式展现邦典的丰富多样性，反映其文化内涵与使用场景</p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6 mb-8">
+          <div class="feature-card">
+            <div class="feature-icon" style="background: linear-gradient(135deg, #E91E63, #C2185B);">
+              <i class="fa fa-tshirt"></i>
+            </div>
+            <h4 class="font-bold text-gray-800 mb-2">按材质分类</h4>
+            <ul class="space-y-2 text-sm text-gray-600">
+              <li class="flex items-start gap-2">
+                <span class="w-2 h-2 rounded-full bg-red-400 mt-1.5"></span>
+                <span><strong>丝线邦典：</strong>质地细腻，光泽度高，多用于盛装场合</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="w-2 h-2 rounded-full bg-amber-400 mt-1.5"></span>
+                <span><strong>氆氇邦典：</strong>羊毛材质，保暖耐用，日常穿着首选</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="w-2 h-2 rounded-full bg-green-400 mt-1.5"></span>
+                <span><strong>布邦典：</strong>棉布材质，轻盈透气，适合夏季穿着</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon" style="background: linear-gradient(135deg, #9C27B0, #7B1FA2);">
+              <i class="fa fa-scissors"></i>
+            </div>
+            <h4 class="font-bold text-gray-800 mb-2">按工艺分类</h4>
+            <ul class="space-y-2 text-sm text-gray-600">
+              <li class="flex items-start gap-2">
+                <span class="w-2 h-2 rounded-full bg-purple-400 mt-1.5"></span>
+                <span><strong>谢玛邦典：</strong>精纺工艺，选用羊颈毛，最上等</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="w-2 h-2 rounded-full bg-indigo-400 mt-1.5"></span>
+                <span><strong>囊布邦典：</strong>粗制工艺，日常实用款</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="w-2 h-2 rounded-full bg-blue-400 mt-1.5"></span>
+                <span><strong>噶夏邦典：</strong>中等工艺，用途广泛</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon" style="background: linear-gradient(135deg, #FFC107, #FFA000);">
+              <i class="fa fa-palette"></i>
+            </div>
+            <h4 class="font-bold text-gray-800 mb-2">按色彩分类</h4>
+            <ul class="space-y-2 text-sm text-gray-600">
+              <li class="flex items-start gap-2">
+                <span class="w-2 h-2 rounded-full bg-yellow-400 mt-1.5"></span>
+                <span><strong>查钦：</strong>宽条纹彩虹色，年长妇女喜爱</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="w-2 h-2 rounded-full bg-blue-400 mt-1.5"></span>
+                <span><strong>噶察：</strong>白底间色细条纹，青年女性偏爱</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="w-2 h-2 rounded-full bg-green-400 mt-1.5"></span>
+                <span><strong>降查：</strong>蓝绿冷色调，日喀则中年女性</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="bg-gradient-to-r from-tibetan-yellow/10 via-tibetan-red/10 to-tibetan-blue/10 rounded-2xl p-6">
+          <h4 class="font-bold text-gray-800 mb-4 font-serif">其他分类方式</h4>
+          <div class="grid md:grid-cols-2 gap-6">
+            <div>
+              <h5 class="font-semibold text-gray-700 mb-2">按穿着场合分类</h5>
+              <ul class="text-sm text-gray-600 custom-list">
+                <li><strong>日常邦典：</strong>色彩素雅，方便劳作，日常穿着</li>
+                <li><strong>盛装邦典（查布钦）：</strong>腰头部位嵌缀金丝缎面三角形饰片，采用孔雀纹或花卉纹样，用于节日庆典和婚礼</li>
+              </ul>
+            </div>
+            <div>
+              <h5 class="font-semibold text-gray-700 mb-2">按地域特色分类</h5>
+              <ul class="text-sm text-gray-600 custom-list">
+                <li><strong>卫藏风格：</strong>拉萨、山南等地，细条纹、低饱和</li>
+                <li><strong>康巴风格：</strong>昌都等地，渐变效果明显</li>
+                <li><strong>安多风格：</strong>那曲等地，厚实保暖、单色系</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="container mx-auto max-w-5xl">
+        <div class="text-center mb-10">
+          <span class="section-tag">社会功能</span>
+          <h2 class="section-title">邦典的多重社会文化功能</h2>
+          <p class="section-desc">从实用到象征，邦典在藏族社会中扮演多重角色，承载着丰富的文化内涵</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div class="text-center p-6 bg-white rounded-xl shadow-md">
+            <div class="w-14 h-14 mx-auto mb-3 rounded-full bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center">
+              <i class="fa fa-user-circle text-white text-2xl"></i>
+            </div>
+            <h4 class="font-bold text-gray-800 mb-2">身份标识</h4>
+            <p class="text-xs text-gray-500">邦典的款式、色彩和图案往往与佩戴者的年龄、婚姻状况、社会阶层密切相关</p>
+          </div>
+
+          <div class="text-center p-6 bg-white rounded-xl shadow-md">
+            <div class="w-14 h-14 mx-auto mb-3 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+              <i class="fa fa-star text-white text-2xl"></i>
+            </div>
+            <h4 class="font-bold text-gray-800 mb-2">成年标志</h4>
+            <p class="text-xs text-gray-500">少女15岁成人礼时系上五彩邦典，标志着长大成人，获得社交资格</p>
+          </div>
+
+          <div class="text-center p-6 bg-white rounded-xl shadow-md">
+            <div class="w-14 h-14 mx-auto mb-3 rounded-full bg-gradient-to-br from-green-500 to-teal-500 flex items-center justify-center">
+              <i class="fa fa-shield text-white text-2xl"></i>
+            </div>
+            <h4 class="font-bold text-gray-800 mb-2">实用功能</h4>
+            <p class="text-xs text-gray-500">保护藏袍、盛放物品、婴幼儿保暖，体现高原生存智慧</p>
+          </div>
+
+          <div class="text-center p-6 bg-white rounded-xl shadow-md">
+            <div class="w-14 h-14 mx-auto mb-3 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
+              <i class="fa fa-heart text-white text-2xl"></i>
+            </div>
+            <h4 class="font-bold text-gray-800 mb-2">情感载体</h4>
+            <p class="text-xs text-gray-500">作为聘礼承载母女情感传递，是代际传承的文化纽带</p>
+          </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="bg-gradient-to-br from-red-50 to-pink-50 rounded-2xl p-6">
+            <h4 class="font-bold text-gray-800 mb-3 font-serif">民俗仪式中的邦典</h4>
+            <p class="text-gray-600 text-sm leading-relaxed">在婚俗仪式中，邦典作为聘礼构成要素，承担着代际情感传递与社会关系强化的特殊功能。男方聘礼中的邦典承载着对母亲培养之恩的符号化补偿，成为母女情感联结的物质媒介。在山南琼结、乃东等地，男方聘礼中必须有邦典，专门献给新娘的母亲。</p>
+          </div>
+          <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6">
+            <h4 class="font-bold text-gray-800 mb-3 font-serif">双层穿戴的智慧</h4>
+            <p class="text-gray-600 text-sm leading-relaxed">传统邦典通过内层洁净、外层耐磨的双层结构设计实现了服饰卫生管理。内层穿华丽的邦典用于正式场合，外层穿普通的邦典用于日常劳作和防尘。这种"内外置换"机制在机械化洗涤缺失及水资源匮乏的历史语境下，有效解决了高原地区藏袍的日常清洁难题。</p>
+          </div>
+        </div>
+
+        <div class="mt-6 bg-white rounded-2xl p-6 shadow-md">
+          <h4 class="font-bold text-gray-800 mb-4 font-serif">年龄与邦典的关联</h4>
+          <div class="grid md:grid-cols-4 gap-4">
+            <div class="text-center p-4 border-b-2 border-pink-400">
+              <div class="text-2xl font-bold text-pink-500 mb-1">少女</div>
+              <p class="text-xs text-gray-500">15岁成人礼前不系邦典</p>
+            </div>
+            <div class="text-center p-4 border-b-2 border-blue-400">
+              <div class="text-2xl font-bold text-blue-500 mb-1">青年</div>
+              <p class="text-xs text-gray-500">偏爱白底间色细条纹（噶察）</p>
+            </div>
+            <div class="text-center p-4 border-b-2 border-green-400">
+              <div class="text-2xl font-bold text-green-500 mb-1">中年</div>
+              <p class="text-xs text-gray-500">蓝绿冷色调（降查）为主</p>
+            </div>
+            <div class="text-center p-4 border-b-2 border-gray-400">
+              <div class="text-2xl font-bold text-gray-500 mb-1">老年</div>
+              <p class="text-xs text-gray-500">宽条纹彩虹色（查钦）</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card bg-white">
+      <div class="container mx-auto max-w-5xl">
+        <div class="text-center mb-10">
+          <span class="section-tag">制作工艺</span>
+          <h2 class="section-title">匠心工艺：从羊毛到邦典</h2>
+          <p class="section-desc">传统邦典制作的八大核心工序，凝聚着藏族工匠的智慧与心血</p>
+        </div>
+
+        <div class="relative mb-8">
+          <div class="hidden md:block absolute top-1/2 left-0 right-0 h-2 bg-gradient-to-r from-yellow-400 via-red-600 via-blue-900 via-green-600 to-gray-700 transform -translate-y-1/2 rounded-full opacity-20"></div>
+          
+          <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+            <div class="text-center">
+              <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-br from-yellow-300 to-yellow-500 flex items-center justify-center text-white shadow-lg">
+                <span class="text-lg font-bold">01</span>
+              </div>
+              <h4 class="font-semibold text-gray-800 text-sm">洗毛</h4>
+              <p class="text-xs text-gray-500 mt-1">清水浸泡，黄土揉搓去油</p>
+            </div>
+            <div class="text-center">
+              <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-br from-orange-300 to-orange-500 flex items-center justify-center text-white shadow-lg">
+                <span class="text-lg font-bold">02</span>
+              </div>
+              <h4 class="font-semibold text-gray-800 text-sm">梳毛</h4>
+              <p class="text-xs text-gray-500 mt-1">整理纤维，去除杂质</p>
+            </div>
+            <div class="text-center">
+              <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center text-white shadow-lg">
+                <span class="text-lg font-bold">03</span>
+              </div>
+              <h4 class="font-semibold text-gray-800 text-sm">捻线</h4>
+              <p class="text-xs text-gray-500 mt-1">手摇纺车捻成纱线</p>
+            </div>
+            <div class="text-center">
+              <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-br from-pink-400 to-pink-600 flex items-center justify-center text-white shadow-lg">
+                <span class="text-lg font-bold">04</span>
+              </div>
+              <h4 class="font-semibold text-gray-800 text-sm">绕桄</h4>
+              <p class="text-xs text-gray-500 mt-1">框线车卷线备用</p>
+            </div>
+            <div class="text-center">
+              <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white shadow-lg">
+                <span class="text-lg font-bold">05</span>
+              </div>
+              <h4 class="font-semibold text-gray-800 text-sm">上梭</h4>
+              <p class="text-xs text-gray-500 mt-1">准备织造工具</p>
+            </div>
+            <div class="text-center">
+              <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white shadow-lg">
+                <span class="text-lg font-bold">06</span>
+              </div>
+              <h4 class="font-semibold text-gray-800 text-sm">纺织</h4>
+              <p class="text-xs text-gray-500 mt-1">腰机手工编织</p>
+            </div>
+            <div class="text-center">
+              <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white shadow-lg">
+                <span class="text-lg font-bold">07</span>
+              </div>
+              <h4 class="font-semibold text-gray-800 text-sm">染色</h4>
+              <p class="text-xs text-gray-500 mt-1">天然染料上色</p>
+            </div>
+            <div class="text-center">
+              <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-br from-gray-500 to-gray-700 flex items-center justify-center text-white shadow-lg">
+                <span class="text-lg font-bold">08</span>
+              </div>
+              <h4 class="font-semibold text-gray-800 text-sm">整理</h4>
+              <p class="text-xs text-gray-500 mt-1">定型收边完成</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-gradient-to-r from-tibetan-green/10 via-tibetan-blue/10 to-tibetan-yellow/10 rounded-2xl p-6">
+          <h4 class="font-bold text-gray-800 mb-4 font-serif">纺织工艺详解</h4>
+          <div class="grid md:grid-cols-2 gap-6">
+            <div>
+              <h5 class="font-semibold text-gray-700 mb-2">传统织造工具</h5>
+              <ul class="text-sm text-gray-600 custom-list">
+                <li><strong>他赤（腰机）：</strong>简易踏板织机，与古代汉民间织布机类似</li>
+                <li><strong>各约：</strong>捻细线的圆锥形木质工具</li>
+                <li><strong>旁：</strong>捻粗线的工具</li>
+                <li><strong>加尕：</strong>调节经线松紧度的部件</li>
+              </ul>
+            </div>
+            <div>
+              <h5 class="font-semibold text-gray-700 mb-2">纺织技法特点</h5>
+              <ul class="text-sm text-gray-600 custom-list">
+                <li>经线分两部分下交叉，梭子穿过经线一次，击线板打击纬线两次</li>
+                <li>织机下有四个脚踏板，手脚配合使纬线上下变动</li>
+                <li>每引一根纬线敲打两次，使纺织品平整紧实</li>
+                <li>邦典先染色后纺织，氆氇先纺织后染色</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="container mx-auto max-w-5xl">
+        <div class="text-center mb-10">
+          <span class="section-tag">文化意义</span>
+          <h2 class="section-title">邦典的深层文化内涵</h2>
+          <p class="section-desc">邦典不仅仅是一件服饰配饰，更是藏族文化的活态传承载体</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="bg-white rounded-xl p-6 shadow-md">
+            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center mb-4">
+              <i class="fa fa-heart text-white"></i>
+            </div>
+            <h4 class="font-bold text-gray-800 mb-2">情感表达</h4>
+            <p class="text-sm text-gray-600">邦典承载着母女之间的情感传递，母亲在女儿成人礼时赠送邦典，象征着爱与祝福的传承。</p>
+          </div>
+          <div class="bg-white rounded-xl p-6 shadow-md">
+            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center mb-4">
+              <i class="fa fa-flag text-white"></i>
+            </div>
+            <h4 class="font-bold text-gray-800 mb-2">身份认同</h4>
+            <p class="text-sm text-gray-600">邦典是藏族女性身份的重要标识，已婚妇女佩戴邦典是社会规范，也是文化认同的体现。</p>
+          </div>
+          <div class="bg-white rounded-xl p-6 shadow-md">
+            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-teal-500 flex items-center justify-center mb-4">
+              <i class="fa fa-tree text-white"></i>
+            </div>
+            <h4 class="font-bold text-gray-800 mb-2">生态智慧</h4>
+            <p class="text-sm text-gray-600">邦典的材质选择和双层穿戴方式，体现了藏族人民适应高原环境的生存智慧。</p>
+          </div>
+          <div class="bg-white rounded-xl p-6 shadow-md">
+            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center mb-4">
+              <i class="fa fa-book text-white"></i>
+            </div>
+            <h4 class="font-bold text-gray-800 mb-2">历史传承</h4>
+            <p class="text-sm text-gray-600">从卡若遗址的纺轮到现代的机织邦典，见证了藏族纺织技艺数千年的传承与发展。</p>
+          </div>
+          <div class="bg-white rounded-xl p-6 shadow-md">
+            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-violet-500 flex items-center justify-center mb-4">
+              <i class="fa fa-palette text-white"></i>
+            </div>
+            <h4 class="font-bold text-gray-800 mb-2">审美表达</h4>
+            <p class="text-sm text-gray-600">邦典的色彩搭配体现了藏族独特的审美观念，既源于自然又超越自然，展现独特的艺术魅力。</p>
+          </div>
+          <div class="bg-white rounded-xl p-6 shadow-md">
+            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-gray-500 to-gray-700 flex items-center justify-center mb-4">
+              <i class="fa fa-users text-white"></i>
+            </div>
+            <h4 class="font-bold text-gray-800 mb-2">社会纽带</h4>
+            <p class="text-sm text-gray-600">邦典作为礼物互赠，构成社会关系的调节器，起到维护社会关系的重要作用。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="py-12 text-center bg-gradient-to-r from-tibetan-red/10 via-tibetan-yellow/10 to-tibetan-blue/10">
+      <h3 class="font-serif text-2xl font-bold text-gray-800 mb-6">探索更多邦典文化</h3>
+      <div class="flex justify-center gap-4 flex-wrap">
+        <a href="bangdian-gallery.html" class="inline-flex items-center gap-2 px-6 py-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all hover:-translate-y-1">
+          <i class="fa fa-images text-tibetan-red"></i>
+          <span class="font-medium">邦典图鉴</span>
+        </a>
+        <a href="masters.html" class="inline-flex items-center gap-2 px-6 py-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all hover:-translate-y-1">
+          <i class="fa fa-users text-tibetan-red"></i>
+          <span class="font-medium">非遗传承</span>
+        </a>
+        <a href="ai-generator.html" class="inline-flex items-center gap-2 px-6 py-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all hover:-translate-y-1">
+          <i class="fa fa-magic text-tibetan-red"></i>
+          <span class="font-medium">AI创作</span>
+        </a>
+        <a href="index.html" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-tibetan-red to-tibetan-yellow text-white rounded-full shadow-md hover:shadow-lg transition-all hover:-translate-y-1">
+          <i class="fa fa-home"></i>
+          <span class="font-medium">返回首页</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <div id="colorModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="close-modal" onclick="document.getElementById('colorModal').style.display='none'">
+        <i class="fa fa-times text-gray-500"></i>
+      </button>
+      <div id="colorContent">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">色彩详解</h3>
+        <p class="text-gray-600">点击颜色卡片查看详细信息。</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const colorDetails = {
+      '白色': {
+        title: '雪山云白',
+        natural: '象征雪山的圣洁与纯净，来自青藏高原皑皑白雪',
+        dye: '天然矿物白土',
+        meaning: '在藏传佛教中代表清净、觉悟和智慧，象征心灵的纯净',
+        usage: '常用于日常邦典和宗教仪式，是藏民族崇尚纯洁的体现'
+      },
+      '黄色': {
+        title: '金沙暖阳',
+        natural: '象征高原的阳光和丰收，来自雅鲁藏布江的金色沙滩',
+        dye: '藏红花、大黄根、秋洛（亚大黄）',
+        meaning: '代表增长、功德和繁荣，是藏传佛教中最尊贵的颜色之一',
+        usage: '常用于盛装邦典和宗教场合，也是尼姑常穿戴的颜色'
+      },
+      '红色': {
+        title: '珊瑚绯红',
+        natural: '象征火焰的热情和生命力，来自高原的珊瑚与火焰',
+        dye: '茜草根',
+        meaning: '代表权势、力量和慈悲，在藏传佛教中象征智慧与慈悲',
+        usage: '常用于节庆和婚礼场合，表达喜庆和祝福'
+      },
+      '蓝色': {
+        title: '天空藏蓝',
+        natural: '象征天空的辽阔和深邃，来自青藏高原湛蓝的天空',
+        dye: '靛蓝、青金石（汀）',
+        meaning: '代表诛灭、降伏和保护，象征天空的无限宽广',
+        usage: '常用于日常和宗教邦典，体现宁静与深远'
+      },
+      '绿色': {
+        title: '森林青稞',
+        natural: '象征草原的生机和希望，来自高原的森林与青稞田',
+        dye: '大黄叶、绿矾、蓝草与大黄根罩染',
+        meaning: '代表成就、事业和发展，象征生命的蓬勃',
+        usage: '常用于日常邦典，尤其受日喀则地区中年女性喜爱'
+      },
+      '黑色': {
+        title: '大地岩石',
+        natural: '象征大地的厚重和坚实，来自高原的岩石与土地',
+        dye: '核桃皮、铁盐媒染',
+        meaning: '代表降服、保护和力量，象征稳定与坚定',
+        usage: '常用于年长女性邦典，体现沉稳与庄重'
+      }
+    };
+
+    function showColorDetail(color) {
+      const detail = colorDetails[color];
+      if (detail) {
+        document.getElementById('colorContent').innerHTML = `
+          <h3 class="text-xl font-bold text-gray-800 mb-4">${detail.title}</h3>
+          <div class="space-y-3">
+            <div class="flex items-start gap-3">
+              <span class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0"><i class="fa fa-mountain text-xs"></i></span>
+              <div>
+                <span class="font-medium text-gray-700">自然象征：</span>
+                <span class="text-gray-600">${detail.natural}</span>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0"><i class="fa fa-flask text-xs"></i></span>
+              <div>
+                <span class="font-medium text-gray-700">天然染料：</span>
+                <span class="text-gray-600">${detail.dye}</span>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0"><i class="fa fa-book text-xs"></i></span>
+              <div>
+                <span class="font-medium text-gray-700">文化寓意：</span>
+                <span class="text-gray-600">${detail.meaning}</span>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <span class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0"><i class="fa fa-users text-xs"></i></span>
+              <div>
+                <span class="font-medium text-gray-700">使用场合：</span>
+                <span class="text-gray-600">${detail.usage}</span>
+              </div>
+            </div>
+          </div>
+        `;
+        document.getElementById('colorModal').style.display = 'flex';
+      }
+    }
+
+    document.getElementById('colorModal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('colorModal')) {
+        document.getElementById('colorModal').style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>

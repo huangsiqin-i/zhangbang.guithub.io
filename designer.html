@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>邦典设计工坊 - 邦典文化</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --tibetan-red: #9E2A2F;
+      --turquoise: #2C9678;
+      --earth-brown: #8B5A2B;
+      --cream-white: #F5F5DC;
+      --light-gold: #E6C8A0;
+      --warm-gray: #F8F4ED;
+      --dark-text: #2C2C2C;
+      --tibetan-blue: #1E3A5F;
+      --tibetan-yellow: #D4A84B;
+    }
+
+    body {
+      font-family: 'Noto Sans SC', sans-serif;
+      background: linear-gradient(135deg, var(--warm-gray) 0%, white 100%);
+      min-height: 100vh;
+    }
+
+    .font-serif { font-family: 'Noto Serif SC', serif; }
+
+    .nav-header {
+      background: rgba(248, 244, 237, 0.95);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .nav-link {
+      position: relative;
+      color: var(--dark-text);
+      font-weight: 500;
+      transition: color 0.3s ease;
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--tibetan-red);
+      transition: width 0.3s ease;
+    }
+
+    .nav-link:hover::after, .nav-link.active::after { width: 100%; }
+    .nav-link.active { color: var(--tibetan-red); font-weight: 600; }
+
+    .color-picker-item {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+      border: 3px solid transparent;
+    }
+
+    .color-picker-item:hover { transform: scale(1.1); }
+    .color-picker-item.selected { border-color: var(--tibetan-red); }
+
+    .pattern-item {
+      padding: 10px;
+      background: white;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 2px solid transparent;
+    }
+
+    .pattern-item:hover { transform: translateY(-2px); }
+    .pattern-item.selected { border-color: var(--tibetan-red); }
+
+    .preview-canvas {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    }
+
+    .save-btn {
+      background: linear-gradient(135deg, var(--tibetan-red), #c73e3e);
+      transition: all 0.3s ease;
+    }
+
+    .save-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(158, 42, 47, 0.3);
+    }
+
+    .history-item {
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .history-item:hover { transform: scale(1.02); }
+  </style>
+</head>
+<body>
+  <!-- 导航栏 -->
+  <header class="nav-header fixed top-0 left-0 right-0 z-50 px-4 py-3">
+    <div class="container mx-auto flex justify-between items-center">
+      <a href="index.html" class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-red-600 flex items-center justify-center">
+          <i class="fa fa-paint-brush text-white"></i>
+        </div>
+        <span class="font-bold text-xl" style="color: var(--tibetan-red);">邦典</span>
+      </a>
+      <nav class="hidden md:flex gap-6 text-base">
+        <a href="decode.html" class="nav-link">文化解码</a>
+        <a href="ai-generator.html" class="nav-link">AI创作</a>
+        <a href="designer.html" class="nav-link active">设计工坊</a>
+        <a href="virtual-tryon.html" class="nav-link">虚拟试穿</a>
+        <a href="gam.html" class="nav-link">互动游戏</a>
+        <a href="learning-path.html" class="nav-link">学习路径</a>
+        <a href="masters.html" class="nav-link">非遗传承</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- 主内容区 -->
+  <section class="pt-24 pb-16 px-4">
+    <div class="container mx-auto max-w-7xl">
+      <!-- 页面标题 -->
+      <div class="text-center mb-10">
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-800 font-serif mb-3">邦典设计工坊</h1>
+        <p class="text-gray-600">发挥你的创意，设计独一无二的邦典作品</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- 左侧控制面板 -->
+        <div class="lg:col-span-1 space-y-6">
+          <!-- 颜色选择 -->
+          <div class="bg-white rounded-2xl shadow-lg p-6">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-r from-red-600 to-amber-500 flex items-center justify-center">
+                <i class="fa fa-palette text-white"></i>
+              </div>
+              <h3 class="font-bold text-gray-800">选择色彩</h3>
+            </div>
+            <div class="grid grid-cols-6 gap-2">
+              <div class="color-picker-item selected" style="background: linear-gradient(180deg, #FFFFFF, #E8E8E8);" data-color="#FFFFFF"></div>
+              <div class="color-picker-item" style="background: linear-gradient(180deg, #D4A84B, #B8941F);" data-color="#D4A84B"></div>
+              <div class="color-picker-item" style="background: linear-gradient(180deg, #9E2A2F, #7A1F23);" data-color="#9E2A2F"></div>
+              <div class="color-picker-item" style="background: linear-gradient(180deg, #1E3A5F, #0F1F33);" data-color="#1E3A5F"></div>
+              <div class="color-picker-item" style="background: linear-gradient(180deg, #2C9678, #1E6B52);" data-color="#2C9678"></div>
+              <div class="color-picker-item" style="background: linear-gradient(180deg, #2C2C2C, #1A1A1A);" data-color="#2C2C2C"></div>
+              <div class="color-picker-item" style="background: linear-gradient(180deg, #FF6B6B, #EE5A5A);" data-color="#FF6B6B"></div>
+              <div class="color-picker-item" style="background: linear-gradient(180deg, #FFD93D, #F5C800);" data-color="#FFD93D"></div>
+              <div class="color-picker-item" style="background: linear-gradient(180deg, #6BCB77, #5AB066);" data-color="#6BCB77"></div>
+              <div class="color-picker-item" style="background: linear-gradient(180deg, #4D96FF, #3A7BD5);" data-color="#4D96FF"></div>
+              <div class="color-picker-item" style="background: linear-gradient(180deg, #FF9F43, #F59031);" data-color="#FF9F43"></div>
+              <div class="color-picker-item" style="background: linear-gradient(180deg, #A855F7, #9333EA);" data-color="#A855F7"></div>
+            </div>
+          </div>
+
+          <!-- 条纹宽度 -->
+          <div class="bg-white rounded-2xl shadow-lg p-6">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-purple-500 flex items-center justify-center">
+                <i class="fa fa-arrows-h text-white"></i>
+              </div>
+              <h3 class="font-bold text-gray-800">条纹宽度</h3>
+            </div>
+            <input type="range" id="stripeWidth" min="10" max="100" value="30" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-red-600">
+            <div class="flex justify-between text-sm text-gray-500 mt-2">
+              <span>细条纹</span>
+              <span id="widthValue">30px</span>
+              <span>宽条纹</span>
+            </div>
+          </div>
+
+          <!-- 图案选择 -->
+          <div class="bg-white rounded-2xl shadow-lg p-6">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-r from-green-600 to-teal-500 flex items-center justify-center">
+                <i class="fa fa-star text-white"></i>
+              </div>
+              <h3 class="font-bold text-gray-800">选择纹样</h3>
+            </div>
+            <div class="grid grid-cols-3 gap-3">
+              <div class="pattern-item selected text-center" data-pattern="none">
+                <i class="fa fa-minus text-xl text-gray-400"></i>
+              </div>
+              <div class="pattern-item text-center" data-pattern="dots">
+                <div class="flex justify-center gap-1">
+                  <span class="w-2 h-2 rounded-full bg-gray-600"></span>
+                  <span class="w-2 h-2 rounded-full bg-gray-600"></span>
+                </div>
+              </div>
+              <div class="pattern-item text-center" data-pattern="waves">
+                <i class="fa fa-waveform text-xl text-gray-600"></i>
+              </div>
+              <div class="pattern-item text-center" data-pattern="diamonds">
+                <i class="fa fa-square text-xl text-gray-600 rotate-45"></i>
+              </div>
+              <div class="pattern-item text-center" data-pattern="stars">
+                <i class="fa fa-star text-xl text-gray-600"></i>
+              </div>
+              <div class="pattern-item text-center" data-pattern="flowers">
+                <i class="fa fa-flower2 text-xl text-gray-600"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- 添加条纹 -->
+          <div class="bg-white rounded-2xl shadow-lg p-6">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-r from-amber-600 to-orange-500 flex items-center justify-center">
+                <i class="fa fa-plus text-white"></i>
+              </div>
+              <h3 class="font-bold text-gray-800">添加条纹</h3>
+            </div>
+            <div class="space-y-2">
+              <button id="addStripeBtn" class="w-full py-3 bg-gradient-to-r from-red-600 to-amber-500 text-white rounded-xl font-medium hover:opacity-90 transition-opacity">
+                添加条纹
+              </button>
+              <button id="removeStripeBtn" class="w-full py-2 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-colors">
+                删除最后一条
+              </button>
+              <button id="clearBtn" class="w-full py-2 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-colors">
+                清空重新设计
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 中间预览区 -->
+        <div class="lg:col-span-1">
+          <div class="bg-white rounded-2xl shadow-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-bold text-gray-800">设计预览</h3>
+              <div class="flex gap-2">
+                <button id="undoBtn" class="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors" title="撤销">
+                  <i class="fa fa-undo text-gray-600"></i>
+                </button>
+                <button id="redoBtn" class="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors" title="重做">
+                  <i class="fa fa-redo text-gray-600"></i>
+                </button>
+              </div>
+            </div>
+            
+            <!-- 预览画布 -->
+            <div class="preview-canvas p-8">
+              <div id="bangdianPreview" class="w-full h-80 rounded-xl overflow-hidden border-4 border-gray-200">
+                <!-- 邦典条纹将在这里动态生成 -->
+              </div>
+            </div>
+
+            <!-- 当前颜色序列 -->
+            <div class="mt-4">
+              <h4 class="text-sm font-medium text-gray-500 mb-2">当前配色序列</h4>
+              <div id="colorSequence" class="flex flex-wrap gap-2">
+                <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm">白色</span>
+                <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm">黄色</span>
+                <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm">红色</span>
+                <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">蓝色</span>
+                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">绿色</span>
+              </div>
+            </div>
+
+            <!-- 保存按钮 -->
+            <button id="saveDesignBtn" class="save-btn w-full mt-6 py-4 text-white font-semibold rounded-xl flex items-center justify-center gap-2">
+              <i class="fa fa-save"></i>
+              <span>保存我的设计</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 右侧预设模板 -->
+        <div class="lg:col-span-1">
+          <div class="bg-white rounded-2xl shadow-lg p-6">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-pink-500 flex items-center justify-center">
+                <i class="fa fa-bookmark text-white"></i>
+              </div>
+              <h3 class="font-bold text-gray-800">预设模板</h3>
+            </div>
+            <div class="space-y-3">
+              <div class="preset-item p-4 bg-gradient-to-r from-red-50 to-amber-50 rounded-xl cursor-pointer hover:shadow-md transition-shadow" data-preset="traditional">
+                <h4 class="font-medium text-gray-800 mb-2">传统经典</h4>
+                <div class="flex h-8 rounded-lg overflow-hidden">
+                  <div class="flex-1 bg-white"></div>
+                  <div class="flex-1 bg-yellow-500"></div>
+                  <div class="flex-1 bg-red-600"></div>
+                  <div class="flex-1 bg-blue-700"></div>
+                  <div class="flex-1 bg-green-600"></div>
+                </div>
+              </div>
+              <div class="preset-item p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl cursor-pointer hover:shadow-md transition-shadow" data-preset="modern">
+                <h4 class="font-medium text-gray-800 mb-2">现代简约</h4>
+                <div class="flex h-8 rounded-lg overflow-hidden">
+                  <div class="flex-1 bg-white"></div>
+                  <div class="flex-1 bg-gray-300"></div>
+                  <div class="flex-1 bg-blue-500"></div>
+                  <div class="flex-1 bg-gray-200"></div>
+                </div>
+              </div>
+              <div class="preset-item p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl cursor-pointer hover:shadow-md transition-shadow" data-preset="elegant">
+                <h4 class="font-medium text-gray-800 mb-2">优雅华贵</h4>
+                <div class="flex h-8 rounded-lg overflow-hidden">
+                  <div class="flex-1 bg-amber-200"></div>
+                  <div class="flex-1 bg-amber-600"></div>
+                  <div class="flex-1 bg-amber-300"></div>
+                  <div class="flex-1 bg-amber-700"></div>
+                </div>
+              </div>
+              <div class="preset-item p-4 bg-gradient-to-r from-green-50 to-teal-50 rounded-xl cursor-pointer hover:shadow-md transition-shadow" data-preset="nature">
+                <h4 class="font-medium text-gray-800 mb-2">自然清新</h4>
+                <div class="flex h-8 rounded-lg overflow-hidden">
+                  <div class="flex-1 bg-green-200"></div>
+                  <div class="flex-1 bg-green-500"></div>
+                  <div class="flex-1 bg-emerald-300"></div>
+                  <div class="flex-1 bg-teal-600"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 我的作品 -->
+          <div class="bg-white rounded-2xl shadow-lg p-6 mt-6">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-600 to-blue-500 flex items-center justify-center">
+                  <i class="fa fa-user text-white"></i>
+                </div>
+                <h3 class="font-bold text-gray-800">我的作品</h3>
+              </div>
+              <button class="text-sm text-red-600 hover:text-red-700">查看全部</button>
+            </div>
+            <div class="space-y-3">
+              <div class="history-item p-3 bg-gray-50 rounded-xl flex items-center gap-3">
+                <div class="w-12 h-12 rounded-lg overflow-hidden flex">
+                  <div class="w-1/3 bg-white"></div>
+                  <div class="w-1/3 bg-yellow-500"></div>
+                  <div class="w-1/3 bg-red-600"></div>
+                </div>
+                <div class="flex-1">
+                  <h4 class="font-medium text-gray-800 text-sm">我的设计 #1</h4>
+                  <p class="text-xs text-gray-500">2024-01-15</p>
+                </div>
+              </div>
+              <div class="history-item p-3 bg-gray-50 rounded-xl flex items-center gap-3">
+                <div class="w-12 h-12 rounded-lg overflow-hidden flex">
+                  <div class="w-1/4 bg-blue-500"></div>
+                  <div class="w-1/4 bg-white"></div>
+                  <div class="w-1/4 bg-purple-500"></div>
+                  <div class="w-1/4 bg-white"></div>
+                </div>
+                <div class="flex-1">
+                  <h4 class="font-medium text-gray-800 text-sm">我的设计 #2</h4>
+                  <p class="text-xs text-gray-500">2024-01-14</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // 设计状态
+    let designState = {
+      colors: ['#FFFFFF', '#D4A84B', '#9E2A2F', '#1E3A5F', '#2C9678'],
+      stripeWidth: 30,
+      pattern: 'none',
+      history: [],
+      historyIndex: -1
+    };
+
+    // 颜色名称映射
+    const colorNames = {
+      '#FFFFFF': '白色',
+      '#D4A84B': '黄色',
+      '#9E2A2F': '红色',
+      '#1E3A5F': '蓝色',
+      '#2C9678': '绿色',
+      '#2C2C2C': '黑色',
+      '#FF6B6B': '珊瑚红',
+      '#FFD93D': '金色',
+      '#6BCB77': '翠绿色',
+      '#4D96FF': '天蓝色',
+      '#FF9F43': '橙色',
+      '#A855F7': '紫色'
+    };
+
+    // 更新预览
+    function updatePreview() {
+      const preview = document.getElementById('bangdianPreview');
+      const width = designState.stripeWidth;
+      const colors = designState.colors;
+      
+      let html = '';
+      colors.forEach((color, index) => {
+        html += `<div 
+          class="h-full float-left transition-all duration-300" 
+          style="width: ${width}px; background: linear-gradient(180deg, ${color}, ${adjustColor(color, -20)});"
+        ></div>`;
+      });
+      
+      preview.innerHTML = html;
+      updateColorSequence();
+    }
+
+    // 更新颜色序列显示
+    function updateColorSequence() {
+      const sequence = document.getElementById('colorSequence');
+      sequence.innerHTML = designState.colors.map(color => {
+        const name = colorNames[color] || '自定义';
+        return `<span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">${name}</span>`;
+      }).join('');
+    }
+
+    // 调整颜色亮度
+    function adjustColor(color, amount) {
+      const hex = color.replace('#', '');
+      const r = Math.max(0, Math.min(255, parseInt(hex.substr(0, 2), 16) + amount));
+      const g = Math.max(0, Math.min(255, parseInt(hex.substr(2, 2), 16) + amount));
+      const b = Math.max(0, Math.min(255, parseInt(hex.substr(4, 2), 16) + amount));
+      return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+    }
+
+    // 保存历史记录
+    function saveHistory() {
+      designState.history = designState.history.slice(0, designState.historyIndex + 1);
+      designState.history.push({
+        colors: [...designState.colors],
+        stripeWidth: designState.stripeWidth,
+        pattern: designState.pattern
+      });
+      designState.historyIndex = designState.history.length - 1;
+    }
+
+    // 颜色选择
+    document.querySelectorAll('.color-picker-item').forEach(item => {
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.color-picker-item').forEach(i => i.classList.remove('selected'));
+        item.classList.add('selected');
+        saveHistory();
+        designState.colors.push(item.dataset.color);
+        updatePreview();
+      });
+    });
+
+    // 条纹宽度调整
+    document.getElementById('stripeWidth').addEventListener('input', (e) => {
+      designState.stripeWidth = parseInt(e.target.value);
+      document.getElementById('widthValue').textContent = `${designState.stripeWidth}px`;
+      updatePreview();
+    });
+
+    // 图案选择
+    document.querySelectorAll('.pattern-item').forEach(item => {
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.pattern-item').forEach(i => i.classList.remove('selected'));
+        item.classList.add('selected');
+        designState.pattern = item.dataset.pattern;
+      });
+    });
+
+    // 添加条纹
+    document.getElementById('addStripeBtn').addEventListener('click', () => {
+      const selectedColor = document.querySelector('.color-picker-item.selected').dataset.color;
+      saveHistory();
+      designState.colors.push(selectedColor);
+      updatePreview();
+    });
+
+    // 删除最后一条
+    document.getElementById('removeStripeBtn').addEventListener('click', () => {
+      if (designState.colors.length > 1) {
+        saveHistory();
+        designState.colors.pop();
+        updatePreview();
+      }
+    });
+
+    // 清空
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      saveHistory();
+      designState.colors = ['#FFFFFF'];
+      updatePreview();
+    });
+
+    // 撤销
+    document.getElementById('undoBtn').addEventListener('click', () => {
+      if (designState.historyIndex > 0) {
+        designState.historyIndex--;
+        const state = designState.history[designState.historyIndex];
+        designState.colors = [...state.colors];
+        designState.stripeWidth = state.stripeWidth;
+        designState.pattern = state.pattern;
+        updatePreview();
+      }
+    });
+
+    // 重做
+    document.getElementById('redoBtn').addEventListener('click', () => {
+      if (designState.historyIndex < designState.history.length - 1) {
+        designState.historyIndex++;
+        const state = designState.history[designState.historyIndex];
+        designState.colors = [...state.colors];
+        designState.stripeWidth = state.stripeWidth;
+        designState.pattern = state.pattern;
+        updatePreview();
+      }
+    });
+
+    // 预设模板
+    document.querySelectorAll('.preset-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const preset = item.dataset.preset;
+        saveHistory();
+        
+        switch(preset) {
+          case 'traditional':
+            designState.colors = ['#FFFFFF', '#D4A84B', '#9E2A2F', '#1E3A5F', '#2C9678', '#2C2C2C'];
+            break;
+          case 'modern':
+            designState.colors = ['#FFFFFF', '#D1D5DB', '#3B82F6', '#E5E7EB'];
+            break;
+          case 'elegant':
+            designState.colors = ['#FEF3C7', '#D97706', '#FDE68A', '#B45309'];
+            break;
+          case 'nature':
+            designState.colors = ['#D1FAE5', '#22C55E', '#86EFAC', '#14B8A6'];
+            break;
+        }
+        
+        updatePreview();
+      });
+    });
+
+    // 保存设计
+    document.getElementById('saveDesignBtn').addEventListener('click', () => {
+      const design = {
+        id: Date.now(),
+        colors: designState.colors,
+        stripeWidth: designState.stripeWidth,
+        pattern: designState.pattern,
+        createdAt: new Date().toISOString()
+      };
+      
+      const savedDesigns = JSON.parse(localStorage.getItem('bangdianDesigns') || '[]');
+      savedDesigns.unshift(design);
+      localStorage.setItem('bangdianDesigns', JSON.stringify(savedDesigns.slice(0, 20)));
+      
+      alert('设计已保存！');
+    });
+
+    // 初始化预览
+    updatePreview();
+  </script>
+</body>
+</html>

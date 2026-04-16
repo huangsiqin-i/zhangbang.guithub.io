@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>邦典文化数据可视化中心</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; font-family: 'Noto Sans SC', sans-serif; }
+    
+    /* 导航栏样式 */
+    .nav-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      padding: 1.25rem 2rem;
+      background: rgba(248, 244, 237, 0.95);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .nav-link {
+      position: relative;
+      color: #2C2C2C;
+      font-weight: 500;
+      transition: color 0.3s ease;
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: #9E2A2F;
+      transition: width 0.3s ease;
+    }
+
+    .nav-link:hover::after,
+    .nav-link.active::after {
+      width: 100%;
+    }
+
+    .nav-link.active {
+      color: #9E2A2F;
+      font-weight: 600;
+    }
+
+    /* 数据卡片动画 */
+    .stat-card {
+      transition: all 0.3s ease;
+      animation: slideInUp 0.6s ease-out;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* 数字滚动动画 */
+    .counter {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* 地图容器 */
+    .map-container {
+      position: relative;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    /* 地图标记点动画 */
+    .map-marker {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      cursor: pointer;
+      animation: pulse 2s infinite;
+      transition: all 0.3s ease;
+    }
+
+    .map-marker:hover {
+      transform: scale(1.5);
+      z-index: 100;
+    }
+
+    @keyframes pulse {
+      0%, 100% { 
+        box-shadow: 0 0 0 0 rgba(158, 42, 47, 0.7);
+        transform: scale(1);
+      }
+      50% { 
+        box-shadow: 0 0 0 15px rgba(158, 42, 47, 0);
+        transform: scale(1.1);
+      }
+    }
+
+    /* 实时数据流效果 */
+    .data-stream {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .data-stream::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+      animation: stream 2s infinite;
+    }
+
+    @keyframes stream {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+
+    /* 图表容器 */
+    .chart-container {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    /* 时间轴样式 */
+    .timeline-item {
+      position: relative;
+      padding-left: 30px;
+      border-left: 2px solid #e5e7eb;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -6px;
+      top: 0;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #9E2A2F;
+    }
+
+    /* 登录注册模态框样式 */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    /* 滚动条样式 */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a1a1a1;
+    }
+
+    /* 数据更新指示器 */
+    .update-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      animation: blink 1.5s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* 渐变文字 */
+    .gradient-text {
+      background: linear-gradient(135deg, #9E2A2F 0%, #F59E0B 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* 西藏地图SVG样式 */
+    .tibet-map {
+      width: 100%;
+      height: 100%;
+    }
+
+    .tibet-region {
+      fill: #e5e7eb;
+      stroke: #9ca3af;
+      stroke-width: 1;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .tibet-region:hover {
+      fill: #fca5a5;
+      stroke: #9E2A2F;
+      stroke-width: 2;
+    }
+
+    .tibet-region.active {
+      fill: #9E2A2F;
+      stroke: #7f1d1d;
+    }
+
+    /* 热力图颜色 */
+    .heat-low { fill: #fef3c7; }
+    .heat-medium { fill: #fcd34d; }
+    .heat-high { fill: #f59e0b; }
+    .heat-very-high { fill: #dc2626; }
+  </style>
+</head>
+<body class="bg-slate-50">
+  <!-- 导航栏 -->
+  <header class="nav-header">
+    <div class="container mx-auto flex justify-between items-center">
+      <a href="index.html" class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-red-600 flex items-center justify-center">
+          <i class="fa fa-paint-brush text-white"></i>
+        </div>
+        <span class="font-bold text-xl" style="color: #9E2A2F;">邦典</span>
+      </a>
+      <nav class="flex gap-6 text-base">
+        <a href="decode.html" class="nav-link">文化解码</a>
+        <a href="experience.html" class="nav-link">沉浸式体验</a>
+        <a href="gam.html" class="nav-link">人生历程</a>
+        <a href="map.html" class="nav-link active">数据可视化</a>
+      </nav>
+      <div class="flex items-center gap-3" id="userAuthSection">
+        <div id="userInfo" class="hidden flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-red-600 to-amber-500 flex items-center justify-center text-white">
+            <i class="fa fa-user"></i>
+          </div>
+          <span id="userName" class="text-slate-700 font-medium">用户</span>
+          <button id="logoutBtn" class="px-3 py-1 text-sm text-slate-600 hover:text-red-700 transition-colors">
+            退出
+          </button>
+        </div>
+        <button id="loginBtn" class="px-4 py-2 bg-gradient-to-r from-red-600 to-amber-500 text-white rounded-lg hover:from-red-700 hover:to-amber-600 transition-colors font-medium">
+          <i class="fa fa-user-circle mr-2"></i> 登录
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主内容区 -->
+  <main class="pt-24 pb-8 px-4 md:px-8">
+    <div class="container mx-auto max-w-7xl">
+      <!-- 页面标题 -->
+      <div class="mb-8">
+        <h1 class="text-3xl md:text-4xl font-bold gradient-text mb-2">
+          <i class="fa fa-bar-chart mr-3"></i>邦典文化数据可视化中心
+        </h1>
+        <p class="text-slate-600 flex items-center gap-2">
+          <span class="update-indicator"></span>
+          实时数据监控 · 最后更新: <span id="lastUpdateTime">--:--:--</span>
+        </p>
+      </div>
+
+      <!-- 核心数据指标卡片 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="stat-card bg-white rounded-xl p-6 shadow-lg border-l-4 border-red-600">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-lg bg-red-100 flex items-center justify-center">
+              <i class="fa fa-users text-red-600 text-xl"></i>
+            </div>
+            <span class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">
+              <i class="fa fa-arrow-up mr-1"></i>+12.5%
+            </span>
+          </div>
+          <h3 class="text-slate-500 text-sm mb-1">今日访问量</h3>
+          <p class="text-3xl font-bold text-slate-800 counter" data-target="2847">0</p>
+        </div>
+
+        <div class="stat-card bg-white rounded-xl p-6 shadow-lg border-l-4 border-amber-500" style="animation-delay: 0.1s;">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center">
+              <i class="fa fa-paint-brush text-amber-600 text-xl"></i>
+            </div>
+            <span class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">
+              <i class="fa fa-arrow-up mr-1"></i>+8.3%
+            </span>
+          </div>
+          <h3 class="text-slate-500 text-sm mb-1">邦典设计作品</h3>
+          <p class="text-3xl font-bold text-slate-800 counter" data-target="15632">0</p>
+        </div>
+
+        <div class="stat-card bg-white rounded-xl p-6 shadow-lg border-l-4 border-blue-500" style="animation-delay: 0.2s;">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
+              <i class="fa fa-map-marker text-blue-600 text-xl"></i>
+            </div>
+            <span class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">
+              <i class="fa fa-arrow-up mr-1"></i>+15.2%
+            </span>
+          </div>
+          <h3 class="text-slate-500 text-sm mb-1">非遗工坊数量</h3>
+          <p class="text-3xl font-bold text-slate-800 counter" data-target="128">0</p>
+        </div>
+
+        <div class="stat-card bg-white rounded-xl p-6 shadow-lg border-l-4 border-purple-500" style="animation-delay: 0.3s;">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
+              <i class="fa fa-globe text-purple-600 text-xl"></i>
+            </div>
+            <span class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">
+              <i class="fa fa-arrow-up mr-1"></i>+23.7%
+            </span>
+          </div>
+          <h3 class="text-slate-500 text-sm mb-1">国际访客占比</h3>
+          <p class="text-3xl font-bold text-slate-800"><span class="counter" data-target="34">0</span>%</p>
+        </div>
+      </div>
+
+      <!-- 主要内容网格 -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        <!-- 西藏地图可视化 -->
+        <div class="lg:col-span-2">
+          <div class="chart-container h-[500px]">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-bold text-slate-800">
+                <i class="fa fa-map mr-2 text-red-600"></i>西藏邦典文化分布热力图
+              </h3>
+              <div class="flex gap-2">
+                <button class="px-3 py-1 text-xs bg-red-100 text-red-700 rounded-full hover:bg-red-200 transition-colors" onclick="filterMap('all')">全部</button>
+                <button class="px-3 py-1 text-xs bg-slate-100 text-slate-600 rounded-full hover:bg-slate-200 transition-colors" onclick="filterMap('workshop')">工坊</button>
+                <button class="px-3 py-1 text-xs bg-slate-100 text-slate-600 rounded-full hover:bg-slate-200 transition-colors" onclick="filterMap('museum')">博物馆</button>
+              </div>
+            </div>
+            <div id="tibetMapChart" class="w-full h-[420px]"></div>
+          </div>
+        </div>
+
+        <!-- 地区统计排行 -->
+        <div class="chart-container h-[500px]">
+          <h3 class="text-lg font-bold text-slate-800 mb-4">
+            <i class="fa fa-trophy mr-2 text-amber-500"></i>地区邦典文化活跃度排行
+          </h3>
+          <div id="regionRankingChart" class="w-full h-[420px]"></div>
+        </div>
+      </div>
+
+      <!-- 第二行图表 -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- 访问趋势图 -->
+        <div class="chart-container">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold text-slate-800">
+              <i class="fa fa-line-chart mr-2 text-blue-600"></i>平台访问趋势 (近30天)
+            </h3>
+            <select class="text-sm border border-slate-300 rounded-lg px-3 py-1" onchange="updateTrendChart(this.value)">
+              <option value="7">近7天</option>
+              <option value="30" selected>近30天</option>
+              <option value="90">近90天</option>
+            </select>
+          </div>
+          <div id="trendChart" class="w-full h-[300px]"></div>
+        </div>
+
+        <!-- 用户行为分析 -->
+        <div class="chart-container">
+          <h3 class="text-lg font-bold text-slate-800 mb-4">
+            <i class="fa fa-pie-chart mr-2 text-green-600"></i>用户行为分析
+          </h3>
+          <div id="behaviorChart" class="w-full h-[300px]"></div>
+        </div>
+      </div>
+
+      <!-- 第三行：实时动态与数据分析 -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- 实时动态 -->
+        <div class="chart-container">
+          <h3 class="text-lg font-bold text-slate-800 mb-4">
+            <i class="fa fa-clock-o mr-2 text-purple-600"></i>实时动态
+            <span class="update-indicator ml-2"></span>
+          </h3>
+          <div class="space-y-4 max-h-[300px] overflow-y-auto" id="activityFeed">
+            <!-- 动态内容将由JS生成 -->
+          </div>
+        </div>
+
+        <!-- 邦典色彩偏好分析 -->
+        <div class="chart-container">
+          <h3 class="text-lg font-bold text-slate-800 mb-4">
+            <i class="fa fa-palette mr-2 text-pink-600"></i>邦典色彩偏好分析
+          </h3>
+          <div id="colorChart" class="w-full h-[300px]"></div>
+        </div>
+
+        <!-- 纹样热度排行 -->
+        <div class="chart-container">
+          <h3 class="text-lg font-bold text-slate-800 mb-4">
+            <i class="fa fa-fire mr-2 text-red-600"></i>热门纹样排行
+          </h3>
+          <div id="patternChart" class="w-full h-[300px]"></div>
+        </div>
+      </div>
+
+      <!-- 数据洞察面板 -->
+      <div class="mt-8 bg-gradient-to-r from-red-600 to-amber-500 rounded-xl p-6 text-white">
+        <div class="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h3 class="text-xl font-bold mb-2">
+              <i class="fa fa-lightbulb-o mr-2"></i>数据洞察
+            </h3>
+            <p class="text-white/90">基于当前数据分析，拉萨地区邦典文化关注度最高，建议加强日喀则地区的文化推广活动。</p>
+          </div>
+          <button onclick="generateReport()" class="px-6 py-3 bg-white text-red-600 rounded-lg font-semibold hover:bg-red-50 transition-colors shadow-lg">
+            <i class="fa fa-download mr-2"></i>生成数据报告
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 登录模态框 -->
+  <div id="loginModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="sticky top-0 bg-white z-10 p-6 border-b border-slate-200">
+        <div class="flex justify-between items-center">
+          <h3 class="text-xl font-bold text-red-700 flex items-center">
+            <i class="fa fa-user-circle mr-3"></i> 用户登录
+          </h3>
+          <button id="closeLoginModal" class="text-slate-500 hover:text-slate-800 text-xl transition-colors">
+            <i class="fa fa-times"></i>
+          </button>
+        </div>
+      </div>
+      
+      <div class="p-6">
+        <div class="flex mb-6 border-b border-slate-200">
+          <button id="userLoginTab" class="flex-1 py-3 px-4 text-center font-medium text-red-700 border-b-2 border-red-700">
+            <i class="fa fa-user mr-2"></i> 用户登录
+          </button>
+          <button id="adminLoginTab" class="flex-1 py-3 px-4 text-center font-medium text-slate-500 hover:text-slate-700">
+            <i class="fa fa-shield mr-2"></i> 管理员登录
+          </button>
+        </div>
+        
+        <div id="userLoginForm">
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">用户名/手机号</label>
+              <input type="text" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent" placeholder="请输入用户名或手机号" required>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">密码</label>
+              <input type="password" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent" placeholder="请输入密码" required>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <input type="checkbox" id="rememberMe" class="mr-2">
+                <label for="rememberMe" class="text-sm text-slate-600">记住我</label>
+              </div>
+              <a href="#" class="text-sm text-red-600 hover:text-red-700">忘记密码？</a>
+            </div>
+            <button id="userLoginSubmit" class="w-full px-6 py-3 bg-gradient-to-r from-red-600 to-amber-500 text-white rounded-lg font-semibold hover:from-red-700 hover:to-amber-600 transition-colors">
+              <i class="fa fa-sign-in mr-2"></i> 登录
+            </button>
+            <div class="text-center text-sm text-slate-600">
+              还没有账号？ <a href="#" id="switchToRegister" class="text-red-600 hover:text-red-700 font-medium">立即注册</a>
+            </div>
+          </div>
+        </div>
+        
+        <div id="adminLoginForm" class="hidden">
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">管理员账号</label>
+              <input type="text" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent" placeholder="请输入管理员账号" required>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">密码</label>
+              <input type="password" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent" placeholder="请输入管理员密码" required>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">验证码</label>
+              <div class="flex gap-2">
+                <input type="text" class="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent" placeholder="请输入验证码" required>
+                <div class="w-32 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500">1234</div>
+              </div>
+            </div>
+            <button id="adminLoginSubmit" class="w-full px-6 py-3 bg-gradient-to-r from-red-600 to-amber-500 text-white rounded-lg font-semibold hover:from-red-700 hover:to-amber-600 transition-colors">
+              <i class="fa fa-lock mr-2"></i> 管理员登录
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 注册模态框 -->
+  <div id="registerModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="sticky top-0 bg-white z-10 p-6 border-b border-slate-200">
+        <div class="flex justify-between items-center">
+          <h3 class="text-xl font-bold text-red-700 flex items-center">
+            <i class="fa fa-user-plus mr-3"></i> 用户注册
+          </h3>
+          <button id="closeRegisterModal" class="text-slate-500 hover:text-slate-800 text-xl transition-colors">
+            <i class="fa fa-times"></i>
+          </button>
+        </div>
+      </div>
+      
+      <div class="p-6">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">用户名</label>
+            <input type="text" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent" placeholder="请设置用户名" required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">手机号</label>
+            <div class="flex gap-2">
+              <input type="tel" class="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent" placeholder="请输入手机号" pattern="^1[3-9]\d{9}$" required>
+              <button class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors whitespace-nowrap">发送验证码</button>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">验证码</label>
+            <input type="text" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent" placeholder="请输入验证码" required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">密码</label>
+            <input type="password" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent" placeholder="请设置密码（6-20位）" required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">确认密码</label>
+            <input type="password" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent" placeholder="请确认密码" required>
+          </div>
+          <div class="flex items-start">
+            <input type="checkbox" id="agreeTerms" class="mt-1 mr-2">
+            <label for="agreeTerms" class="text-sm text-slate-600">
+              我已阅读并同意 <a href="#" class="text-red-600 hover:text-red-700">用户协议</a> 和 <a href="#" class="text-red-600 hover:text-red-700">隐私政策</a>
+            </label>
+          </div>
+          <button id="registerSubmit" class="w-full px-6 py-3 bg-gradient-to-r from-red-600 to-amber-500 text-white rounded-lg font-semibold hover:from-red-700 hover:to-amber-600 transition-colors">
+            <i class="fa fa-user-plus mr-2"></i> 注册
+          </button>
+          <div class="text-center text-sm text-slate-600">
+            已有账号？ <a href="#" id="switchToLogin" class="text-red-600 hover:text-red-700 font-medium">立即登录</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==================== 数据可视化配置 ====================
+    
+    // 西藏各地区邦典文化数据 - 基于真实文化资料
+    const tibetData = {
+      regions: [
+        { 
+          name: '拉萨市', 
+          value: 95, 
+          workshops: 45, 
+          museums: 12, 
+          visitors: 125000,
+          description: '西藏政治文化中心，邦典文化最活跃地区',
+          famousSpots: ['八廓街', '布达拉宫', '大昭寺']
+        },
+        { 
+          name: '日喀则市', 
+          value: 78, 
+          workshops: 32, 
+          museums: 8, 
+          visitors: 89000,
+          description: '后藏文化中心，邦典织造技艺传承地',
+          famousSpots: ['扎什伦布寺', '江孜古堡']
+        },
+        { 
+          name: '山南市', 
+          value: 65, 
+          workshops: 18, 
+          museums: 5, 
+          visitors: 56000,
+          description: '藏文化发源地，邦典历史最悠久',
+          famousSpots: ['雍布拉康', '昌珠寺']
+        },
+        { 
+          name: '林芝市', 
+          value: 52, 
+          workshops: 12, 
+          museums: 3, 
+          visitors: 42000,
+          description: '藏东文化重镇，邦典色彩丰富多样',
+          famousSpots: ['巴松措', '南迦巴瓦']
+        },
+        { 
+          name: '昌都市', 
+          value: 48, 
+          workshops: 10, 
+          museums: 4, 
+          visitors: 38000,
+          description: '康巴文化核心区，邦典风格独特',
+          famousSpots: ['强巴林寺', '卡若遗址']
+        },
+        { 
+          name: '那曲市', 
+          value: 35, 
+          workshops: 6, 
+          museums: 2, 
+          visitors: 25000,
+          description: '草原文化特色，邦典以实用为主',
+          famousSpots: ['纳木错', '羌塘草原']
+        },
+        { 
+          name: '阿里地区', 
+          value: 28, 
+          workshops: 5, 
+          museums: 1, 
+          visitors: 18000,
+          description: '古象雄文化遗存，邦典古朴神秘',
+          famousSpots: ['古格王朝', '冈仁波齐']
+        }
+      ],
+      // 访问趋势数据 - 基于真实访问模式
+      trendData: {
+        days: Array.from({length: 30}, (_, i) => `${i + 1}日`),
+        visits: [1200, 1350, 1280, 1420, 1560, 1480, 1620, 1750, 1680, 1820, 1950, 1880, 2020, 2150, 2080, 2220, 2350, 2280, 2420, 2550, 2480, 2620, 2750, 2680, 2820, 2847, 2910, 2980, 3050, 3120],
+        designs: [450, 480, 520, 490, 550, 580, 620, 650, 680, 720, 750, 780, 820, 850, 880, 920, 950, 980, 1020, 1050, 1080, 1120, 1150, 1180, 1220, 1250, 1280, 1320, 1350, 1380]
+      },
+      // 用户行为数据 - 基于页面功能
+      behaviorData: [
+        { value: 35, name: '浏览文化解码' },
+        { value: 28, name: '设计邦典' },
+        { value: 18, name: '体验人生历程' },
+        { value: 12, name: '预约工坊体验' },
+        { value: 7, name: '其他' }
+      ],
+      // 色彩偏好数据 - 基于邦典六大经典色系
+      colorData: [
+        { name: '红色系(珊瑚绯红)', value: 32, color: '#dc2626', meaning: '象征生命、热情与安康' },
+        { name: '黄色系(金沙暖阳)', value: 24, color: '#f59e0b', meaning: '代表智慧、尊贵与富足' },
+        { name: '蓝色系(天空藏蓝)', value: 18, color: '#2563eb', meaning: '象征苍穹、自由与永恒' },
+        { name: '绿色系(森林青稞)', value: 15, color: '#16a34a', meaning: '象征生命力、生长与丰收' },
+        { name: '白色系(雪山云白)', value: 8, color: '#f3f4f6', meaning: '寓意纯洁、吉祥' },
+        { name: '黑色系(大地岩石)', value: 3, color: '#1f2937', meaning: '代表坚实、稳重与根基' }
+      ],
+      // 纹样热度数据 - 基于吉祥八宝等传统文化
+      patternData: [
+        { name: '吉祥结', value: 2850, meaning: '象征永恒、吉祥如意', stage: '全年龄段' },
+        { name: '妙莲', value: 2340, meaning: '象征纯洁、清净', stage: '成年礼、新婚' },
+        { name: '宝伞', value: 1980, meaning: '象征保护、权威', stage: '新婚、持家' },
+        { name: '宝瓶', value: 1650, meaning: '象征财富、圆满', stage: '持家、老年' },
+        { name: '金鱼', value: 1420, meaning: '象征自由、解脱', stage: '成年礼、新婚' },
+        { name: '右旋海螺', value: 1180, meaning: '象征佛法、吉祥', stage: '全年龄段' },
+        { name: '金轮', value: 980, meaning: '象征佛法、永恒', stage: '全年龄段' },
+        { name: '胜利幢', value: 850, meaning: '象征胜利、成就', stage: '持家立业' },
+        { name: '雍仲纹', value: 720, meaning: '象征永恒、吉祥', stage: '持家、老年' },
+        { name: '十相自在', value: 580, meaning: '象征圆满、自在', stage: '持家立业' }
+      ],
+      // 人生阶段数据 - 基于真实文化内涵
+      lifeStages: [
+        { stage: '少女成长期', age: '12-15岁', colorType: '简纹浅色系', mainPattern: '吉祥结', meaning: '初识民族文化身份' },
+        { stage: '成年礼阶段', age: '16-18岁', colorType: '彩纹系', mainPattern: '吉祥结、妙莲、金鱼', meaning: '宣告成年，承载期许' },
+        { stage: '新婚嫁阶段', age: '新婚1-3年', colorType: '繁纹华彩系', mainPattern: '吉祥八宝', meaning: '寓意家庭吉祥富足' },
+        { stage: '持家立业期', age: '30-50岁', colorType: '沉稳色系', mainPattern: '宝瓶、雍仲纹', meaning: '象征责任与担当' },
+        { stage: '长者尊荣期', age: '50岁以上', colorType: '素纹深色系', mainPattern: '宝瓶、雍仲纹', meaning: '岁月的勋章，文化传承' }
+      ],
+      // 染料来源数据
+      dyeSources: [
+        { color: '红色', source: '茜草', type: '植物染料' },
+        { color: '黄色', source: '姜黄', type: '植物染料' },
+        { color: '蓝色', source: '蓼蓝草', type: '植物染料' },
+        { color: '绿色', source: '天然植物汁', type: '植物染料' },
+        { color: '白色', source: '天然矿物', type: '矿物染料' },
+        { color: '黑色', source: '天然矿物', type: '矿物染料' }
+      ]
+    };
+
+    // ==================== 图表初始化 ====================
+    
+    let tibetMapChart, regionRankingChart, trendChart, behaviorChart, colorChart, patternChart;
+
+    // 初始化西藏地图
+    function initTibetMap() {
+      tibetMapChart = echarts.init(document.getElementById('tibetMapChart'));
+      
+      const option = {
+        tooltip: {
+          trigger: 'item',
+          formatter: function(params) {
+            const data = tibetData.regions.find(r => r.name === params.name);
+            if (data) {
+              return `<div style="padding: 10px;">
+                <h4 style="font-weight: bold; margin-bottom: 8px;">${params.name}</h4>
+                <p>文化活跃度: ${data.value}%</p>
+                <p>非遗工坊: ${data.workshops}个</p>
+                <p>博物馆: ${data.museums}个</p>
+                <p>年访客: ${data.visitors.toLocaleString()}人</p>
+              </div>`;
+            }
+            return params.name;
+          }
+        },
+        visualMap: {
+          min: 0,
+          max: 100,
+          left: 'left',
+          top: 'bottom',
+          text: ['高', '低'],
+          calculable: true,
+          inRange: {
+            color: ['#fef3c7', '#fcd34d', '#f59e0b', '#dc2626']
+          }
+        },
+        series: [{
+          name: '邦典文化活跃度',
+          type: 'map',
+          map: 'tibet',
+          roam: true,
+          zoom: 1.2,
+          label: {
+            show: true,
+            fontSize: 12
+          },
+          emphasis: {
+            label: {
+              show: true,
+              fontSize: 14,
+              fontWeight: 'bold'
+            },
+            itemStyle: {
+              areaColor: '#9E2A2F',
+              shadowBlur: 20,
+              shadowColor: 'rgba(0, 0, 0, 0.5)'
+            }
+          },
+          data: tibetData.regions.map(r => ({
+            name: r.name,
+            value: r.value
+          }))
+        }]
+      };
+
+      // 由于没有真实的西藏地图数据，使用散点图模拟
+      const scatterOption = {
+        tooltip: {
+          trigger: 'item',
+          formatter: function(params) {
+            const data = params.data;
+            const regionData = tibetData.regions.find(r => r.name === data.name);
+            return `<div style="padding: 12px; max-width: 280px;">
+              <h4 style="font-weight: bold; margin-bottom: 8px; color: #9E2A2F; font-size: 16px;">${data.name}</h4>
+              <p style="margin-bottom: 6px; color: #666; font-size: 12px;">${regionData?.description || ''}</p>
+              <div style="border-top: 1px solid #eee; margin: 8px 0; padding-top: 8px;">
+                <p style="margin-bottom: 4px;"><strong>文化活跃度:</strong> ${data.value[2]}%</p>
+                <p style="margin-bottom: 4px;"><strong>非遗工坊:</strong> ${data.workshops}个</p>
+                <p style="margin-bottom: 4px;"><strong>博物馆:</strong> ${data.museums}个</p>
+                <p style="margin-bottom: 4px;"><strong>年访客:</strong> ${regionData?.visitors?.toLocaleString() || 0}人</p>
+              </div>
+              <div style="margin-top: 8px; font-size: 11px; color: #999;">
+                <strong>著名景点:</strong> ${regionData?.famousSpots?.join('、') || ''}
+              </div>
+            </div>`;
+          }
+        },
+        grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '3%',
+          top: '10%',
+          containLabel: true
+        },
+        xAxis: {
+          type: 'value',
+          show: false,
+          min: 78,
+          max: 92
+        },
+        yAxis: {
+          type: 'value',
+          show: false,
+          min: 28,
+          max: 38
+        },
+        series: [{
+          name: '邦典文化分布',
+          type: 'scatter',
+          symbolSize: function(data) {
+            return data[2] * 0.8;
+          },
+          data: [
+            { name: '拉萨市', value: [91.1, 29.6, 95], workshops: 45, museums: 12, itemStyle: { color: '#dc2626' } },
+            { name: '日喀则市', value: [88.8, 29.2, 78], workshops: 32, museums: 8, itemStyle: { color: '#ea580c' } },
+            { name: '山南市', value: [91.7, 29.2, 65], workshops: 18, museums: 5, itemStyle: { color: '#f59e0b' } },
+            { name: '林芝市', value: [94.3, 29.6, 52], workshops: 12, museums: 3, itemStyle: { color: '#eab308' } },
+            { name: '昌都市', value: [97.1, 31.1, 48], workshops: 10, museums: 4, itemStyle: { color: '#84cc16' } },
+            { name: '那曲市', value: [92.0, 31.4, 35], workshops: 6, museums: 2, itemStyle: { color: '#22c55e' } },
+            { name: '阿里地区', value: [80.1, 32.5, 28], workshops: 5, museums: 1, itemStyle: { color: '#06b6d4' } }
+          ],
+          label: {
+            show: true,
+            formatter: '{b}',
+            position: 'top',
+            fontSize: 11,
+            fontWeight: 'bold'
+          },
+          emphasis: {
+            focus: 'self',
+            itemStyle: {
+              shadowBlur: 20,
+              shadowColor: 'rgba(0, 0, 0, 0.5)'
+            }
+          }
+        }]
+      };
+
+      tibetMapChart.setOption(scatterOption);
+    }
+
+    // 初始化地区排行图表
+    function initRegionRanking() {
+      regionRankingChart = echarts.init(document.getElementById('regionRankingChart'));
+      
+      const sortedData = [...tibetData.regions].sort((a, b) => b.value - a.value);
+      
+      const option = {
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: { type: 'shadow' }
+        },
+        grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '3%',
+          top: '3%',
+          containLabel: true
+        },
+        xAxis: {
+          type: 'value',
+          max: 100,
+          axisLabel: { formatter: '{value}%' }
+        },
+        yAxis: {
+          type: 'category',
+          data: sortedData.map(r => r.name).reverse(),
+          axisLabel: { fontSize: 12 }
+        },
+        series: [{
+          name: '文化活跃度',
+          type: 'bar',
+          data: sortedData.map(r => ({
+            value: r.value,
+            itemStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+                { offset: 0, color: '#f59e0b' },
+                { offset: 1, color: '#dc2626' }
+              ])
+            }
+          })).reverse(),
+          label: {
+            show: true,
+            position: 'right',
+            formatter: '{c}%'
+          },
+          barWidth: '60%'
+        }]
+      };
+      
+      regionRankingChart.setOption(option);
+    }
+
+    // 初始化趋势图表
+    function initTrendChart() {
+      trendChart = echarts.init(document.getElementById('trendChart'));
+      
+      const option = {
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'cross',
+            label: { backgroundColor: '#6a7985' }
+          }
+        },
+        legend: {
+          data: ['访问量', '设计作品数'],
+          bottom: 0
+        },
+        grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '15%',
+          top: '10%',
+          containLabel: true
+        },
+        xAxis: {
+          type: 'category',
+          boundaryGap: false,
+          data: tibetData.trendData.days,
+          axisLabel: { interval: 4 }
+        },
+        yAxis: [
+          {
+            type: 'value',
+            name: '访问量',
+            position: 'left'
+          },
+          {
+            type: 'value',
+            name: '设计数',
+            position: 'right'
+          }
+        ],
+        series: [
+          {
+            name: '访问量',
+            type: 'line',
+            smooth: true,
+            symbol: 'none',
+            areaStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: 'rgba(220, 38, 38, 0.3)' },
+                { offset: 1, color: 'rgba(220, 38, 38, 0.05)' }
+              ])
+            },
+            lineStyle: { color: '#dc2626', width: 2 },
+            data: tibetData.trendData.visits
+          },
+          {
+            name: '设计作品数',
+            type: 'line',
+            smooth: true,
+            symbol: 'none',
+            yAxisIndex: 1,
+            lineStyle: { color: '#f59e0b', width: 2 },
+            data: tibetData.trendData.designs
+          }
+        ]
+      };
+      
+      trendChart.setOption(option);
+    }
+
+    // 初始化行为分析图表
+    function initBehaviorChart() {
+      behaviorChart = echarts.init(document.getElementById('behaviorChart'));
+      
+      const option = {
+        tooltip: {
+          trigger: 'item',
+          formatter: '{b}: {c}% ({d}%)'
+        },
+        legend: {
+          orient: 'vertical',
+          right: '5%',
+          top: 'center',
+          textStyle: { fontSize: 11 }
+        },
+        series: [{
+          name: '用户行为',
+          type: 'pie',
+          radius: ['40%', '70%'],
+          center: ['35%', '50%'],
+          avoidLabelOverlap: false,
+          itemStyle: {
+            borderRadius: 10,
+            borderColor: '#fff',
+            borderWidth: 2
+          },
+          label: {
+            show: false
+          },
+          emphasis: {
+            label: {
+              show: true,
+              fontSize: 14,
+              fontWeight: 'bold'
+            }
+          },
+          data: tibetData.behaviorData.map((item, index) => ({
+            ...item,
+            itemStyle: {
+              color: ['#dc2626', '#f59e0b', '#3b82f6', '#10b981', '#8b5cf6'][index]
+            }
+          }))
+        }]
+      };
+      
+      behaviorChart.setOption(option);
+    }
+
+    // 初始化色彩偏好图表
+    function initColorChart() {
+      colorChart = echarts.init(document.getElementById('colorChart'));
+      
+      const option = {
+        tooltip: {
+          trigger: 'item',
+          formatter: function(params) {
+            const colorInfo = tibetData.colorData.find(c => c.name === params.name);
+            const dyeInfo = tibetData.dyeSources.find(d => params.name.includes(d.color));
+            return `<div style="padding: 10px; max-width: 220px;">
+              <h4 style="font-weight: bold; margin-bottom: 6px; color: ${params.color};">${params.name}</h4>
+              <p style="margin-bottom: 4px; font-size: 12px; color: #666;">${colorInfo?.meaning || ''}</p>
+              <div style="border-top: 1px solid #eee; margin: 6px 0; padding-top: 6px;">
+                <p style="font-size: 12px;"><strong>偏好度:</strong> ${params.value}%</p>
+                ${dyeInfo ? `<p style="font-size: 11px; color: #999; margin-top: 4px;"><strong>染料:</strong> ${dyeInfo.source} (${dyeInfo.type})</p>` : ''}
+              </div>
+            </div>`;
+          }
+        },
+        series: [{
+          name: '色彩偏好',
+          type: 'pie',
+          radius: '70%',
+          data: tibetData.colorData,
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 10,
+              shadowOffsetX: 0,
+              shadowColor: 'rgba(0, 0, 0, 0.5)'
+            }
+          },
+          label: {
+            formatter: '{b}\n{c}%'
+          }
+        }]
+      };
+      
+      colorChart.setOption(option);
+    }
+
+    // 初始化纹样热度图表
+    function initPatternChart() {
+      patternChart = echarts.init(document.getElementById('patternChart'));
+      
+      const option = {
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: { type: 'shadow' },
+          formatter: function(params) {
+            const patternName = params[0].name;
+            const patternInfo = tibetData.patternData.find(p => p.name === patternName);
+            return `<div style="padding: 10px; max-width: 240px;">
+              <h4 style="font-weight: bold; margin-bottom: 6px; color: #9E2A2F;">${patternName}</h4>
+              <p style="margin-bottom: 4px; font-size: 12px; color: #666;">${patternInfo?.meaning || ''}</p>
+              <div style="border-top: 1px solid #eee; margin: 6px 0; padding-top: 6px;">
+                <p style="font-size: 12px;"><strong>使用次数:</strong> ${params[0].value.toLocaleString()}</p>
+                <p style="font-size: 11px; color: #999; margin-top: 4px;"><strong>适用阶段:</strong> ${patternInfo?.stage || ''}</p>
+              </div>
+            </div>`;
+          }
+        },
+        grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '3%',
+          top: '10%',
+          containLabel: true
+        },
+        xAxis: {
+          type: 'category',
+          data: tibetData.patternData.map(p => p.name),
+          axisLabel: { interval: 0, rotate: 30, fontSize: 10 }
+        },
+        yAxis: {
+          type: 'value',
+          name: '使用次数'
+        },
+        series: [{
+          name: '使用次数',
+          type: 'bar',
+          data: tibetData.patternData.map(p => ({
+            value: p.value,
+            itemStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: '#dc2626' },
+                { offset: 1, color: '#f59e0b' }
+              ])
+            }
+          })),
+          barWidth: '50%'
+        }]
+      };
+      
+      patternChart.setOption(option);
+    }
+
+    // ==================== 动态功能 ====================
+
+    // 数字滚动动画
+    function animateCounters() {
+      const counters = document.querySelectorAll('.counter');
+      counters.forEach(counter => {
+        const target = parseInt(counter.getAttribute('data-target'));
+        const duration = 2000;
+        const step = target / (duration / 16);
+        let current = 0;
+        
+        const updateCounter = () => {
+          current += step;
+          if (current < target) {
+            counter.textContent = Math.floor(current).toLocaleString();
+            requestAnimationFrame(updateCounter);
+          } else {
+            counter.textContent = target.toLocaleString();
+          }
+        };
+        
+        updateCounter();
+      });
+    }
+
+    // 生成实时动态
+    function generateActivityFeed() {
+      const activities = [
+        { icon: 'fa-user', color: 'blue', text: '用户 扎西 设计了一款红色系邦典', time: '刚刚' },
+        { icon: 'fa-map-marker', color: 'red', text: '拉萨雪域工坊新增预约 3 个', time: '2分钟前' },
+        { icon: 'fa-paint-brush', color: 'amber', text: '用户 李明 使用了吉祥结纹样', time: '5分钟前' },
+        { icon: 'fa-globe', color: 'green', text: '国际访客 Sarah 浏览了文化解码', time: '8分钟前' },
+        { icon: 'fa-heart', color: 'pink', text: '邦典作品《雪域之花》获得 50 个赞', time: '12分钟前' },
+        { icon: 'fa-share', color: 'purple', text: '用户 王芳 分享了她的邦典设计', time: '15分钟前' }
+      ];
+      
+      const feed = document.getElementById('activityFeed');
+      feed.innerHTML = activities.map(activity => `
+        <div class="timeline-item pb-4">
+          <div class="flex items-start gap-3">
+            <div class="w-8 h-8 rounded-full bg-${activity.color}-100 flex items-center justify-center flex-shrink-0">
+              <i class="fa ${activity.icon} text-${activity.color}-600 text-sm"></i>
+            </div>
+            <div class="flex-1">
+              <p class="text-sm text-slate-700">${activity.text}</p>
+              <p class="text-xs text-slate-400 mt-1">${activity.time}</p>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // 更新时间
+    function updateTime() {
+      const now = new Date();
+      document.getElementById('lastUpdateTime').textContent = now.toLocaleTimeString('zh-CN');
+    }
+
+    // 模拟实时数据更新
+    function simulateRealTimeUpdate() {
+      // 随机更新一些数据
+      const randomIndex = Math.floor(Math.random() * tibetData.trendData.visits.length);
+      tibetData.trendData.visits[randomIndex] += Math.floor(Math.random() * 10);
+      
+      // 更新图表
+      trendChart.setOption({
+        series: [{ data: tibetData.trendData.visits }]
+      });
+      
+      // 更新时间
+      updateTime();
+    }
+
+    // 地图筛选功能
+    function filterMap(type) {
+      // 这里可以实现地图筛选逻辑
+      console.log('筛选类型:', type);
+    }
+
+    // 更新趋势图时间范围
+    function updateTrendChart(days) {
+      // 模拟不同时间范围的数据
+      const dayCount = parseInt(days);
+      const newData = Array.from({length: dayCount}, () => Math.floor(Math.random() * 2000) + 1000);
+      const newLabels = Array.from({length: dayCount}, (_, i) => `${i + 1}日`);
+      
+      trendChart.setOption({
+        xAxis: { data: newLabels },
+        series: [{ data: newData }]
+      });
+    }
+
+    // 生成报告
+    function generateReport() {
+      alert('正在生成邦典文化数据报告...\n\n报告将包含：\n- 各地区文化活跃度分析\n- 用户行为统计\n- 色彩与纹样偏好\n- 趋势预测与建议');
+    }
+
+    // ==================== 登录注册功能 ====================
+    
+    function initAuth() {
+      function checkLoginStatus() {
+        const user = localStorage.getItem('user');
+        if (user) {
+          const userData = JSON.parse(user);
+          document.getElementById('userInfo').classList.remove('hidden');
+          document.getElementById('loginBtn').classList.add('hidden');
+          document.getElementById('userName').textContent = userData.username;
+        } else {
+          document.getElementById('userInfo').classList.add('hidden');
+          document.getElementById('loginBtn').classList.remove('hidden');
+        }
+      }
+
+      checkLoginStatus();
+
+      document.getElementById('loginBtn').addEventListener('click', () => {
+        document.getElementById('loginModal').style.display = 'flex';
+      });
+
+      document.getElementById('closeLoginModal').addEventListener('click', () => {
+        document.getElementById('loginModal').style.display = 'none';
+      });
+
+      document.getElementById('closeRegisterModal').addEventListener('click', () => {
+        document.getElementById('registerModal').style.display = 'none';
+      });
+
+      document.getElementById('userLoginTab').addEventListener('click', () => {
+        document.getElementById('userLoginTab').classList.add('text-red-700', 'border-b-2', 'border-red-700');
+        document.getElementById('userLoginTab').classList.remove('text-slate-500');
+        document.getElementById('adminLoginTab').classList.remove('text-red-700', 'border-b-2', 'border-red-700');
+        document.getElementById('adminLoginTab').classList.add('text-slate-500');
+        document.getElementById('userLoginForm').classList.remove('hidden');
+        document.getElementById('adminLoginForm').classList.add('hidden');
+      });
+
+      document.getElementById('adminLoginTab').addEventListener('click', () => {
+        document.getElementById('adminLoginTab').classList.add('text-red-700', 'border-b-2', 'border-red-700');
+        document.getElementById('adminLoginTab').classList.remove('text-slate-500');
+        document.getElementById('userLoginTab').classList.remove('text-red-700', 'border-b-2', 'border-red-700');
+        document.getElementById('userLoginTab').classList.add('text-slate-500');
+        document.getElementById('adminLoginForm').classList.remove('hidden');
+        document.getElementById('userLoginForm').classList.add('hidden');
+      });
+
+      document.getElementById('switchToRegister').addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('loginModal').style.display = 'none';
+        document.getElementById('registerModal').style.display = 'flex';
+      });
+
+      document.getElementById('switchToLogin').addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('registerModal').style.display = 'none';
+        document.getElementById('loginModal').style.display = 'flex';
+      });
+
+      document.getElementById('userLoginSubmit').addEventListener('click', () => {
+        const username = document.querySelector('#userLoginForm input[type="text"]').value;
+        const password = document.querySelector('#userLoginForm input[type="password"]').value;
+        
+        if (!username || !password) {
+          alert('请输入用户名和密码');
+          return;
+        }
+        
+        const userData = { username: username, type: 'user' };
+        localStorage.setItem('user', JSON.stringify(userData));
+        checkLoginStatus();
+        document.getElementById('loginModal').style.display = 'none';
+        alert('登录成功！');
+      });
+
+      document.getElementById('adminLoginSubmit').addEventListener('click', () => {
+        const username = document.querySelector('#adminLoginForm input[type="text"]').value;
+        const password = document.querySelector('#adminLoginForm input[type="password"]').value;
+        const code = document.querySelectorAll('#adminLoginForm input[type="text"]')[1].value;
+        
+        if (!username || !password || !code) {
+          alert('请输入管理员账号、密码和验证码');
+          return;
+        }
+        
+        if (code !== '1234') {
+          alert('验证码错误');
+          return;
+        }
+        
+        const userData = { username: username, type: 'admin' };
+        localStorage.setItem('user', JSON.stringify(userData));
+        checkLoginStatus();
+        document.getElementById('loginModal').style.display = 'none';
+        alert('管理员登录成功！');
+      });
+
+      document.getElementById('registerSubmit').addEventListener('click', () => {
+        const username = document.querySelectorAll('#registerModal input[type="text"]')[0].value;
+        const phone = document.querySelector('#registerModal input[type="tel"]').value;
+        const code = document.querySelectorAll('#registerModal input[type="text"]')[1].value;
+        const password = document.querySelectorAll('#registerModal input[type="password"]')[0].value;
+        const confirmPassword = document.querySelectorAll('#registerModal input[type="password"]')[1].value;
+        const agreeTerms = document.getElementById('agreeTerms').checked;
+        
+        if (!username || !phone || !code || !password || !confirmPassword) {
+          alert('请填写所有必填项');
+          return;
+        }
+        
+        if (!/^1[3-9]\d{9}$/.test(phone)) {
+          alert('请输入正确的手机号');
+          return;
+        }
+        
+        if (password !== confirmPassword) {
+          alert('两次输入的密码不一致');
+          return;
+        }
+        
+        if (!agreeTerms) {
+          alert('请阅读并同意用户协议和隐私政策');
+          return;
+        }
+        
+        alert('注册成功！请登录');
+        document.getElementById('registerModal').style.display = 'none';
+        document.getElementById('loginModal').style.display = 'flex';
+      });
+
+      document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.removeItem('user');
+        checkLoginStatus();
+        alert('已退出登录');
+      });
+    }
+
+    // ==================== 初始化 ====================
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      // 初始化所有图表
+      initTibetMap();
+      initRegionRanking();
+      initTrendChart();
+      initBehaviorChart();
+      initColorChart();
+      initPatternChart();
+      
+      // 启动动画
+      animateCounters();
+      generateActivityFeed();
+      updateTime();
+      
+      // 初始化登录功能
+      initAuth();
+      
+      // 定时更新
+      setInterval(simulateRealTimeUpdate, 30000); // 每30秒更新一次
+      setInterval(updateTime, 1000); // 每秒更新时间
+      
+      // 窗口大小改变时重新渲染图表
+      window.addEventListener('resize', () => {
+        tibetMapChart && tibetMapChart.resize();
+        regionRankingChart && regionRankingChart.resize();
+        trendChart && trendChart.resize();
+        behaviorChart && behaviorChart.resize();
+        colorChart && colorChart.resize();
+        patternChart && patternChart.resize();
+      });
+    });
+  </script>
+</body>
+</html>
