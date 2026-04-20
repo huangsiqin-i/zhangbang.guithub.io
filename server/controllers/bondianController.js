@@ -89,7 +89,7 @@ exports.createBondian = async (req, res) => {
     }
     
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'bondian_dev_secret');
-    const userId = decoded.userId;
+    const userId = decoded.id || decoded.userId;
     
     const { 
       name, type_id, region, material, craftsmanship, 
@@ -125,7 +125,7 @@ exports.updateBondian = async (req, res) => {
     }
     
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'bondian_dev_secret');
-    const userId = decoded.userId;
+    const userId = decoded.id || decoded.userId;
     const { id } = req.params;
     
     const [bondians] = await connection.query('SELECT author_id, status FROM bondians WHERE id = ?', [id]);
@@ -167,7 +167,7 @@ exports.deleteBondian = async (req, res) => {
     }
     
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'bondian_dev_secret');
-    const userId = decoded.userId;
+    const userId = decoded.id || decoded.userId;
     const userRole = decoded.role;
     const { id } = req.params;
     
@@ -205,8 +205,6 @@ exports.getRegions = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
-
 
 exports.getAdminPatterns = async (req, res) => {
   try {

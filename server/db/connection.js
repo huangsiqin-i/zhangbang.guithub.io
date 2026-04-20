@@ -12,19 +12,9 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-  connectTimeout: 1000,
-  acquireTimeout: 1000,
+  connectTimeout: 10000,
+  acquireTimeout: 10000,
+  charset: "utf8mb4",
 });
 
-const mockPool = {
-  query: async (sql, params) => {
-    console.log(`Mock query: ${sql}`, params);
-    return [[], []];
-  },
-  execute: async (sql, params) => {
-    console.log(`Mock execute: ${sql}`, params);
-    return [[], { insertId: Date.now() }];
-  }
-};
-
-module.exports = mockPool;
+module.exports = pool;

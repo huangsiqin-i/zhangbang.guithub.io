@@ -1,13 +1,6 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-
-const defaultUsersData = [
-  { username: "admin", password_hash: "$2b$10$1nPk0Ir/jWHx9HjFvJl5p.inH93Bcv.GTpjOz3xRqFeUzWySbVewm", role: "admin", id: 1 },
-  { username: "123", password_hash: "$2b$10$1nPk0Ir/jWHx9HjFvJl5p.inH93Bcv.GTpjOz3xRqFeUzWySbVewm", role: "user", id: 2 }
-];
-
-let users = [...defaultUsersData];
-let nextUserId = 3;
+const connection = require('../db/connection');
 
 function validateCredentials(username, password) {
   if (typeof username !== "string" || typeof password !== "string") {
@@ -26,7 +19,7 @@ function validateCredentials(username, password) {
 }
 
 async function register(req, res) {
-  const { username, password } = req.body;
+  const { username, password, email, nickname } = req.body;
   const validationError = validateCredentials(username, password);
 
   if (validationError) {
@@ -36,32 +29,43 @@ async function register(req, res) {
   const cleanUsername = username.trim();
 
   try {
-    const existingUser = users.find(u => u.username === cleanUsername);
+    const [existingUsers] = await connection.query(
+      'SELECT id FROM users WHERE username = ?',
+      [cleanUsername]
+    );
     
-    if (existingUser) {
+    if (existingUsers.length > 0) {
       return res.status(409).json({
         message: "Username already exists"
       });
     }
 
+    if (email) {
+      const [existingEmails] = await connection.query(
+        'SELECT id FROM users WHERE email = ?',
+        [email]
+      );
+      if (existingEmails.length > 0) {
+        return res.status(409).json({
+          message: "Email already exists"
+        });
+      }
+    }
+
     const passwordHash = await bcrypt.hash(password, 10);
 
-    const newUser = {
-      id: nextUserId++,
-      username: cleanUsername,
-      password_hash: passwordHash,
-      role: "user"
-    };
-    
-    users.push(newUser);
+    const [result] = await connection.query(
+      'INSERT INTO users (username, password_hash, email, nickname, role) VALUES (?, ?, ?, ?, ?)',
+      [cleanUsername, passwordHash, email, nickname, 'user']
+    );
 
     return res.status(201).json({
       success: true,
       message: "Register success",
       user: {
-        id: newUser.id,
-        username: newUser.username,
-        role: newUser.role
+        id: result.insertId,
+        username: cleanUsername,
+        role: 'user'
       }
     });
   } catch (error) {
@@ -83,14 +87,18 @@ async function login(req, res) {
   const cleanUsername = username.trim();
 
   try {
-    const user = users.find(u => u.username === cleanUsername);
+    const [users] = await connection.query(
+      'SELECT id, username, password_hash, role, nickname, avatar_url FROM users WHERE username = ?',
+      [cleanUsername]
+    );
 
-    if (!user) {
+    if (users.length === 0) {
       return res.status(401).json({
         message: "Invalid username or password"
       });
     }
 
+    const user = users[0];
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
 
     if (!isPasswordValid) {
@@ -117,7 +125,9 @@ async function login(req, res) {
       user: {
         id: user.id,
         username: user.username,
-        role: user.role
+        role: user.role,
+        nickname: user.nickname,
+        avatar_url: user.avatar_url
       }
     });
   } catch (error) {
@@ -137,26 +147,69 @@ function getProfile(req, res) {
 }
 
 async function updateProfile(req, res) {
-  const { username, phone, bio } = req.body;
+  const { username, email, nickname, bio, avatar_url } = req.body;
   
   try {
-    const user = users.find(u => u.id === req.user.id);
-    if (user) {
-      user.username = username || user.username;
-      user.phone = phone;
-      user.bio = bio;
+    if (username) {
+      const [existingUsers] = await connection.query(
+        'SELECT id FROM users WHERE username = ? AND id != ?',
+        [username.trim(), req.user.id]
+      );
+      if (existingUsers.length > 0) {
+        return res.status(409).json({
+          success: false,
+          message: "Username already exists"
+        });
+      }
     }
+
+    const updateFields = [];
+    const updateParams = [];
+
+    if (username) {
+      updateFields.push('username = ?');
+      updateParams.push(username.trim());
+    }
+    if (email) {
+      updateFields.push('email = ?');
+      updateParams.push(email);
+    }
+    if (nickname !== undefined) {
+      updateFields.push('nickname = ?');
+      updateParams.push(nickname);
+    }
+    if (bio !== undefined) {
+      updateFields.push('bio = ?');
+      updateParams.push(bio);
+    }
+    if (avatar_url) {
+      updateFields.push('avatar_url = ?');
+      updateParams.push(avatar_url);
+    }
+
+    if (updateFields.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No fields to update"
+      });
+    }
+
+    updateParams.push(req.user.id);
+
+    await connection.query(
+      `UPDATE users SET ${updateFields.join(', ')} WHERE id = ?`,
+      updateParams
+    );
+
+    const [users] = await connection.query(
+      'SELECT id, username, email, nickname, role, bio, avatar_url FROM users WHERE id = ?',
+      [req.user.id]
+    );
 
     return res.status(200).json({
       success: true,
       message: "Profile updated",
-      user: {
-        id: user.id,
-        username: user.username,
-        role: user.role,
-        phone: user.phone,
-        bio: user.bio
-      }
+      user: users[0]
     });
   } catch (error) {
     return res.status(500).json({

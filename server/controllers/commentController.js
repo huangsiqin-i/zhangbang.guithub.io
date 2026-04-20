@@ -30,7 +30,7 @@ exports.createComment = async (req, res) => {
     }
     
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'bondian_dev_secret');
-    const userId = decoded.userId;
+    const userId = decoded.id || decoded.userId;
     
     const { bondianId, content, parentId } = req.body;
     
@@ -57,7 +57,7 @@ exports.deleteComment = async (req, res) => {
     }
     
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'bondian_dev_secret');
-    const userId = decoded.userId;
+    const userId = decoded.id || decoded.userId;
     const userRole = decoded.role;
     const { id } = req.params;
     
@@ -103,5 +103,3 @@ exports.getAllComments = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
-
