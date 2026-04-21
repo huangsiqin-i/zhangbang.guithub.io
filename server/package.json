@@ -6,6 +6,10 @@
   "scripts": {
     "dev": "nodemon app.js",
     "start": "node app.js",
+    "prod": "pm2 start app.js --name bangdian-server",
+    "restart": "pm2 restart bangdian-server",
+    "stop": "pm2 stop bangdian-server",
+    "logs": "pm2 logs bangdian-server",
     "db:init": "node db/initDb.js"
   },
   "keywords": [],
@@ -22,6 +26,7 @@
     "mysql2": "^3.22.0",
     "node-fetch": "^3.3.2",
     "nodemon": "^3.1.14",
+    "pm2": "^5.4.2",
     "sqlite3": "^6.0.1"
   }
 }

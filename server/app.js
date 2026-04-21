@@ -21,6 +21,30 @@ const userRouter = require("./routes/user");
 
 dotenv.config({ override: true });
 
+// 捕获未处理的异常
+process.on('uncaughtException', (err) => {
+  console.error('❌ Uncaught Exception:', err.message);
+  console.error(err.stack);
+  process.exit(1);
+});
+
+// 捕获未处理的 Promise rejection
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise);
+  console.error('❌ Reason:', reason.message || reason);
+});
+
+// 优雅关闭
+process.on('SIGINT', () => {
+  console.log('\n👋 Shutting down gracefully...');
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  console.log('\n👋 SIGTERM received. Shutting down...');
+  process.exit(0);
+});
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || "development";
