@@ -192,6 +192,38 @@ const api = {
       });
       return response.json();
     }
+  },
+  
+  history: {
+    get: async () => {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/user/history`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      return response.json();
+    },
+    
+    add: async (type, target_id, title, image_url) => {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/user/history`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ type, target_id, title, image_url })
+      });
+      return response.json();
+    },
+    
+    clear: async () => {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/user/history`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      return response.json();
+    }
   }
 };
 

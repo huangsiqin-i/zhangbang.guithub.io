@@ -271,7 +271,18 @@
   </main>
 
   <script>
-    const API_BASE_URL = 'http://localhost:3000/api';
+    function getApiBaseUrl() {
+      if (typeof window !== 'undefined') {
+        const hostname = window.location.hostname;
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+          return 'http://localhost:3000/api';
+        }
+        return '/api';
+      }
+      return 'http://localhost:3000/api';
+    }
+
+    const API_BASE_URL = getApiBaseUrl();
 
     function getToken() {
       return localStorage.getItem('token');
@@ -385,26 +396,27 @@
       }).join('');
     }
 
-    function renderRecentVisits() {
+    async function loadHistory() {
       const list = document.getElementById('recentVisitList');
       try {
-        const visits = JSON.parse(localStorage.getItem('history') || '[]');
+        const result = await requestApi('/user/history');
+        const history = result.data || [];
         
-        if (!visits.length) {
+        if (!history.length) {
           list.innerHTML = '<li class="text-slate-500 text-center py-8">暂无浏览记录。</li>';
           return;
         }
 
-        list.innerHTML = visits.map((item) => {
-          const time = item.createdAt ? new Date(item.createdAt).toLocaleString('zh-CN') : item.time;
+        list.innerHTML = history.map((item) => {
+          const time = item.createdAt ? new Date(item.createdAt).toLocaleString('zh-CN') : '-';
           return `<li class="rounded-lg border border-slate-200 px-4 py-3 flex items-center justify-between">
             <span>${item.title}</span>
             <span class="text-xs text-slate-500">${time}</span>
           </li>`;
         }).join('');
       } catch (error) {
-        list.innerHTML = '<li class="text-slate-500">加载浏览记录失败。</li>';
         console.error('加载浏览记录失败:', error);
+        list.innerHTML = '<li class="text-slate-500">加载浏览记录失败。</li>';
       }
     }
 
@@ -519,28 +531,9 @@
         renderDeclarations(declarations);
       }
 
-      function renderRecentVisits() {
-        // 从 localStorage 读取浏览记录
-        const history = JSON.parse(localStorage.getItem('history') || '[]');
-        const list = document.getElementById('recentVisitList');
-        
-        if (!history.length) {
-          list.innerHTML = '<li class="text-slate-500 text-center py-8">暂无浏览记录。</li>';
-          return;
-        }
-
-        list.innerHTML = history.map((item) => {
-          const time = item.createdAt ? new Date(item.createdAt).toLocaleString('zh-CN') : item.time;
-          return `<li class="rounded-lg border border-slate-200 px-4 py-3 flex items-center justify-between">
-            <span>${item.title}</span>
-            <span class="text-xs text-slate-500">${time}</span>
-          </li>`;
-        }).join('');
-      }
-
       refreshMyWorks();
       loadUserFavorites();
-      renderRecentVisits();
+      await loadHistory();
 
       // 返回按钮
       document.getElementById('backBtn').addEventListener('click', () => {
@@ -694,12 +687,16 @@
       });
 
       // 清空浏览记录
-      document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+      document.getElementById('clearHistoryBtn').addEventListener('click', async () => {
         if (!confirm('确认清空所有浏览记录？')) return;
         
-        localStorage.removeItem('history');
-        renderRecentVisits();
-        alert('浏览记录已清空');
+        try {
+          await requestApi('/user/history', { method: 'DELETE' });
+          await loadHistory();
+          alert('浏览记录已清空');
+        } catch (error) {
+          alert(`清空失败：${error.message}`);
+        }
       });
 
       // 导出数据

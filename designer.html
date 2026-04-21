@@ -624,6 +624,18 @@
   </section>
 
   <script>
+    function getApiBaseUrl() {
+      if (typeof window !== 'undefined') {
+        const hostname = window.location.hostname;
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+          return 'http://localhost:3000/api';
+        }
+        return '/api';
+      }
+      return 'http://localhost:3000/api';
+    }
+    const API_BASE = getApiBaseUrl();
+
     // 设计状态
     let designState = {
       colors: ['#FFFFFF', '#D4A84B', '#9E2A2F', '#1E3A5F', '#2C9678'],
@@ -865,7 +877,7 @@
       if (!description) return;
       
       try {
-        const response = await fetch('http://localhost:3000/api/works', {
+        const response = await fetch(`${API_BASE}/works`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -1111,7 +1123,7 @@
         }
 
         const isLogin = tabLogin.classList.contains('bg-red-600');
-        const url = isLogin ? 'http://localhost:3000/api/auth/login' : 'http://localhost:3000/api/auth/register';
+        const url = isLogin ? `${API_BASE}/auth/login` : `${API_BASE}/auth/register`;
         
         try {
           const response = await fetch(url, {
