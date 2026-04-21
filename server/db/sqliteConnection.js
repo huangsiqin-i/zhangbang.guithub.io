@@ -1,17 +1,70 @@
-const sqlite3 = require('sqlite3').verbose();
+const Database = require('better-sqlite3');
 const path = require('path');
 
 const dbPath = path.join(__dirname, 'database.sqlite');
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error('❌ SQLite database connection error:', err.message);
-  } else {
-    console.log('✅ SQLite database connected successfully');
+const db = new Database(dbPath, { verbose: console.log });
+
+// 创建兼容层，支持旧版 sqlite3 的异步 API
+const dbAsync = {
+  all: (sql, params = [], callback) => {
+    try {
+      const stmt = db.prepare(sql);
+      const rows = params.length > 0 ? stmt.all(...params) : stmt.all();
+      callback(null, rows);
+    } catch (err) {
+      callback(err, []);
+    }
+  },
+  
+  get: (sql, params = [], callback) => {
+    try {
+      const stmt = db.prepare(sql);
+      const row = params.length > 0 ? stmt.get(...params) : stmt.get();
+      callback(null, row);
+    } catch (err) {
+      callback(err, null);
+    }
+  },
+  
+  run: (sql, params = [], callback) => {
+    try {
+      const stmt = db.prepare(sql);
+      const result = params.length > 0 ? stmt.run(...params) : stmt.run();
+      // 兼容旧版 sqlite3 的 this.lastID
+      const wrappedResult = {
+        lastID: result.lastInsertRowid || 0,
+        changes: result.changes || 0
+      };
+      if (callback) {
+        callback(null, wrappedResult);
+      }
+    } catch (err) {
+      if (callback) {
+        callback(err);
+      }
+    }
+  },
+  
+  prepare: (sql) => {
+    const stmt = db.prepare(sql);
+    return {
+      run: (...params) => stmt.run(...params),
+      get: (...params) => stmt.get(...params),
+      all: (...params) => stmt.all(...params),
+      bind: () => {}
+    };
+  },
+  
+  exec: (sql) => {
+    db.exec(sql);
   }
-});
+};
+
+// 保存原始的 better-sqlite3 对象
+dbAsync.original = db;
 
 const initDatabase = async () => {
-  return new Promise((resolve, reject) => {
+  try {
     const createTables = `
       CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -152,44 +205,39 @@ const initDatabase = async () => {
       );
     `;
     
-    db.exec(createTables, (err) => {
-      if (err) {
-        console.error('❌ Failed to create tables:', err.message);
-        reject(err);
-      } else {
-        console.log('✅ Database tables created successfully');
-        insertInitialData();
-        resolve();
-      }
-    });
-  });
+    db.exec(createTables);
+    console.log('✅ Database tables created successfully');
+    insertInitialData();
+  } catch (err) {
+    console.error('❌ Failed to create tables:', err.message);
+    throw err;
+  }
 };
 
 const insertInitialData = () => {
   const adminPasswordHash = '$2b$10$/jyWhSR0rICfAjMl8FM0lOqlIl/bVW71C.2yjaRqdP3HNv1L3vNnW';
-  db.run(`INSERT OR IGNORE INTO users (username, password, role) VALUES (?, ?, ?)`, ['admin', adminPasswordHash, 'admin']);
-  db.run(`INSERT OR IGNORE INTO users (username, password, role) VALUES (?, ?, ?)`, ['123', adminPasswordHash, 'user']);
   
-  db.run(`INSERT OR IGNORE INTO bondians (name, type, region, description, imageUrl) VALUES 
-    ('传统邦典', '经典款', '西藏', '传统藏族邦典，手工织造，色彩鲜艳', 'images/1.jpg'),
-    ('现代邦典', '创新款', '青海', '结合现代设计的邦典作品', 'images/2.jpg'),
-    ('格桑花邦典', '图案款', '四川', '以格桑花为主题的精美邦典', 'images/3.jpg')`);
+  const insertUser = db.prepare(`INSERT OR IGNORE INTO users (username, password, role) VALUES (?, ?, ?)`);
+  insertUser.run('admin', adminPasswordHash, 'admin');
+  insertUser.run('123', adminPasswordHash, 'user');
+  
+  const insertBondian = db.prepare(`INSERT OR IGNORE INTO bondians (name, type, region, description, imageUrl) VALUES (?, ?, ?, ?, ?)`);
+  insertBondian.run('传统邦典', '经典款', '西藏', '传统藏族邦典，手工织造，色彩鲜艳', 'images/1.jpg');
+  insertBondian.run('现代邦典', '创新款', '青海', '结合现代设计的邦典作品', 'images/2.jpg');
+  insertBondian.run('格桑花邦典', '图案款', '四川', '以格桑花为主题的精美邦典', 'images/3.jpg');
   
   console.log('✅ Initial data inserted');
 };
 
 const testConnection = async () => {
-  return new Promise((resolve) => {
-    db.get('SELECT 1', (err) => {
-      if (err) {
-        console.error('❌ Database connection test failed:', err.message);
-        resolve(false);
-      } else {
-        console.log('✅ Database connection test passed');
-        resolve(true);
-      }
-    });
-  });
+  try {
+    const result = db.prepare('SELECT 1').get();
+    console.log('✅ Database connection test passed');
+    return true;
+  } catch (err) {
+    console.error('❌ Database connection test failed:', err.message);
+    return false;
+  }
 };
 
-module.exports = { db, initDatabase, testConnection };
+module.exports = { db: dbAsync, initDatabase, testConnection };
