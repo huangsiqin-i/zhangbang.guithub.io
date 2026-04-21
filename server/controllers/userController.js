@@ -1,10 +1,9 @@
-const connection = require('../db/connection');
+const { db } = require('../db/sqliteConnection');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
 
-// 配置头像上传
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, './uploads/avatars');
@@ -17,7 +16,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ 
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
@@ -56,10 +55,9 @@ exports.uploadAvatar = [
     const avatarUrl = `/uploads/avatars/${req.file.filename}`;
     
     try {
-      await connection.execute(
-        'UPDATE users SET avatar_url = ? WHERE id = ?',
-        [avatarUrl, auth.decoded.userId]
-      );
+      await new Promise((resolve) => {
+        db.run('UPDATE users SET avatar_url = ? WHERE id = ?', [avatarUrl, auth.decoded.id], () => resolve());
+      });
       
       res.json({
         success: true,
@@ -89,25 +87,26 @@ exports.changePassword = async (req, res) => {
   }
   
   try {
-    const [rows] = await connection.execute(
-      'SELECT password FROM users WHERE id = ?',
-      [auth.decoded.userId]
-    );
+    const user = await new Promise((resolve) => {
+      db.get('SELECT password FROM users WHERE id = ?', [auth.decoded.id], (err, row) => {
+        if (err) resolve(null);
+        else resolve(row);
+      });
+    });
     
-    if (rows.length === 0) {
+    if (!user) {
       return res.status(404).json({ success: false, message: '用户不存在' });
     }
     
-    const isValid = await bcrypt.compare(oldPassword, rows[0].password);
+    const isValid = await bcrypt.compare(oldPassword, user.password);
     if (!isValid) {
       return res.status(400).json({ success: false, message: '原密码错误' });
     }
     
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await connection.execute(
-      'UPDATE users SET password = ? WHERE id = ?',
-      [hashedPassword, auth.decoded.userId]
-    );
+    await new Promise((resolve) => {
+      db.run('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, auth.decoded.id], () => resolve());
+    });
     
     res.json({
       success: true,
@@ -125,10 +124,12 @@ exports.getMyWorks = async (req, res) => {
   }
   
   try {
-    const [rows] = await connection.execute(
-      'SELECT * FROM works WHERE author_id = ? ORDER BY created_at DESC',
-      [auth.decoded.userId]
-    );
+    const rows = await new Promise((resolve) => {
+      db.all('SELECT * FROM works WHERE author_id = ? ORDER BY createdAt DESC', [auth.decoded.id], (err, rows) => {
+        if (err) resolve([]);
+        else resolve(rows);
+      });
+    });
     
     res.json({
       success: true,
@@ -149,23 +150,24 @@ exports.updateWork = async (req, res) => {
   const { title, description } = req.body;
   
   try {
-    const [rows] = await connection.execute(
-      'SELECT author_id FROM works WHERE id = ?',
-      [workId]
-    );
+    const work = await new Promise((resolve) => {
+      db.get('SELECT author_id FROM works WHERE id = ?', [workId], (err, row) => {
+        if (err) resolve(null);
+        else resolve(row);
+      });
+    });
     
-    if (rows.length === 0) {
+    if (!work) {
       return res.status(404).json({ success: false, message: '作品不存在' });
     }
     
-    if (rows[0].author_id !== auth.decoded.userId) {
+    if (work.author_id !== auth.decoded.id) {
       return res.status(403).json({ success: false, message: '无权限' });
     }
     
-    await connection.execute(
-      'UPDATE works SET title = ?, description = ? WHERE id = ?',
-      [title, description, workId]
-    );
+    await new Promise((resolve) => {
+      db.run('UPDATE works SET title = ?, description = ? WHERE id = ?', [title, description, workId], () => resolve());
+    });
     
     res.json({
       success: true,
@@ -185,20 +187,24 @@ exports.deleteWork = async (req, res) => {
   const workId = req.params.id;
   
   try {
-    const [rows] = await connection.execute(
-      'SELECT author_id FROM works WHERE id = ?',
-      [workId]
-    );
+    const work = await new Promise((resolve) => {
+      db.get('SELECT author_id FROM works WHERE id = ?', [workId], (err, row) => {
+        if (err) resolve(null);
+        else resolve(row);
+      });
+    });
     
-    if (rows.length === 0) {
+    if (!work) {
       return res.status(404).json({ success: false, message: '作品不存在' });
     }
     
-    if (rows[0].author_id !== auth.decoded.userId) {
+    if (work.author_id !== auth.decoded.id) {
       return res.status(403).json({ success: false, message: '无权限' });
     }
     
-    await connection.execute('DELETE FROM works WHERE id = ?', [workId]);
+    await new Promise((resolve) => {
+      db.run('DELETE FROM works WHERE id = ?', [workId], () => resolve());
+    });
     
     res.json({
       success: true,
@@ -216,11 +222,16 @@ exports.getFavoritePatterns = async (req, res) => {
   }
   
   try {
-    const [rows] = await connection.execute(`
-      SELECT p.* FROM patterns p
-      INNER JOIN favorite_patterns fp ON p.id = fp.pattern_id
-      WHERE fp.user_id = ? ORDER BY fp.created_at DESC
-    `, [auth.decoded.userId]);
+    const rows = await new Promise((resolve) => {
+      db.all(`
+        SELECT p.* FROM patterns p
+        INNER JOIN favorite_patterns fp ON p.id = fp.pattern_id
+        WHERE fp.user_id = ? ORDER BY fp.createdAt DESC
+      `, [auth.decoded.id], (err, rows) => {
+        if (err) resolve([]);
+        else resolve(rows);
+      });
+    });
     
     res.json({
       success: true,
@@ -240,10 +251,9 @@ exports.addFavoritePattern = async (req, res) => {
   const patternId = req.params.id;
   
   try {
-    await connection.execute(
-      'INSERT IGNORE INTO favorite_patterns (user_id, pattern_id) VALUES (?, ?)',
-      [auth.decoded.userId, patternId]
-    );
+    await new Promise((resolve) => {
+      db.run('INSERT OR IGNORE INTO favorite_patterns (user_id, pattern_id) VALUES (?, ?)', [auth.decoded.id, patternId], () => resolve());
+    });
     
     res.json({
       success: true,
@@ -263,10 +273,9 @@ exports.removeFavoritePattern = async (req, res) => {
   const patternId = req.params.id;
   
   try {
-    await connection.execute(
-      'DELETE FROM favorite_patterns WHERE user_id = ? AND pattern_id = ?',
-      [auth.decoded.userId, patternId]
-    );
+    await new Promise((resolve) => {
+      db.run('DELETE FROM favorite_patterns WHERE user_id = ? AND pattern_id = ?', [auth.decoded.id, patternId], () => resolve());
+    });
     
     res.json({
       success: true,
@@ -284,10 +293,12 @@ exports.getFavoriteDeclarations = async (req, res) => {
   }
   
   try {
-    const [rows] = await connection.execute(
-      'SELECT * FROM favorite_declarations WHERE user_id = ? ORDER BY created_at DESC',
-      [auth.decoded.userId]
-    );
+    const rows = await new Promise((resolve) => {
+      db.all('SELECT * FROM favorite_declarations WHERE user_id = ? ORDER BY createdAt DESC', [auth.decoded.id], (err, rows) => {
+        if (err) resolve([]);
+        else resolve(rows);
+      });
+    });
     
     res.json({
       success: true,
@@ -307,10 +318,13 @@ exports.addFavoriteDeclaration = async (req, res) => {
   const { content, colors } = req.body;
   
   try {
-    const [result] = await connection.execute(
-      'INSERT INTO favorite_declarations (user_id, content, colors) VALUES (?, ?, ?)',
-      [auth.decoded.userId, content, JSON.stringify(colors)]
-    );
+    const result = await new Promise((resolve) => {
+      db.run('INSERT INTO favorite_declarations (user_id, content, colors) VALUES (?, ?, ?)',
+        [auth.decoded.id, content, JSON.stringify(colors)], function(err) {
+          if (err) resolve({ insertId: null });
+          else resolve({ insertId: this.lastID });
+        });
+    });
     
     res.json({
       success: true,
@@ -331,10 +345,9 @@ exports.removeFavoriteDeclaration = async (req, res) => {
   const declarationId = req.params.id;
   
   try {
-    await connection.execute(
-      'DELETE FROM favorite_declarations WHERE user_id = ? AND id = ?',
-      [auth.decoded.userId, declarationId]
-    );
+    await new Promise((resolve) => {
+      db.run('DELETE FROM favorite_declarations WHERE user_id = ? AND id = ?', [auth.decoded.id, declarationId], () => resolve());
+    });
     
     res.json({
       success: true,
@@ -352,10 +365,12 @@ exports.getHistory = async (req, res) => {
   }
   
   try {
-    const [rows] = await connection.execute(
-      'SELECT * FROM user_history WHERE user_id = ? ORDER BY created_at DESC LIMIT 50',
-      [auth.decoded.userId]
-    );
+    const rows = await new Promise((resolve) => {
+      db.all('SELECT * FROM user_history WHERE user_id = ? ORDER BY createdAt DESC LIMIT 50', [auth.decoded.id], (err, rows) => {
+        if (err) resolve([]);
+        else resolve(rows);
+      });
+    });
     
     res.json({
       success: true,
@@ -375,10 +390,10 @@ exports.addHistory = async (req, res) => {
   const { type, target_id, title, image_url } = req.body;
   
   try {
-    await connection.execute(
-      'INSERT INTO user_history (user_id, type, target_id, title, image_url) VALUES (?, ?, ?, ?, ?)',
-      [auth.decoded.userId, type, target_id, title, image_url]
-    );
+    await new Promise((resolve) => {
+      db.run('INSERT INTO user_history (user_id, type, target_id, title, image_url) VALUES (?, ?, ?, ?, ?)',
+        [auth.decoded.id, type, target_id, title, image_url], () => resolve());
+    });
     
     res.json({
       success: true,
@@ -396,10 +411,9 @@ exports.clearHistory = async (req, res) => {
   }
   
   try {
-    await connection.execute(
-      'DELETE FROM user_history WHERE user_id = ?',
-      [auth.decoded.userId]
-    );
+    await new Promise((resolve) => {
+      db.run('DELETE FROM user_history WHERE user_id = ?', [auth.decoded.id], () => resolve());
+    });
     
     res.json({
       success: true,

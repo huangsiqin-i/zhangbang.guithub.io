@@ -1,0 +1,13 @@
+{
+  "name": "bangdian-platform",
+  "version": "1.0.0",
+  "description": "邦典文化传承平台",
+  "main": "server/app.js",
+  "scripts": {
+    "start": "cd server && npm install && npm start",
+    "dev": "cd server && npm run dev"
+  },
+  "keywords": ["bangdian", "culture", "tibetan"],
+  "author": "",
+  "license": "ISC"
+}

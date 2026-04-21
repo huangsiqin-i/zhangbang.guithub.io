@@ -1,77 +1,82 @@
-const connection = require('../db/connection');
+const { db } = require('../db/sqliteConnection');
 const jwt = require('jsonwebtoken');
-
-function verifyAdmin(req) {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) {
-    return { valid: false, message: '未登录' };
-  }
-  
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'bondian_dev_secret');
-    if (decoded.role !== 'admin') {
-      return { valid: false, message: '无权限' };
-    }
-    return { valid: true, decoded };
-  } catch (error) {
-    return { valid: false, message: 'token无效' };
-  }
-}
 
 exports.getMasters = async (req, res) => {
   try {
-    const [rows] = await connection.execute(
-      'SELECT * FROM masters ORDER BY sort_order ASC'
-    );
-    
-    res.json({
-      success: true,
-      data: rows
+    const masters = await new Promise((resolve) => {
+      db.all('SELECT * FROM masters ORDER BY sort_order ASC, id DESC', [], (err, rows) => {
+        if (err) resolve([]);
+        else resolve(rows);
+      });
     });
+    
+    res.json({ success: true, data: masters });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
 exports.getMasterById = async (req, res) => {
-  const masterId = req.params.id;
-  
   try {
-    const [rows] = await connection.execute(
-      'SELECT * FROM masters WHERE id = ?',
-      [masterId]
-    );
+    const { id } = req.params;
+    const master = await new Promise((resolve) => {
+      db.get('SELECT * FROM masters WHERE id = ?', [id], (err, row) => {
+        if (err) resolve(null);
+        else resolve(row);
+      });
+    });
     
-    if (rows.length === 0) {
-      return res.json({ success: false, message: '传承人不存在' });
+    if (!master) {
+      return res.status(404).json({ success: false, message: '传承人不存在' });
     }
     
-    res.json({
-      success: true,
-      data: rows[0]
-    });
+    res.json({ success: true, data: master });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
 exports.createMaster = async (req, res) => {
-  const auth = verifyAdmin(req);
-  if (!auth.valid) {
-    return res.status(403).json({ success: false, message: auth.message });
-  }
-  
-  const { name, title, region, birth_year, experience_years, story, achievements, works, photo, sort_order } = req.body;
-  
   try {
-    const [result] = await connection.execute(
-      'INSERT INTO masters (name, title, region, birth_year, experience_years, story, achievements, works, photo, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [name, title || '', region || '', birth_year || null, experience_years || null, story || '', achievements || '', works || '', photo || '', sort_order || 0]
-    );
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ success: false, message: '未登录' });
+    }
     
-    res.json({
-      success: true,
-      message: '传承人添加成功',
+    jwt.verify(token, process.env.JWT_SECRET || 'bondian_dev_secret');
+    
+    const { 
+      name, 
+      title, 
+      avatarUrl, 
+      bio, 
+      works, 
+      region,
+      birth_year,
+      death_year,
+      experience_years,
+      is_deceased,
+      sort_order,
+      achievements,
+      story,
+      quotes,
+      skills,
+      status
+    } = req.body;
+    
+    const result = await new Promise((resolve) => {
+      db.run(
+        'INSERT INTO masters (name, title, avatarUrl, bio, works, region, birth_year, death_year, experience_years, is_deceased, sort_order, achievements, story, quotes, skills, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [name, title, avatarUrl, bio, works, region, birth_year, death_year, experience_years, is_deceased || 0, sort_order || 0, achievements, story, quotes, skills, status || 'active'], 
+        function(err) {
+          if (err) resolve({ insertId: null });
+          else resolve({ insertId: this.lastID });
+        });
+    });
+    
+    res.json({ 
+      success: true, 
+      message: '传承人创建成功',
       data: { id: result.insertId }
     });
   } catch (error) {
@@ -80,44 +85,73 @@ exports.createMaster = async (req, res) => {
 };
 
 exports.updateMaster = async (req, res) => {
-  const auth = verifyAdmin(req);
-  if (!auth.valid) {
-    return res.status(403).json({ success: false, message: auth.message });
-  }
-  
-  const masterId = req.params.id;
-  const { name, title, region, birth_year, experience_years, story, achievements, works, photo, sort_order } = req.body;
-  
   try {
-    await connection.execute(
-      'UPDATE masters SET name = ?, title = ?, region = ?, birth_year = ?, experience_years = ?, story = ?, achievements = ?, works = ?, photo = ?, sort_order = ? WHERE id = ?',
-      [name, title || '', region || '', birth_year || null, experience_years || null, story || '', achievements || '', works || '', photo || '', sort_order || 0, masterId]
-    );
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ success: false, message: '未登录' });
+    }
     
-    res.json({
-      success: true,
-      message: '传承人更新成功'
+    jwt.verify(token, process.env.JWT_SECRET || 'bondian_dev_secret');
+    const { id } = req.params;
+    
+    const master = await new Promise((resolve) => {
+      db.get('SELECT * FROM masters WHERE id = ?', [id], (err, row) => {
+        if (err) resolve(null);
+        else resolve(row);
+      });
     });
+    
+    if (!master) {
+      return res.status(404).json({ success: false, message: '传承人不存在' });
+    }
+    
+    const { 
+      name, 
+      title, 
+      avatarUrl, 
+      bio, 
+      works, 
+      region,
+      birth_year,
+      death_year,
+      experience_years,
+      is_deceased,
+      sort_order,
+      achievements,
+      story,
+      quotes,
+      skills,
+      status
+    } = req.body;
+    
+    await new Promise((resolve) => {
+      db.run(
+        'UPDATE masters SET name = ?, title = ?, avatarUrl = ?, bio = ?, works = ?, region = ?, birth_year = ?, death_year = ?, experience_years = ?, is_deceased = ?, sort_order = ?, achievements = ?, story = ?, quotes = ?, skills = ?, status = ? WHERE id = ?',
+        [name, title, avatarUrl, bio, works, region, birth_year, death_year, experience_years, is_deceased || 0, sort_order || 0, achievements, story, quotes, skills, status || 'active', id], 
+        () => resolve());
+    });
+    
+    res.json({ success: true, message: '传承人更新成功' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
 exports.deleteMaster = async (req, res) => {
-  const auth = verifyAdmin(req);
-  if (!auth.valid) {
-    return res.status(403).json({ success: false, message: auth.message });
-  }
-  
-  const masterId = req.params.id;
-  
   try {
-    await connection.execute('DELETE FROM masters WHERE id = ?', [masterId]);
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ success: false, message: '未登录' });
+    }
     
-    res.json({
-      success: true,
-      message: '传承人删除成功'
+    jwt.verify(token, process.env.JWT_SECRET || 'bondian_dev_secret');
+    const { id } = req.params;
+    
+    await new Promise((resolve) => {
+      db.run('DELETE FROM masters WHERE id = ?', [id], () => resolve());
     });
+    
+    res.json({ success: true, message: '传承人删除成功' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

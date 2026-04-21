@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const connection = require('../db/connection');
+const { db } = require('../db/sqliteConnection');
 
 function validateCredentials(username, password) {
   if (typeof username !== "string" || typeof password !== "string") {
@@ -29,10 +29,12 @@ async function register(req, res) {
   const cleanUsername = username.trim();
 
   try {
-    const [existingUsers] = await connection.query(
-      'SELECT id FROM users WHERE username = ?',
-      [cleanUsername]
-    );
+    const existingUsers = await new Promise((resolve) => {
+      db.all('SELECT id FROM users WHERE username = ?', [cleanUsername], (err, rows) => {
+        if (err) resolve([]);
+        else resolve(rows);
+      });
+    });
     
     if (existingUsers.length > 0) {
       return res.status(409).json({
@@ -41,10 +43,12 @@ async function register(req, res) {
     }
 
     if (email) {
-      const [existingEmails] = await connection.query(
-        'SELECT id FROM users WHERE email = ?',
-        [email]
-      );
+      const existingEmails = await new Promise((resolve) => {
+        db.all('SELECT id FROM users WHERE email = ?', [email], (err, rows) => {
+          if (err) resolve([]);
+          else resolve(rows);
+        });
+      });
       if (existingEmails.length > 0) {
         return res.status(409).json({
           message: "Email already exists"
@@ -54,10 +58,18 @@ async function register(req, res) {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
-    const [result] = await connection.query(
-      'INSERT INTO users (username, password_hash, email, nickname, role) VALUES (?, ?, ?, ?, ?)',
-      [cleanUsername, passwordHash, email, nickname, 'user']
-    );
+    const result = await new Promise((resolve) => {
+      db.run('INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)',
+        [cleanUsername, passwordHash, email, 'user'], function(err) {
+          if (err) {
+            console.log('插入用户失败:', err.message);
+            resolve({ insertId: null });
+          } else {
+            console.log('插入用户成功, lastID:', this.lastID);
+            resolve({ insertId: this.lastID });
+          }
+        });
+    });
 
     return res.status(201).json({
       success: true,
@@ -78,28 +90,42 @@ async function register(req, res) {
 
 async function login(req, res) {
   const { username, password } = req.body;
+  console.log('登录请求:', { username, passwordLength: password ? password.length : 0 });
+  
   const validationError = validateCredentials(username, password);
 
   if (validationError) {
+    console.log('验证失败:', validationError);
     return res.status(400).json({ message: validationError });
   }
 
   const cleanUsername = username.trim();
+  console.log('清理后的用户名:', cleanUsername);
 
   try {
-    const [users] = await connection.query(
-      'SELECT id, username, password_hash, role, nickname, avatar_url FROM users WHERE username = ?',
-      [cleanUsername]
-    );
+    const user = await new Promise((resolve) => {
+      db.get('SELECT id, username, password, role FROM users WHERE username = ?',
+        [cleanUsername], (err, row) => {
+          if (err) {
+            console.log('查询错误:', err.message);
+            resolve(null);
+          } else {
+            console.log('查询结果:', row);
+            resolve(row);
+          }
+        });
+    });
 
-    if (users.length === 0) {
+    if (!user) {
+      console.log('用户不存在');
       return res.status(401).json({
         message: "Invalid username or password"
       });
     }
 
-    const user = users[0];
-    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    console.log('数据库中的密码哈希:', user.password);
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    console.log('密码验证结果:', isPasswordValid);
 
     if (!isPasswordValid) {
       return res.status(401).json({
@@ -126,8 +152,7 @@ async function login(req, res) {
         id: user.id,
         username: user.username,
         role: user.role,
-        nickname: user.nickname,
-        avatar_url: user.avatar_url
+        nickname: user.nickname
       }
     });
   } catch (error) {
@@ -147,14 +172,17 @@ function getProfile(req, res) {
 }
 
 async function updateProfile(req, res) {
-  const { username, email, nickname, bio, avatar_url } = req.body;
+  const { username, email, nickname, bio } = req.body;
   
   try {
     if (username) {
-      const [existingUsers] = await connection.query(
-        'SELECT id FROM users WHERE username = ? AND id != ?',
-        [username.trim(), req.user.id]
-      );
+      const existingUsers = await new Promise((resolve) => {
+        db.all('SELECT id FROM users WHERE username = ? AND id != ?',
+          [username.trim(), req.user.id], (err, rows) => {
+            if (err) resolve([]);
+            else resolve(rows);
+          });
+      });
       if (existingUsers.length > 0) {
         return res.status(409).json({
           success: false,
@@ -182,10 +210,6 @@ async function updateProfile(req, res) {
       updateFields.push('bio = ?');
       updateParams.push(bio);
     }
-    if (avatar_url) {
-      updateFields.push('avatar_url = ?');
-      updateParams.push(avatar_url);
-    }
 
     if (updateFields.length === 0) {
       return res.status(400).json({
@@ -196,20 +220,22 @@ async function updateProfile(req, res) {
 
     updateParams.push(req.user.id);
 
-    await connection.query(
-      `UPDATE users SET ${updateFields.join(', ')} WHERE id = ?`,
-      updateParams
-    );
+    await new Promise((resolve) => {
+      db.run(`UPDATE users SET ${updateFields.join(', ')} WHERE id = ?`, updateParams, () => resolve());
+    });
 
-    const [users] = await connection.query(
-      'SELECT id, username, email, nickname, role, bio, avatar_url FROM users WHERE id = ?',
-      [req.user.id]
-    );
+    const updatedUser = await new Promise((resolve) => {
+      db.get('SELECT id, username, email, nickname, role, bio FROM users WHERE id = ?',
+        [req.user.id], (err, row) => {
+          if (err) resolve(null);
+          else resolve(row);
+        });
+    });
 
     return res.status(200).json({
       success: true,
       message: "Profile updated",
-      user: users[0]
+      user: updatedUser
     });
   } catch (error) {
     return res.status(500).json({

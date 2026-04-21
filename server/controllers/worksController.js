@@ -1,4 +1,4 @@
-const pool = require("../db/connection");
+const { db } = require("../db/sqliteConnection");
 
 function validateWorkInput(title, description) {
   if (typeof title !== "string") {
@@ -18,22 +18,32 @@ function validateWorkInput(title, description) {
 
 async function createWork(req, res) {
   const { title, description, colors, stripeWidth, imagePath } = req.body;
+  
+  console.log('创建作品请求:', { title, description: description ? description.length : 0, colors, stripeWidth, imagePath });
+  
   const validationError = validateWorkInput(title, description);
 
   if (validationError) {
+    console.log('验证失败:', validationError);
     return res.status(400).json({ message: validationError });
   }
 
   try {
     const cleanTitle = title.trim();
-    const cleanDescription = description.trim();
+    const cleanDescription = description ? description.trim() : '';
     const colorsJson = colors ? JSON.stringify(colors) : null;
     const width = stripeWidth || 30;
 
-    const [result] = await pool.query(
-      "INSERT INTO works (title, description, author_id, status, colors, stripeWidth, imagePath) VALUES (?, ?, ?, 'approved', ?, ?, ?)",
-      [cleanTitle, cleanDescription, req.user.id, colorsJson, width, imagePath]
-    );
+    const result = await new Promise((resolve) => {
+      db.run(
+        "INSERT INTO works (title, description, author_id, status, colors, stripeWidth, imagePath) VALUES (?, ?, ?, 'approved', ?, ?, ?)",
+        [cleanTitle, cleanDescription, req.user.id, colorsJson, width, imagePath],
+        function(err) {
+          if (err) resolve({ insertId: null });
+          else resolve({ insertId: this.lastID });
+        }
+      );
+    });
 
     return res.status(201).json({
       success: true,
@@ -59,10 +69,16 @@ async function createWork(req, res) {
 
 async function getMyWorks(req, res) {
   try {
-    const [rows] = await pool.query(
-      "SELECT id, title, description, status, created_at FROM works WHERE author_id = ? ORDER BY created_at DESC",
-      [req.user.id]
-    );
+    const rows = await new Promise((resolve) => {
+      db.all(
+        "SELECT id, title, description, status, createdAt FROM works WHERE author_id = ? ORDER BY createdAt DESC",
+        [req.user.id],
+        (err, rows) => {
+          if (err) resolve([]);
+          else resolve(rows);
+        }
+      );
+    });
 
     return res.status(200).json({
       message: "My works fetched",
@@ -93,55 +109,63 @@ async function listWorks(req, res) {
 
   const keyword = (req.query.keyword || "").trim();
 
-  const whereParts = [];
+  let whereSql = "";
   const params = [];
 
   if (keyword) {
-    whereParts.push("(w.title LIKE ? OR w.description LIKE ?)");
+    whereSql = "WHERE (w.title LIKE ? OR w.description LIKE ?)";
     const keywordLike = `%${keyword}%`;
     params.push(keywordLike, keywordLike);
   }
 
-  const whereSql = whereParts.length > 0 ? `WHERE ${whereParts.join(" AND ")}` : "";
-
   try {
-    const [countRows] = await pool.query(
-      `SELECT COUNT(*) AS total
-       FROM works w
-       ${whereSql}`,
-      params
-    );
+    const countRow = await new Promise((resolve) => {
+      db.get(
+        `SELECT COUNT(*) AS total FROM works w ${whereSql}`,
+        params,
+        (err, row) => {
+          if (err) resolve({ total: 0 });
+          else resolve(row);
+        }
+      );
+    });
 
-    const [rows] = await pool.query(
-      `SELECT
-         w.id,
-         w.title,
-         w.description,
-         w.status,
-         w.created_at,
-         w.colors,
-         w.stripeWidth,
-         w.imagePath,
-         u.id AS author_id,
-         u.username AS author_name
-       FROM works w
-       LEFT JOIN users u ON u.id = w.author_id
-       ${whereSql}
-       ORDER BY w.created_at DESC
-       LIMIT ? OFFSET ?`,
-      [...params, safePageSize, offset]
-    );
+    const rows = await new Promise((resolve) => {
+      db.all(
+        `SELECT
+           w.id,
+           w.title,
+           w.description,
+           w.status,
+           w.createdAt,
+           w.colors,
+           w.stripeWidth,
+           w.imagePath,
+           u.id AS author_id,
+           u.username AS author_name
+         FROM works w
+         LEFT JOIN users u ON u.id = w.author_id
+         ${whereSql}
+         ORDER BY w.createdAt DESC
+         LIMIT ? OFFSET ?`,
+        [...params, safePageSize, offset],
+        (err, rows) => {
+          if (err) resolve([]);
+          else resolve(rows);
+        }
+      );
+    });
 
     return res.status(200).json({
       message: "Works list fetched",
       pagination: {
         page,
         pageSize: safePageSize,
-        total: countRows[0].total
+        total: countRow.total || 0
       },
       filters: {
         keyword,
-        status: safeStatus
+        status: null
       },
       works: rows
     });
@@ -155,9 +179,12 @@ async function listWorks(req, res) {
 
 async function getWorksStats(req, res) {
   try {
-    const [[row]] = await pool.query(
-      `SELECT COUNT(*) AS total FROM works`
-    );
+    const row = await new Promise((resolve) => {
+      db.get(`SELECT COUNT(*) AS total FROM works`, [], (err, row) => {
+        if (err) resolve({ total: 0 });
+        else resolve(row);
+      });
+    });
 
     return res.status(200).json({
       message: "Works stats fetched",
@@ -184,24 +211,30 @@ async function adminListWorks(req, res) {
   }
 
   try {
-    const [rows] = await pool.query(
-      `SELECT
-         w.id,
-         w.title,
-         w.description,
-         w.status,
-         w.created_at,
-         w.colors,
-         w.stripeWidth,
-         w.imagePath,
-         u.id AS author_id,
-         u.username AS author_name
-       FROM works w
-       LEFT JOIN users u ON u.id = w.author_id
-       ${whereSql}
-       ORDER BY w.created_at DESC`,
-      params
-    );
+    const rows = await new Promise((resolve) => {
+      db.all(
+        `SELECT
+           w.id,
+           w.title,
+           w.description,
+           w.status,
+           w.createdAt,
+           w.colors,
+           w.stripeWidth,
+           w.imagePath,
+           u.id AS author_id,
+           u.username AS author_name
+         FROM works w
+         LEFT JOIN users u ON u.id = w.author_id
+         ${whereSql}
+         ORDER BY w.createdAt DESC`,
+        params,
+        (err, rows) => {
+          if (err) resolve([]);
+          else resolve(rows);
+        }
+      );
+    });
 
     return res.status(200).json({
       message: "Works list fetched",
@@ -227,22 +260,28 @@ async function adminGetWork(req, res) {
   }
 
   try {
-    const [rows] = await pool.query(
-      `SELECT
-         w.id,
-         w.title,
-         w.description,
-         w.status,
-         w.created_at,
-         u.id AS author_id,
-         u.username AS author_name
-       FROM works w
-       JOIN users u ON u.id = w.author_id
-       WHERE w.id = ?`,
-      [workId]
-    );
+    const row = await new Promise((resolve) => {
+      db.get(
+        `SELECT
+           w.id,
+           w.title,
+           w.description,
+           w.status,
+           w.createdAt,
+           u.id AS author_id,
+           u.username AS author_name
+         FROM works w
+         JOIN users u ON u.id = w.author_id
+         WHERE w.id = ?`,
+        [workId],
+        (err, row) => {
+          if (err) resolve(null);
+          else resolve(row);
+        }
+      );
+    });
 
-    if (rows.length === 0) {
+    if (!row) {
       return res.status(404).json({
         success: false,
         message: "Work not found"
@@ -251,7 +290,7 @@ async function adminGetWork(req, res) {
 
     return res.status(200).json({
       success: true,
-      data: rows[0]
+      data: row
     });
   } catch (error) {
     return res.status(500).json({
@@ -273,12 +312,18 @@ async function deleteWork(req, res) {
   }
 
   try {
-    const [result] = await pool.query(
-      "DELETE FROM works WHERE id = ?",
-      [workId]
-    );
+    const result = await new Promise((resolve) => {
+      db.run(
+        "DELETE FROM works WHERE id = ?",
+        [workId],
+        function(err) {
+          if (err) resolve({ changes: 0 });
+          else resolve({ changes: this.changes });
+        }
+      );
+    });
 
-    if (result.affectedRows === 0) {
+    if (result.changes === 0) {
       return res.status(404).json({
         success: false,
         message: "Work not found"

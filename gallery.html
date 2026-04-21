@@ -437,25 +437,46 @@
 
     // 获取作品列表
     async function fetchWorks() {
+      console.log('=== fetchWorks 开始 ===');
       try {
         const response = await fetch(`${API_BASE}/works`);
+        console.log('fetchWorks 响应状态:', response.status);
         const data = await response.json();
+        console.log('fetchWorks 响应数据:', JSON.stringify(data));
+        
+        // 保存总作品数
+        if (data.pagination && data.pagination.total) {
+          window.totalWorksCount = data.pagination.total;
+          console.log('保存总作品数:', window.totalWorksCount);
+        }
+        
         if (data.works && data.works.length > 0) {
           const regions = ['拉萨', '山南', '日喀则', '那曲', '阿里', '昌都'];
           works = data.works.map((item, index) => {
             // 确保 colors 字段格式正确
             let colors = item.colors;
+            
+            // 尝试解析 JSON 字符串
+            if (typeof colors === 'string') {
+              try {
+                colors = JSON.parse(colors);
+              } catch (e) {
+                console.warn('Failed to parse colors JSON:', e);
+                colors = null;
+              }
+            }
+            
             if (!colors || !Array.isArray(colors) || colors.length === 0) {
               colors = getRandomColors();
             } else if (colors.length > 0 && typeof colors[0] === 'string') {
               // 如果是字符串数组，转换为对象数组
-              colors = colors.map(c => ({ name: c, hex: c }));
+              colors = colors.map(c => ({ name: colorNames[c] || '自定义', hex: c }));
             }
             return {
               id: item.id,
               imageUrl: item.imagePath && item.imagePath.startsWith('data:image/') ? item.imagePath : (item.imagePath ? `images/${item.imagePath}` : generateBondianImageWithColors(colors, item.stripeWidth, item.id)),
               username: item.author_name || '邦典爱好者',
-              time: item.created_at || new Date().toLocaleString(),
+              time: item.createdAt ? new Date(item.createdAt).toLocaleString() : new Date().toLocaleString(),
               title: item.title || '邦典作品',
               colors: colors,
               declaration: item.description || '这件邦典展现了独特的藏族文化魅力',
@@ -767,7 +788,9 @@
 
     // 更新统计信息
     function updateStats() {
-      document.getElementById('totalWorks').textContent = works.length;
+      // 使用API返回的总作品数，而不是当前页的作品数
+      const totalFromApi = window.totalWorksCount || works.length;
+      document.getElementById('totalWorks').textContent = totalFromApi;
       document.getElementById('totalLikes').textContent = works.reduce((sum, w) => sum + (parseInt(w.likes) || 0), 0);
       document.getElementById('totalComments').textContent = works.reduce((sum, w) => sum + (w.comments?.length || 0), 0);
       document.getElementById('totalCreators').textContent = new Set(works.map(w => w.username || '未知')).size;

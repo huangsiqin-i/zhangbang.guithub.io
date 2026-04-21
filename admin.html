@@ -567,30 +567,33 @@
     // 加载仪表盘
     async function loadDashboard() {
       try {
-        // 从后端API获取统计数据
+        // 从后端API获取统计数据（禁用缓存确保获取最新数据）
         const [statsResponse, worksResponse] = await Promise.all([
           fetch(`${API_BASE}/stats/admin`, {
-            headers: { 'Authorization': `Bearer ${currentToken}` }
+            headers: { 'Authorization': `Bearer ${currentToken}` },
+            cache: 'no-store'
           }),
           fetch(`${API_BASE}/works/admin`, {
-            headers: { 'Authorization': `Bearer ${currentToken}` }
+            headers: { 'Authorization': `Bearer ${currentToken}` },
+            cache: 'no-store'
           })
         ]);
         
         const statsData = await statsResponse.json();
         const worksData = await worksResponse.json();
         
+        // 调试日志：检查获取到的数据
+        console.log('=== 数据概览 - 作品数据 ===');
+        console.log('作品总数:', worksData.works?.length || 0);
+        console.log('前5条作品:', worksData.works?.slice(0, 5).map(w => ({ id: w.id, title: w.title, time: w.createdAt })));
+        
         // 更新统计数字
         if (statsData.success && statsData.data) {
           document.getElementById('statTotalBondians').textContent = statsData.data.totalBondians || 0;
           document.getElementById('statTotalUsers').textContent = statsData.data.totalUsers || 0;
           document.getElementById('statPatternCount').textContent = statsData.data.patternCount || 0;
+          document.getElementById('statTotalComments').textContent = statsData.data.totalComments || 0;
         }
-        
-        // 总评论数从 localStorage 获取，与作品广场保持一致
-        const works = JSON.parse(localStorage.getItem('works') || '[]');
-        const totalComments = works.reduce((sum, w) => sum + (w.comments?.length || 0), 0);
-        document.getElementById('statTotalComments').textContent = totalComments;
         
         // 生成类型分布数据
         const typeStats = [
@@ -633,17 +636,24 @@
         // 生成最近添加的作品
         let recentWorksData = [];
         if (worksData.works && worksData.works.length > 0) {
+          // API 返回的数据已经按 createdAt DESC 排序，直接取前10条
           recentWorksData = worksData.works.slice(0, 10).map(w => ({
             title: w.title || '未命名作品',
             username: w.author_name || '未知',
             status: w.status || 'approved',
-            created_at: w.created_at
+            created_at: w.createdAt || w.created_at
           }));
         } else {
-          // API 无数据时从 localStorage 获取作品数据
+          // API 无数据时从 localStorage 获取作品数据（按时间排序）
           const localWorks = JSON.parse(localStorage.getItem('works') || '[]');
           if (localWorks.length > 0) {
-            recentWorksData = localWorks.slice(0, 10).map(w => ({
+            // 按时间降序排序，确保最新的在前
+            const sortedWorks = [...localWorks].sort((a, b) => {
+              const timeA = new Date(a.time || 0).getTime();
+              const timeB = new Date(b.time || 0).getTime();
+              return timeB - timeA;
+            });
+            recentWorksData = sortedWorks.slice(0, 10).map(w => ({
               title: w.title || '未命名作品',
               username: w.username || '未知',
               status: 'approved',
@@ -689,6 +699,10 @@
 
     function renderTypeChart(data) {
       const container = document.getElementById('typeChart');
+      if (!container) {
+        console.warn('renderTypeChart: typeChart element not found');
+        return;
+      }
       if (!data || data.length === 0) {
         container.innerHTML = '<p class="text-gray-500 text-center py-4">暂无数据</p>';
         return;
@@ -706,6 +720,10 @@
 
     function renderRegionChart(data) {
       const container = document.getElementById('regionChart');
+      if (!container) {
+        console.warn('renderRegionChart: regionChart element not found');
+        return;
+      }
       if (!data || data.length === 0) {
         container.innerHTML = '<p class="text-gray-500 text-center py-4">暂无数据</p>';
         return;
@@ -723,6 +741,10 @@
 
     function renderTypeStatsChart(data) {
       const container = document.getElementById('typeStatsChart');
+      if (!container) {
+        console.warn('renderTypeStatsChart: typeStatsChart element not found');
+        return;
+      }
       if (!data || data.length === 0) {
         container.innerHTML = '<p class="text-gray-500 text-center py-4">暂无数据</p>';
         return;
@@ -755,6 +777,10 @@
 
     function renderRecentBondians(data) {
       const tbody = document.getElementById('recentBondians');
+      if (!tbody) {
+        console.warn('renderRecentBondians: recentBondians element not found');
+        return;
+      }
       if (!data || data.length === 0) {
         tbody.innerHTML = '<tr><td colspan="4" class="text-gray-500 text-center py-4">暂无数据</td></tr>';
         return;
@@ -771,6 +797,10 @@
 
     function renderRecentWorks(data) {
       const tbody = document.getElementById('recentWorks');
+      if (!tbody) {
+        console.warn('renderRecentWorks: recentWorks element not found');
+        return;
+      }
       if (!data || data.length === 0) {
         tbody.innerHTML = '<tr><td colspan="4" class="text-gray-500 text-center py-4">暂无数据</td></tr>';
         return;
@@ -1240,7 +1270,7 @@
             <td class="py-3 px-4 font-medium">${item.title || '未命名作品'}</td>
             <td class="py-3 px-4">${item.author_name || '未知'}</td>
             <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs ${getStatusClass(item.status)}">${getStatusText(item.status)}</span></td>
-            <td class="py-3 px-4 text-sm text-gray-500">${formatTime(item.created_at)}</td>
+            <td class="py-3 px-4 text-sm text-gray-500">${formatTime(item.createdAt || item.created_at)}</td>
             <td class="py-3 px-4">
               <button onclick="viewWork('${item.id}')" class="text-blue-600 hover:text-blue-800 mr-2">查看</button>
               <button onclick="deleteWork('${item.id}')" class="text-red-600 hover:text-red-800">删除</button>
@@ -1429,9 +1459,9 @@
               birth_year: document.getElementById('masterBirthYear').value,
               experience_years: document.getElementById('masterExperience').value,
               story: document.getElementById('masterStory').value,
-              awards: document.getElementById('masterAwards').value,
+              achievements: document.getElementById('masterAwards').value,
               works: document.getElementById('masterWorks').value,
-              photo_url: document.getElementById('masterPhoto').value,
+              avatarUrl: document.getElementById('masterPhoto').value,
               sort_order: document.getElementById('masterSortOrder').value
             })
           });
@@ -1493,7 +1523,7 @@
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700">荣誉成就</label>
-                  <input type="text" id="masterAwards" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" value="${item.awards || ''}" placeholder="用逗号分隔">
+                  <input type="text" id="masterAwards" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" value="${item.achievements || ''}" placeholder="用逗号分隔">
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700">代表作品</label>
@@ -1501,7 +1531,7 @@
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700">照片URL</label>
-                  <input type="text" id="masterPhoto" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" value="${item.photo_url || ''}">
+                  <input type="text" id="masterPhoto" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" value="${item.avatarUrl || ''}">
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700">排序</label>
@@ -1529,9 +1559,9 @@
                   birth_year: document.getElementById('masterBirthYear').value,
                   experience_years: document.getElementById('masterExperience').value,
                   story: document.getElementById('masterStory').value,
-                  awards: document.getElementById('masterAwards').value,
+                  achievements: document.getElementById('masterAwards').value,
                   works: document.getElementById('masterWorks').value,
-                  photo_url: document.getElementById('masterPhoto').value,
+                  avatarUrl: document.getElementById('masterPhoto').value,
                   sort_order: document.getElementById('masterSortOrder').value
                 })
               });

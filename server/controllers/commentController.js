@@ -1,4 +1,4 @@
-const connection = require('../db/connection');
+const { db } = require('../db/sqliteConnection');
 const jwt = require('jsonwebtoken');
 
 exports.getCommentsByBondian = async (req, res) => {
@@ -7,14 +7,13 @@ exports.getCommentsByBondian = async (req, res) => {
     const { page = 1, limit = 20 } = req.query;
     const offset = (page - 1) * limit;
     
-    const [comments] = await connection.execute(
-      `SELECT c.*, u.username, u.nickname, u.avatar_url 
-       FROM comments c 
-       LEFT JOIN users u ON c.user_id = u.id 
-       WHERE c.bondian_id = ? AND c.status = 'approved' 
-       ORDER BY c.created_at DESC LIMIT ? OFFSET ?`,
-      [bondianId, parseInt(limit), parseInt(offset)]
-    );
+    const comments = await new Promise((resolve) => {
+      db.all('SELECT c.*, u.username, u.nickname FROM comments c LEFT JOIN users u ON c.userId = u.id WHERE c.bondianId = ? ORDER BY c.createdAt DESC LIMIT ? OFFSET ?',
+        [bondianId, parseInt(limit), parseInt(offset)], (err, rows) => {
+          if (err) resolve([]);
+          else resolve(rows);
+        });
+    });
     
     res.json({ success: true, data: comments });
   } catch (error) {
@@ -30,14 +29,17 @@ exports.createComment = async (req, res) => {
     }
     
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'bondian_dev_secret');
-    const userId = decoded.id || decoded.userId;
+    const userId = decoded.id;
     
     const { bondianId, content, parentId } = req.body;
     
-    const [result] = await connection.execute(
-      'INSERT INTO comments (bondian_id, user_id, content, parent_id) VALUES (?, ?, ?, ?)',
-      [bondianId, userId, content, parentId || null]
-    );
+    const result = await new Promise((resolve) => {
+      db.run('INSERT INTO comments (bondianId, userId, content, parentId) VALUES (?, ?, ?, ?)',
+        [bondianId, userId, content, parentId || 0], function(err) {
+          if (err) resolve({ insertId: null });
+          else resolve({ insertId: this.lastID });
+        });
+    });
     
     res.json({ 
       success: true, 
@@ -57,20 +59,28 @@ exports.deleteComment = async (req, res) => {
     }
     
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'bondian_dev_secret');
-    const userId = decoded.id || decoded.userId;
+    const userId = decoded.id;
     const userRole = decoded.role;
     const { id } = req.params;
     
-    const [comments] = await connection.execute('SELECT user_id FROM comments WHERE id = ?', [id]);
-    if (comments.length === 0) {
+    const comment = await new Promise((resolve) => {
+      db.get('SELECT userId FROM comments WHERE id = ?', [id], (err, row) => {
+        if (err) resolve(null);
+        else resolve(row);
+      });
+    });
+    
+    if (!comment) {
       return res.status(404).json({ success: false, message: '评论不存在' });
     }
     
-    if (comments[0].user_id !== userId && userRole !== 'admin') {
+    if (comment.userId !== userId && userRole !== 'admin') {
       return res.status(403).json({ success: false, message: '无权限删除' });
     }
     
-    await connection.execute('DELETE FROM comments WHERE id = ?', [id]);
+    await new Promise((resolve) => {
+      db.run('DELETE FROM comments WHERE id = ?', [id], () => resolve());
+    });
     
     res.json({ success: true, message: '评论删除成功' });
   } catch (error) {
@@ -90,13 +100,13 @@ exports.getAllComments = async (req, res) => {
       return res.status(403).json({ success: false, message: '无权限' });
     }
     
-    const [comments] = await connection.execute(
-      `SELECT c.*, u.username, b.name as bondian_name 
-       FROM comments c 
-       LEFT JOIN users u ON c.user_id = u.id 
-       LEFT JOIN bondians b ON c.bondian_id = b.id 
-       ORDER BY c.created_at DESC`
-    );
+    const comments = await new Promise((resolve) => {
+      db.all('SELECT c.*, u.username, b.name as bondianName FROM comments c LEFT JOIN users u ON c.userId = u.id LEFT JOIN bondians b ON c.bondianId = b.id ORDER BY c.createdAt DESC',
+        [], (err, rows) => {
+          if (err) resolve([]);
+          else resolve(rows);
+        });
+    });
     
     res.json({ success: true, data: comments });
   } catch (error) {

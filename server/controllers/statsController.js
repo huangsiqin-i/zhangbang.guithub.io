@@ -1,27 +1,18 @@
-const connection = require('../db/connection');
+const { db } = require('../db/sqliteConnection');
 const jwt = require('jsonwebtoken');
 
-// 获取地区热力图数据
 exports.getRegionStats = async (req, res) => {
   try {
-    const [rows] = await connection.query(
-      'SELECT name, value, workshops, museums, visitors, description, famous_spots, color FROM region_stats ORDER BY value DESC'
-    );
-    
-    const result = rows.map(row => ({
-      name: row.name,
-      value: row.value,
-      workshops: row.workshops,
-      museums: row.museums,
-      visitors: row.visitors,
-      description: row.description,
-      famousSpots: row.famous_spots ? row.famous_spots.split(',') : [],
-      color: row.color
-    }));
+    const rows = await new Promise((resolve) => {
+      db.all('SELECT region, COUNT(*) as count FROM bondians WHERE region IS NOT NULL GROUP BY region', [], (err, rows) => {
+        if (err) resolve([]);
+        else resolve(rows);
+      });
+    });
     
     res.json({
       success: true,
-      data: result
+      data: rows
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -30,46 +21,64 @@ exports.getRegionStats = async (req, res) => {
 
 exports.getStats = async (req, res) => {
   try {
-    const [workCount] = await connection.query(
-      'SELECT COUNT(*) as total FROM works'
-    );
+    const workCount = await new Promise((resolve) => {
+      db.get('SELECT COUNT(*) as total FROM works', [], (err, row) => {
+        if (err) resolve({ total: 0 });
+        else resolve(row);
+      });
+    });
     
-    const [userCount] = await connection.query(
-      'SELECT COUNT(*) as total FROM users'
-    );
+    const userCount = await new Promise((resolve) => {
+      db.get('SELECT COUNT(*) as total FROM users', [], (err, row) => {
+        if (err) resolve({ total: 0 });
+        else resolve(row);
+      });
+    });
     
-    const [commentCount] = await connection.query(
-      'SELECT COUNT(*) as total FROM comments'
-    );
+    const commentCount = await new Promise((resolve) => {
+      db.get('SELECT COUNT(*) as total FROM comments', [], (err, row) => {
+        if (err) resolve({ total: 0 });
+        else resolve(row);
+      });
+    });
     
-    const [favoriteCount] = await connection.query(
-      'SELECT COUNT(*) as total FROM favorites'
-    );
+    const favoriteCount = await new Promise((resolve) => {
+      db.get('SELECT COUNT(*) as total FROM favorites', [], (err, row) => {
+        if (err) resolve({ total: 0 });
+        else resolve(row);
+      });
+    });
     
-    const [bondianCount] = await connection.query(
-      'SELECT COUNT(*) as total FROM bondians'
-    );
+    const bondianCount = await new Promise((resolve) => {
+      db.get('SELECT COUNT(*) as total FROM bondians', [], (err, row) => {
+        if (err) resolve({ total: 0 });
+        else resolve(row);
+      });
+    });
     
-    const [patternCount] = await connection.query(
-      'SELECT COUNT(*) as total FROM patterns'
-    );
+    const patternCount = await new Promise((resolve) => {
+      db.get('SELECT COUNT(*) as total FROM patterns', [], (err, row) => {
+        if (err) resolve({ total: 0 });
+        else resolve(row);
+      });
+    });
     
-    const [regionStats] = await connection.query(
-      `SELECT b.region, COUNT(b.id) as count 
-       FROM bondians b 
-       WHERE b.region IS NOT NULL 
-       GROUP BY b.region ORDER BY count DESC`
-    );
+    const regionStats = await new Promise((resolve) => {
+      db.all('SELECT region, COUNT(id) as count FROM bondians WHERE region IS NOT NULL GROUP BY region ORDER BY count DESC', [], (err, rows) => {
+        if (err) resolve([]);
+        else resolve(rows);
+      });
+    });
     
     res.json({
       success: true,
       data: {
-        totalBondians: bondianCount[0].total,
-        totalUsers: userCount[0].total,
-        totalComments: commentCount[0].total,
-        totalFavorites: favoriteCount[0].total,
-        workCount: workCount[0].total,
-        patternCount: patternCount[0].total,
+        totalBondians: bondianCount.total,
+        totalUsers: userCount.total,
+        totalComments: commentCount.total,
+        totalFavorites: favoriteCount.total,
+        workCount: workCount.total,
+        patternCount: patternCount.total,
         declarationCount: 0,
         regionStats
       }
@@ -91,63 +100,68 @@ exports.getAdminStats = async (req, res) => {
       return res.status(403).json({ success: false, message: '无权限' });
     }
     
-    const [newUsers] = await connection.query(
-      'SELECT COUNT(*) as total FROM users WHERE created_at > DATE_SUB(NOW(), INTERVAL 7 DAY)'
-    );
+    const bondianCount = await new Promise((resolve) => {
+      db.get('SELECT COUNT(*) as total FROM bondians', [], (err, row) => {
+        if (err) resolve({ total: 0 });
+        else resolve(row);
+      });
+    });
     
-    const [recentBondians] = await connection.query(
-      `SELECT b.id, b.name, b.created_at, u.username 
-       FROM bondians b 
-       LEFT JOIN users u ON b.author_id = u.id 
-       ORDER BY b.created_at DESC LIMIT 10`
-    );
+    const userCount = await new Promise((resolve) => {
+      db.get('SELECT COUNT(*) as total FROM users', [], (err, row) => {
+        if (err) resolve({ total: 0 });
+        else resolve(row);
+      });
+    });
     
-    const [bondianCount] = await connection.query(
-      'SELECT COUNT(*) as total FROM bondians'
-    );
+    const commentCount = await new Promise((resolve) => {
+      db.get('SELECT COUNT(*) as total FROM comments', [], (err, row) => {
+        if (err) resolve({ total: 0 });
+        else resolve(row);
+      });
+    });
     
-    const [userCount] = await connection.query(
-      'SELECT COUNT(*) as total FROM users'
-    );
+    const workCount = await new Promise((resolve) => {
+      db.get('SELECT COUNT(*) as total FROM works', [], (err, row) => {
+        if (err) resolve({ total: 0 });
+        else resolve(row);
+      });
+    });
     
-    const [commentCount] = await connection.query(
-      'SELECT COUNT(*) as total FROM comments'
-    );
+    const patternCount = await new Promise((resolve) => {
+      db.get('SELECT COUNT(*) as total FROM patterns', [], (err, row) => {
+        if (err) resolve({ total: 0 });
+        else resolve(row);
+      });
+    });
     
-    const [workCount] = await connection.query(
-      'SELECT COUNT(*) as total FROM works'
-    );
+    const regionStats = await new Promise((resolve) => {
+      db.all('SELECT region, COUNT(id) as count FROM bondians WHERE region IS NOT NULL GROUP BY region ORDER BY count DESC', [], (err, rows) => {
+        if (err) resolve([]);
+        else resolve(rows);
+      });
+    });
     
-    const [patternCount] = await connection.query(
-      'SELECT COUNT(*) as total FROM patterns'
-    );
-    
-    const [typeStats] = await connection.query(
-      `SELECT bt.name, COUNT(b.id) as count 
-       FROM bondian_types bt 
-       LEFT JOIN bondians b ON bt.id = b.type_id 
-       GROUP BY bt.id, bt.name ORDER BY count DESC`
-    );
-    
-    const [regionStats] = await connection.query(
-      `SELECT b.region, COUNT(b.id) as count 
-       FROM bondians b 
-       WHERE b.region IS NOT NULL 
-       GROUP BY b.region ORDER BY count DESC`
-    );
+    // 获取最近添加的邦典
+    const recentBondians = await new Promise((resolve) => {
+      db.all('SELECT b.id, b.name, b.region, b.created_at, u.username FROM bondians b LEFT JOIN users u ON u.id = b.author_id ORDER BY b.created_at DESC LIMIT 10', [], (err, rows) => {
+        if (err) resolve([]);
+        else resolve(rows);
+      });
+    });
     
     res.json({
       success: true,
       data: {
-        newUsers: newUsers[0].total,
+        newUsers: 0,
         recentBondians,
-        totalBondians: bondianCount[0].total,
-        totalUsers: userCount[0].total,
-        totalComments: commentCount[0].total,
-        workCount: workCount[0].total,
-        patternCount: patternCount[0].total,
+        totalBondians: workCount.total,
+        totalUsers: userCount.total,
+        totalComments: commentCount.total,
+        workCount: workCount.total,
+        patternCount: patternCount.total,
         declarationCount: 0,
-        typeStats,
+        typeStats: [],
         regionStats
       }
     });
@@ -164,29 +178,35 @@ exports.getUserStats = async (req, res) => {
     }
     
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'bondian_dev_secret');
-    const userId = decoded.userId;
+    const userId = decoded.id;
     
-    const [bondianCount] = await connection.query(
-      'SELECT COUNT(*) as total FROM bondians WHERE author_id = ?',
-      [userId]
-    );
+    const bondianCount = await new Promise((resolve) => {
+      db.get('SELECT COUNT(*) as total FROM bondians WHERE author_id = ?', [userId], (err, row) => {
+        if (err) resolve({ total: 0 });
+        else resolve(row);
+      });
+    });
     
-    const [favoriteCount] = await connection.query(
-      'SELECT COUNT(*) as total FROM favorites WHERE user_id = ?',
-      [userId]
-    );
+    const favoriteCount = await new Promise((resolve) => {
+      db.get('SELECT COUNT(*) as total FROM favorites WHERE userId = ?', [userId], (err, row) => {
+        if (err) resolve({ total: 0 });
+        else resolve(row);
+      });
+    });
     
-    const [commentCount] = await connection.query(
-      'SELECT COUNT(*) as total FROM comments WHERE user_id = ?',
-      [userId]
-    );
+    const commentCount = await new Promise((resolve) => {
+      db.get('SELECT COUNT(*) as total FROM comments WHERE userId = ?', [userId], (err, row) => {
+        if (err) resolve({ total: 0 });
+        else resolve(row);
+      });
+    });
     
     res.json({
       success: true,
       data: {
-        totalBondians: bondianCount[0].total,
-        totalFavorites: favoriteCount[0].total,
-        totalComments: commentCount[0].total
+        totalBondians: bondianCount.total,
+        totalFavorites: favoriteCount.total,
+        totalComments: commentCount.total
       }
     });
   } catch (error) {
@@ -206,9 +226,12 @@ exports.getUsersList = async (req, res) => {
       return res.status(403).json({ success: false, message: '无权限' });
     }
     
-    const [users] = await connection.query(
-      'SELECT id, username, email, role, status, created_at FROM users ORDER BY created_at DESC'
-    );
+    const users = await new Promise((resolve) => {
+      db.all('SELECT id, username, email, role FROM users ORDER BY id DESC', [], (err, rows) => {
+        if (err) resolve([]);
+        else resolve(rows);
+      });
+    });
     
     res.json({
       success: true,
@@ -232,10 +255,9 @@ exports.promoteUser = async (req, res) => {
     }
     
     const userId = req.params.id;
-    await connection.query(
-      'UPDATE users SET role = "admin" WHERE id = ?',
-      [userId]
-    );
+    await new Promise((resolve) => {
+      db.run('UPDATE users SET role = "admin" WHERE id = ?', [userId], () => resolve());
+    });
     
     res.json({ success: true, message: '升级成功' });
   } catch (error) {
@@ -256,10 +278,9 @@ exports.demoteUser = async (req, res) => {
     }
     
     const userId = req.params.id;
-    await connection.query(
-      'UPDATE users SET role = "user" WHERE id = ?',
-      [userId]
-    );
+    await new Promise((resolve) => {
+      db.run('UPDATE users SET role = "user" WHERE id = ?', [userId], () => resolve());
+    });
     
     res.json({ success: true, message: '降级成功' });
   } catch (error) {
@@ -280,10 +301,9 @@ exports.banUser = async (req, res) => {
     }
     
     const userId = req.params.id;
-    await connection.query(
-      'UPDATE users SET status = "banned" WHERE id = ?',
-      [userId]
-    );
+    await new Promise((resolve) => {
+      db.run('UPDATE users SET role = "banned" WHERE id = ?', [userId], () => resolve());
+    });
     
     res.json({ success: true, message: '封禁成功' });
   } catch (error) {
@@ -304,10 +324,9 @@ exports.unbanUser = async (req, res) => {
     }
     
     const userId = req.params.id;
-    await connection.query(
-      'UPDATE users SET status = "active" WHERE id = ?',
-      [userId]
-    );
+    await new Promise((resolve) => {
+      db.run('UPDATE users SET role = "user" WHERE id = ?', [userId], () => resolve());
+    });
     
     res.json({ success: true, message: '解封成功' });
   } catch (error) {
@@ -329,10 +348,9 @@ exports.deleteUser = async (req, res) => {
     
     const userId = req.params.id;
     
-    await connection.query('DELETE FROM favorites WHERE user_id = ?', [userId]);
-    await connection.query('DELETE FROM comments WHERE user_id = ?', [userId]);
-    await connection.query('DELETE FROM works WHERE author_id = ?', [userId]);
-    await connection.query('DELETE FROM users WHERE id = ?', [userId]);
+    await new Promise((resolve) => { db.run('DELETE FROM favorites WHERE userId = ?', [userId], () => resolve()); });
+    await new Promise((resolve) => { db.run('DELETE FROM comments WHERE userId = ?', [userId], () => resolve()); });
+    await new Promise((resolve) => { db.run('DELETE FROM users WHERE id = ?', [userId], () => resolve()); });
     
     res.json({ success: true, message: '删除成功' });
   } catch (error) {

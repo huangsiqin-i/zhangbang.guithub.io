@@ -1,85 +1,77 @@
-const connection = require('../db/connection');
+const { db } = require('../db/sqliteConnection');
 const jwt = require('jsonwebtoken');
 
-function verifyAdmin(req) {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) {
-    return { valid: false, message: '未登录' };
-  }
-  
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'bondian_dev_secret');
-    if (decoded.role !== 'admin') {
-      return { valid: false, message: '无权限' };
-    }
-    return { valid: true, decoded };
-  } catch (error) {
-    return { valid: false, message: 'token无效' };
-  }
-}
-
 exports.getPatterns = async (req, res) => {
-  const status = req.query.status;
-  
   try {
-    let query = 'SELECT * FROM patterns ORDER BY sort_order ASC';
+    const { page = 1, limit = 10, category } = req.query;
+    const offset = (page - 1) * limit;
+    
+    let query = 'SELECT * FROM patterns WHERE 1=1';
     let params = [];
     
-    if (status) {
-      query = 'SELECT * FROM patterns WHERE status = ? ORDER BY sort_order ASC';
-      params = [status];
+    if (category) {
+      query += ' AND category = ?';
+      params.push(category);
     }
     
-    const [rows] = await connection.execute(query, params);
+    query += ' ORDER BY sort_order ASC, id DESC LIMIT ? OFFSET ?';
+    params.push(parseInt(limit), parseInt(offset));
     
-    res.json({
-      success: true,
-      data: rows
+    const patterns = await new Promise((resolve) => {
+      db.all(query, params, (err, rows) => {
+        if (err) resolve([]);
+        else resolve(rows);
+      });
     });
+    
+    res.json({ success: true, data: patterns });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
 exports.getPatternById = async (req, res) => {
-  const id = req.params.id;
-  
   try {
-    const [rows] = await connection.execute(
-      'SELECT * FROM patterns WHERE id = ?',
-      [id]
-    );
+    const { id } = req.params;
+    const pattern = await new Promise((resolve) => {
+      db.get('SELECT * FROM patterns WHERE id = ?', [id], (err, row) => {
+        if (err) resolve(null);
+        else resolve(row);
+      });
+    });
     
-    if (rows.length === 0) {
-      return res.json({ success: false, message: '样式不存在' });
+    if (!pattern) {
+      return res.status(404).json({ success: false, message: '纹样不存在' });
     }
     
-    res.json({
-      success: true,
-      data: rows[0]
-    });
+    res.json({ success: true, data: pattern });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
 exports.createPattern = async (req, res) => {
-  const auth = verifyAdmin(req);
-  if (!auth.valid) {
-    return res.status(403).json({ success: false, message: auth.message });
-  }
-  
-  const { name, region, material, craftsmanship, color, pattern, image_url, description, cultural_significance, sort_order } = req.body;
-  
   try {
-    const [result] = await connection.execute(
-      'INSERT INTO patterns (name, region, material, craftsmanship, color, pattern, image_url, description, cultural_significance, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [name, region || '', material || '', craftsmanship || '', color || '', pattern || '', image_url || '', description || '', cultural_significance || '', sort_order || 0]
-    );
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ success: false, message: '未登录' });
+    }
     
-    res.json({
-      success: true,
-      message: '样式添加成功',
+    jwt.verify(token, process.env.JWT_SECRET || 'bondian_dev_secret');
+    
+    const { name, category, description, imageUrl, symbolism, region, material, color, sort_order } = req.body;
+    
+    const result = await new Promise((resolve) => {
+      db.run('INSERT INTO patterns (name, category, description, imageUrl, symbolism, region, material, color, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [name, category, description, imageUrl, symbolism, region, material, color, sort_order || 0], function(err) {
+          if (err) resolve({ insertId: null });
+          else resolve({ insertId: this.lastID });
+        });
+    });
+    
+    res.json({ 
+      success: true, 
+      message: '纹样创建成功',
       data: { id: result.insertId }
     });
   } catch (error) {
@@ -88,68 +80,75 @@ exports.createPattern = async (req, res) => {
 };
 
 exports.updatePattern = async (req, res) => {
-  const auth = verifyAdmin(req);
-  if (!auth.valid) {
-    return res.status(403).json({ success: false, message: auth.message });
-  }
-  
-  const id = req.params.id;
-  const { name, region, material, craftsmanship, color, pattern, image_url, description, cultural_significance, sort_order } = req.body;
-  
   try {
-    await connection.execute(
-      'UPDATE patterns SET name = ?, region = ?, material = ?, craftsmanship = ?, color = ?, pattern = ?, image_url = ?, description = ?, cultural_significance = ?, sort_order = ? WHERE id = ?',
-      [name, region || '', material || '', craftsmanship || '', color || '', pattern || '', image_url || '', description || '', cultural_significance || '', sort_order || 0, id]
-    );
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ success: false, message: '未登录' });
+    }
     
-    res.json({
-      success: true,
-      message: '样式更新成功'
+    jwt.verify(token, process.env.JWT_SECRET || 'bondian_dev_secret');
+    const { id } = req.params;
+    
+    const pattern = await new Promise((resolve) => {
+      db.get('SELECT * FROM patterns WHERE id = ?', [id], (err, row) => {
+        if (err) resolve(null);
+        else resolve(row);
+      });
     });
+    
+    if (!pattern) {
+      return res.status(404).json({ success: false, message: '纹样不存在' });
+    }
+    
+    const { name, category, description, imageUrl, symbolism, region, material, color, sort_order } = req.body;
+    
+    await new Promise((resolve) => {
+      db.run('UPDATE patterns SET name = ?, category = ?, description = ?, imageUrl = ?, symbolism = ?, region = ?, material = ?, color = ?, sort_order = ? WHERE id = ?',
+        [name, category, description, imageUrl, symbolism, region, material, color, sort_order || 0, id], () => resolve());
+    });
+    
+    res.json({ success: true, message: '纹样更新成功' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
 exports.deletePattern = async (req, res) => {
-  const auth = verifyAdmin(req);
-  if (!auth.valid) {
-    return res.status(403).json({ success: false, message: auth.message });
-  }
-  
-  const id = req.params.id;
-  
   try {
-    await connection.execute('DELETE FROM patterns WHERE id = ?', [id]);
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ success: false, message: '未登录' });
+    }
     
-    res.json({
-      success: true,
-      message: '样式删除成功'
+    jwt.verify(token, process.env.JWT_SECRET || 'bondian_dev_secret');
+    const { id } = req.params;
+    
+    await new Promise((resolve) => {
+      db.run('DELETE FROM patterns WHERE id = ?', [id], () => resolve());
     });
+    
+    res.json({ success: true, message: '纹样删除成功' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
 exports.updatePatternStatus = async (req, res) => {
-  const auth = verifyAdmin(req);
-  if (!auth.valid) {
-    return res.status(403).json({ success: false, message: auth.message });
-  }
-  
-  const id = req.params.id;
-  const { status } = req.body;
-  
   try {
-    await connection.execute(
-      'UPDATE patterns SET status = ? WHERE id = ?',
-      [status, id]
-    );
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ success: false, message: '未登录' });
+    }
     
-    res.json({
-      success: true,
-      message: '状态更新成功'
+    jwt.verify(token, process.env.JWT_SECRET || 'bondian_dev_secret');
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    await new Promise((resolve) => {
+      db.run('UPDATE patterns SET status = ? WHERE id = ?', [status, id], () => resolve());
     });
+    
+    res.json({ success: true, message: '状态更新成功' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

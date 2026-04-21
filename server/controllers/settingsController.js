@@ -1,101 +1,148 @@
-const connection = require('../db/connection');
+const { db } = require('../db/sqliteConnection');
 const jwt = require('jsonwebtoken');
 
-function verifyAdmin(req) {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) {
-    return { valid: false, message: '未登录' };
-  }
-  
+exports.getSettings = async (req, res) => {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'bondian_dev_secret');
-    if (decoded.role !== 'admin') {
-      return { valid: false, message: '无权限' };
-    }
-    return { valid: true, decoded };
+    const settings = await new Promise((resolve) => {
+      db.all('SELECT * FROM settings', [], (err, rows) => {
+        if (err) resolve([]);
+        else resolve(rows);
+      });
+    });
+    
+    res.json({ success: true, data: settings });
   } catch (error) {
-    return { valid: false, message: 'token无效' };
+    res.status(500).json({ success: false, message: error.message });
   }
-}
+};
+
+exports.updateSetting = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ success: false, message: '未登录' });
+    }
+    
+    jwt.verify(token, process.env.JWT_SECRET || 'bondian_dev_secret');
+    
+    const { key, value, description } = req.body;
+    
+    await new Promise((resolve) => {
+      db.run('INSERT OR REPLACE INTO settings (key, value, description) VALUES (?, ?, ?)',
+        [key, value, description], () => resolve());
+    });
+    
+    res.json({ success: true, message: '设置更新成功' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.deleteSetting = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ success: false, message: '未登录' });
+    }
+    
+    jwt.verify(token, process.env.JWT_SECRET || 'bondian_dev_secret');
+    const { key } = req.params;
+    
+    await new Promise((resolve) => {
+      db.run('DELETE FROM settings WHERE key = ?', [key], () => resolve());
+    });
+    
+    res.json({ success: true, message: '设置删除成功' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 exports.getBanners = async (req, res) => {
   try {
-    const [rows] = await connection.execute(
-      'SELECT id, title, image_url, link_url, sort_order, created_at FROM banners ORDER BY sort_order ASC'
-    );
-    
-    res.json({
-      success: true,
-      data: rows
+    const banners = await new Promise((resolve) => {
+      db.all('SELECT * FROM banners ORDER BY id DESC', [], (err, rows) => {
+        if (err) resolve([]);
+        else resolve(rows);
+      });
     });
+    res.json({ success: true, data: banners });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
 exports.createBanner = async (req, res) => {
-  const auth = verifyAdmin(req);
-  if (!auth.valid) {
-    return res.status(403).json({ success: false, message: auth.message });
-  }
-  
-  const { title, image_url, link_url, sort_order } = req.body;
-  
   try {
-    const [result] = await connection.execute(
-      'INSERT INTO banners (title, image_url, link_url, sort_order) VALUES (?, ?, ?, ?)',
-      [title || '', image_url, link_url || '', sort_order || 0]
-    );
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ success: false, message: '未登录' });
+    }
     
-    res.json({
-      success: true,
-      message: '轮播图添加成功',
-      data: { id: result.insertId }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'bondian_dev_secret');
+    if (decoded.role !== 'admin') {
+      return res.status(403).json({ success: false, message: '无权限' });
+    }
+    
+    const { imageUrl, link, title } = req.body;
+    const result = await new Promise((resolve) => {
+      db.run('INSERT INTO banners (image_url, link, title) VALUES (?, ?, ?)',
+        [imageUrl, link, title], function(err) {
+          if (err) resolve({ insertId: null });
+          else resolve({ insertId: this.lastID });
+        });
     });
+    
+    res.json({ success: true, message: '创建成功', data: { id: result.insertId } });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
 exports.updateBanner = async (req, res) => {
-  const auth = verifyAdmin(req);
-  if (!auth.valid) {
-    return res.status(403).json({ success: false, message: auth.message });
-  }
-  
-  const bannerId = req.params.id;
-  const { title, image_url, link_url, sort_order } = req.body;
-  
   try {
-    await connection.execute(
-      'UPDATE banners SET title = ?, image_url = ?, link_url = ?, sort_order = ? WHERE id = ?',
-      [title || '', image_url, link_url || '', sort_order || 0, bannerId]
-    );
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ success: false, message: '未登录' });
+    }
     
-    res.json({
-      success: true,
-      message: '轮播图更新成功'
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'bondian_dev_secret');
+    if (decoded.role !== 'admin') {
+      return res.status(403).json({ success: false, message: '无权限' });
+    }
+    
+    const bannerId = req.params.id;
+    const { imageUrl, link, title } = req.body;
+    
+    await new Promise((resolve) => {
+      db.run('UPDATE banners SET image_url = ?, link = ?, title = ? WHERE id = ?',
+        [imageUrl, link, title, bannerId], () => resolve());
     });
+    
+    res.json({ success: true, message: '更新成功' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
 exports.deleteBanner = async (req, res) => {
-  const auth = verifyAdmin(req);
-  if (!auth.valid) {
-    return res.status(403).json({ success: false, message: auth.message });
-  }
-  
-  const bannerId = req.params.id;
-  
   try {
-    await connection.execute('DELETE FROM banners WHERE id = ?', [bannerId]);
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ success: false, message: '未登录' });
+    }
     
-    res.json({
-      success: true,
-      message: '轮播图删除成功'
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'bondian_dev_secret');
+    if (decoded.role !== 'admin') {
+      return res.status(403).json({ success: false, message: '无权限' });
+    }
+    
+    const bannerId = req.params.id;
+    await new Promise((resolve) => {
+      db.run('DELETE FROM banners WHERE id = ?', [bannerId], () => resolve());
     });
+    
+    res.json({ success: true, message: '删除成功' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -103,48 +150,37 @@ exports.deleteBanner = async (req, res) => {
 
 exports.getNotice = async (req, res) => {
   try {
-    const [rows] = await connection.execute(
-      'SELECT content FROM settings WHERE key_name = "site_notice"'
-    );
-    
-    res.json({
-      success: true,
-      data: { content: rows.length > 0 ? rows[0].content : '' }
+    const notice = await new Promise((resolve) => {
+      db.get('SELECT * FROM settings WHERE key = "notice"', [], (err, row) => {
+        if (err) resolve(null);
+        else resolve(row);
+      });
     });
+    res.json({ success: true, data: notice ? notice.value : '' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
 exports.updateNotice = async (req, res) => {
-  const auth = verifyAdmin(req);
-  if (!auth.valid) {
-    return res.status(403).json({ success: false, message: auth.message });
-  }
-  
-  const { content } = req.body;
-  
   try {
-    const [rows] = await connection.execute(
-      'SELECT id FROM settings WHERE key_name = "site_notice"'
-    );
-    
-    if (rows.length > 0) {
-      await connection.execute(
-        'UPDATE settings SET content = ? WHERE key_name = "site_notice"',
-        [content]
-      );
-    } else {
-      await connection.execute(
-        'INSERT INTO settings (key_name, content) VALUES ("site_notice", ?)',
-        [content]
-      );
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ success: false, message: '未登录' });
     }
     
-    res.json({
-      success: true,
-      message: '公告更新成功'
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'bondian_dev_secret');
+    if (decoded.role !== 'admin') {
+      return res.status(403).json({ success: false, message: '无权限' });
+    }
+    
+    const { value } = req.body;
+    await new Promise((resolve) => {
+      db.run('INSERT OR REPLACE INTO settings (key, value, description) VALUES (?, ?, ?)',
+        ['notice', value, '系统公告'], () => resolve());
     });
+    
+    res.json({ success: true, message: '公告更新成功' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

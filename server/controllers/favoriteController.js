@@ -1,4 +1,4 @@
-const connection = require('../db/connection');
+const { db } = require('../db/sqliteConnection');
 const jwt = require('jsonwebtoken');
 
 exports.addFavorite = async (req, res) => {
@@ -9,19 +9,26 @@ exports.addFavorite = async (req, res) => {
     }
     
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'bondian_dev_secret');
-    const userId = decoded.id || decoded.userId;
+    const userId = decoded.id;
     const { bondianId } = req.body;
     
-    await connection.execute(
-      'INSERT INTO favorites (user_id, bondian_id) VALUES (?, ?)',
-      [userId, bondianId]
-    );
+    const existing = await new Promise((resolve) => {
+      db.get('SELECT id FROM favorites WHERE userId = ? AND bondianId = ?', [userId, bondianId], (err, row) => {
+        if (err) resolve(null);
+        else resolve(row);
+      });
+    });
+    
+    if (existing) {
+      return res.status(400).json({ success: false, message: '已收藏' });
+    }
+    
+    await new Promise((resolve) => {
+      db.run('INSERT INTO favorites (userId, bondianId) VALUES (?, ?)', [userId, bondianId], () => resolve());
+    });
     
     res.json({ success: true, message: '收藏成功' });
   } catch (error) {
-    if (error.code === 'ER_DUP_ENTRY') {
-      return res.status(400).json({ success: false, message: '已收藏' });
-    }
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -34,13 +41,12 @@ exports.removeFavorite = async (req, res) => {
     }
     
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'bondian_dev_secret');
-    const userId = decoded.id || decoded.userId;
+    const userId = decoded.id;
     const { bondianId } = req.params;
     
-    await connection.execute(
-      'DELETE FROM favorites WHERE user_id = ? AND bondian_id = ?',
-      [userId, bondianId]
-    );
+    await new Promise((resolve) => {
+      db.run('DELETE FROM favorites WHERE userId = ? AND bondianId = ?', [userId, bondianId], () => resolve());
+    });
     
     res.json({ success: true, message: '取消收藏成功' });
   } catch (error) {
@@ -56,16 +62,15 @@ exports.getUserFavorites = async (req, res) => {
     }
     
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'bondian_dev_secret');
-    const userId = decoded.id || decoded.userId;
+    const userId = decoded.id;
     
-    const [favorites] = await connection.execute(
-      `SELECT f.*, b.name, b.image_url, bt.name as type_name 
-       FROM favorites f 
-       LEFT JOIN bondians b ON f.bondian_id = b.id 
-       LEFT JOIN bondian_types bt ON b.type_id = bt.id 
-       WHERE f.user_id = ? ORDER BY f.created_at DESC`,
-      [userId]
-    );
+    const favorites = await new Promise((resolve) => {
+      db.all('SELECT f.*, b.name, b.imageUrl, b.type FROM favorites f LEFT JOIN bondians b ON f.bondianId = b.id WHERE f.userId = ? ORDER BY f.createdAt DESC',
+        [userId], (err, rows) => {
+          if (err) resolve([]);
+          else resolve(rows);
+        });
+    });
     
     res.json({ success: true, data: favorites });
   } catch (error) {
@@ -81,15 +86,17 @@ exports.checkFavorite = async (req, res) => {
     }
     
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'bondian_dev_secret');
-    const userId = decoded.id || decoded.userId;
+    const userId = decoded.id;
     const { bondianId } = req.params;
     
-    const [favorites] = await connection.execute(
-      'SELECT id FROM favorites WHERE user_id = ? AND bondian_id = ?',
-      [userId, bondianId]
-    );
+    const favorite = await new Promise((resolve) => {
+      db.get('SELECT id FROM favorites WHERE userId = ? AND bondianId = ?', [userId, bondianId], (err, row) => {
+        if (err) resolve(null);
+        else resolve(row);
+      });
+    });
     
-    res.json({ success: true, data: { isFavorite: favorites.length > 0 } });
+    res.json({ success: true, data: { isFavorite: !!favorite } });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

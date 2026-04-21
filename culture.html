@@ -1132,72 +1132,160 @@
       });
     });
 
-    // 传承人详细数据
-    const masterData = {
-      gari: {
-        name: '嘎日',
-        title: '国家级非物质文化遗产代表性传承人',
-        location: '西藏自治区·山南市贡嘎县杰德秀镇',
-        birthYear: '1963年11月',
-        experience: '58年',
-        avatar: 'images/嘎日.jpg',
-        achievements: ['国家级非物质文化遗产代表性传承人', '第五批国家级非遗项目代表性传承人', '七彩邦典编织技艺大赛参赛'],
-        story: `嘎日出生于贡嘎县杰德秀镇一个邦典编织世家，是家中第四代传承人。她的父亲是村里编织邦典的好手，在家庭环境的熏陶下，嘎日12岁起便在父亲的指导下开始系统学习邦典织造技艺。
-
-2002年，嘎日与丈夫格桑共同创立了杰德秀镇格桑围裙农民合作社，初期以家庭作坊方式生产，仅靠12名村民手工编织，年销售额不足10万元。2006年，杰德秀邦典编织技艺被列入国家级非物质文化遗产保护名录，嘎日成为国家级传承人。
-
-2007年，她开办了杰德秀格桑民族羊毛手工加工厂，招收二十余名学徒。2008年3月，同贡嘎县职业中学联合开办培训班，培训九十余人次。2011年丈夫去世后，女儿旦增卓嘎接手合作社事务。如今合作社年销售额达200多万元，产品远销尼泊尔、不丹及欧洲等地。`,
-        skills: ['传统织造技艺', '天然染料染色', '技艺传承', '合作社管理'],
-        works: [
-          { name: '传统吉祥纹样邦典', year: '2006年', description: '入选国家级非遗展的经典作品' },
-          { name: '核桃皮染色邦典', year: '2014年', description: '使用天然核桃皮染料的创新尝试' },
-          { name: '羊绒邦典', year: '2020年', description: '使用羊绒原料，质地更光滑鲜亮' }
-        ],
-        quotes: '每一道工序都得精益求精，任何一道工序出了问题，都会影响邦典的质量。织机也会唱歌，唱得动听与否全靠匠人自己调节。'
-      },
-      gesang: {
-        name: '格桑',
-        title: '第一批国家级非物质文化遗产代表性传承人',
-        location: '西藏自治区·山南市贡嘎县',
-        birthYear: '1956年-2011年',
-        experience: '30余年',
-        avatar: 'images/格桑.jpg',
-        achievements: ['第一批国家级非物质文化遗产项目代表性传承人', '编号01-0140', '创立西藏第一家邦典编织家庭作坊'],
-        story: `格桑，1956年出生于西藏贡嘎县，早年师从达娃学会了邦典编织、染色、缝纫等全套技艺。他是藏族邦典、卡垫织造技艺的第三代传承人。
-
-1980年代，格桑成立了西藏第一家邦典编织家庭作坊，拥有毡氇架18架，他编织的围裙工艺细致，并为产品注册了商标，开创了邦典市场化的先河。
-
-2002年，格桑与妻子嘎日共同创立了杰德秀镇格桑围裙农民合作社，最初仅有12名村民参与，年销售额不足10万元。在他们的共同努力下，合作社逐渐发展壮大。2011年格桑去世后，女儿旦增卓嘎接替了传承责任。`,
-        skills: ['邦典编织', '传统染色', '缝纫技艺', '作坊经营'],
-        works: [
-          { name: '传统邦典围裙', year: '1980年代', description: '开创西藏邦典家庭作坊先河' },
-          { name: '注册商标邦典', year: '1990年代', description: '首个注册品牌的邦典产品' },
-          { name: '合作社系列邦典', year: '2000年代', description: '推动邦典规模化生产' }
-        ],
-        quotes: '邦典不能只挂在墙上，要穿在人身上，更要走进市场里。'
-      },
-      danzzhuoga: {
-        name: '旦增卓嘎',
-        title: '杰德秀邦典编织技艺市级代表性传承人',
-        location: '西藏自治区·山南市贡嘎县',
-        birthYear: '1995年9月',
-        experience: '20余年',
-        avatar: 'images/卓嘎.jpg',
-        achievements: ['全国劳动模范', '全国三八红旗手', '西藏自治区劳动模范', '山南市工艺美术大师'],
-        story: `旦增卓嘎，1995年9月出生于贡嘎县杰德秀镇，是家中第五代邦典织造技艺传承人。她的母亲嘎日是国家级非遗传承人，父亲格桑是第三代传承人。
-
-旦增卓嘎12岁开始跟随母亲学习邦典编织技艺。2011年父亲去世后，年仅16岁的她接过了格桑围裙农民合作社的经营重担。为提升技艺与视野，她曾到大学进修，并前往北京、上海、成都、山东等地参加各类编织技艺比赛。
-
-在她的带领下，合作社规模不断扩大，产品远销日本、印度、尼泊尔等10余个国家，年营收突破200万元。她积极探索"文化+设计"的跨界融合，将邦典图案和色彩元素融入抱枕、手机壳、地毯、服饰等现代生活用品中。`,
-        skills: ['邦典编织', '文创设计', '品牌运营', '技艺传承'],
-        works: [
-          { name: '巨型邦典', year: '2018年', description: '录入吉尼斯世界纪录的巨型邦典作品' },
-          { name: '文创产品系列', year: '2020年', description: '抱枕、手机壳等现代生活用品' },
-          { name: '藏式服饰系列', year: '2023年', description: '融入邦典元素的时尚服饰' }
-        ],
-        quotes: '保护—创新—传播—消费—再保护，让邦典技艺在现代社会中长久生存。'
+    // 传承人数据（从API获取）
+    let masterData = {};
+    
+    // 加载传承人数据
+    async function loadMastersData() {
+      try {
+        const response = await fetch('http://localhost:3000/api/masters');
+        const data = await response.json();
+        if (data.success && data.data) {
+          data.data.forEach(master => {
+            // 解析JSON字段
+            let achievements = [];
+            let skills = [];
+            let works = [];
+            
+            try { achievements = JSON.parse(master.achievements || '[]'); } catch(e) {}
+            try { skills = JSON.parse(master.skills || '[]'); } catch(e) {}
+            try { works = JSON.parse(master.works || '[]'); } catch(e) {}
+            
+            // 构建出生年份显示
+            let birthYear = '';
+            if (master.birth_year) {
+              birthYear = master.birth_year.toString();
+              if (master.is_deceased && master.death_year) {
+                birthYear += '年-' + master.death_year + '年';
+              } else {
+                birthYear += '年';
+              }
+            }
+            
+            // 构建从艺年限显示
+            let experience = '';
+            if (master.experience_years) {
+              experience = master.experience_years + '年';
+            }
+            
+            masterData[master.id] = {
+              id: master.id,
+              name: master.name,
+              title: master.title,
+              location: master.region,
+              birthYear: birthYear,
+              experience: experience,
+              avatar: master.avatarUrl || 'images/default-avatar.png',
+              achievements: achievements,
+              story: master.story || '',
+              skills: skills,
+              works: works,
+              quotes: master.quotes || '',
+              is_deceased: master.is_deceased == 1
+            };
+          });
+          
+          // 更新传承人列表显示
+          renderMastersList();
+        }
+      } catch (error) {
+        console.error('加载传承人数据失败:', error);
+        // 使用默认数据
+        loadDefaultMastersData();
       }
-    };
+    }
+    
+    // 默认传承人数据（备用）
+    function loadDefaultMastersData() {
+      masterData = {
+        1: {
+          id: 1,
+          name: '嘎日',
+          title: '国家级非物质文化遗产代表性传承人',
+          location: '西藏自治区·山南市贡嘎县杰德秀镇',
+          birthYear: '1963年',
+          experience: '58年',
+          avatar: 'images/嘎日.jpg',
+          achievements: ['国家级非物质文化遗产代表性传承人', '第五批国家级非遗项目代表性传承人'],
+          story: '嘎日出生于贡嘎县杰德秀镇一个邦典编织世家，是家中第四代传承人。',
+          skills: ['传统织造技艺', '天然染料染色', '技艺传承'],
+          works: [{ name: '传统吉祥纹样邦典', year: '2006年', description: '入选国家级非遗展' }],
+          quotes: '每一道工序都得精益求精。',
+          is_deceased: false
+        },
+        2: {
+          id: 2,
+          name: '格桑',
+          title: '第一批国家级非物质文化遗产代表性传承人',
+          location: '西藏自治区·山南市贡嘎县',
+          birthYear: '1956年-2011年',
+          experience: '30余年',
+          avatar: 'images/格桑.jpg',
+          achievements: ['第一批国家级非物质文化遗产项目代表性传承人'],
+          story: '格桑是藏族邦典、卡垫织造技艺的第三代传承人。',
+          skills: ['邦典编织', '传统染色'],
+          works: [{ name: '传统邦典围裙', year: '1980年代', description: '开创西藏邦典家庭作坊先河' }],
+          quotes: '邦典不能只挂在墙上。',
+          is_deceased: true
+        },
+        3: {
+          id: 3,
+          name: '旦增卓嘎',
+          title: '杰德秀邦典编织技艺市级代表性传承人',
+          location: '西藏自治区·山南市贡嘎县',
+          birthYear: '1995年9月',
+          experience: '20余年',
+          avatar: 'images/卓嘎.jpg',
+          achievements: ['全国劳动模范', '全国三八红旗手'],
+          story: '旦增卓嘎是家中第五代邦典织造技艺传承人。',
+          skills: ['邦典编织', '文创设计'],
+          works: [{ name: '巨型邦典', year: '2018年', description: '录入吉尼斯世界纪录' }],
+          quotes: '保护—创新—传播—消费—再保护。',
+          is_deceased: false
+        }
+      };
+      renderMastersList();
+    }
+    
+    // 渲染传承人列表
+    function renderMastersList() {
+      const container = document.querySelector('#masters-tab .grid');
+      if (!container) return;
+      
+      const html = Object.values(masterData).map(master => {
+        const deceasedBadge = master.is_deceased ? '<span class="px-2 py-0.5 bg-gray-500 text-xs rounded-full">已故</span>' : '';
+        const levelBadge = master.title.includes('国家级') ? 
+          '<span class="px-2 py-0.5 bg-red-600 text-xs rounded-full">国家级传承人</span>' :
+          '<span class="px-2 py-0.5 bg-green-600 text-xs rounded-full">市级传承人</span>';
+        
+        return `
+          <div class="master-card bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="relative h-56">
+              <img src="${master.avatar}" alt="${master.name}" class="w-full h-full object-cover">
+              <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+              <div class="absolute bottom-4 left-4 right-4 text-white">
+                <div class="flex items-center gap-2 mb-1">
+                  ${levelBadge}
+                  ${deceasedBadge}
+                </div>
+                <h3 class="text-xl font-bold">${master.name}</h3>
+                <p class="text-sm opacity-90">${master.location}</p>
+              </div>
+            </div>
+            <div class="p-5">
+              <p class="text-gray-600 text-sm leading-relaxed mb-4">${master.story.substring(0, 100)}...</p>
+              <div class="flex items-center gap-4 text-sm text-gray-500">
+                <span><i class="fa fa-calendar mr-1"></i>${master.birthYear}</span>
+                <span><i class="fa fa-award mr-1"></i>${master.experience}</span>
+              </div>
+              <button class="mt-4 w-full py-2.5 border border-red-600 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-colors" onclick="showMasterDetail('${master.id}')">了解更多</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      container.innerHTML = html;
+    }
 
     // 显示传承人详情
     function showMasterDetail(masterId) {
@@ -1602,6 +1690,9 @@
     // 初始化检查登录状态并上报浏览记录
     checkLogin();
     reportHistory();
+    
+    // 加载传承人数据
+    loadMastersData();
   </script>
 </body>
 </html>

@@ -1,4 +1,23 @@
-const API_BASE_URL = 'http://localhost:3000/api';
+const getApiBaseUrl = () => {
+  if (typeof window !== 'undefined') {
+    const protocol = window.location.protocol;
+    const hostname = window.location.hostname;
+    const port = window.location.port;
+    
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:3000/api';
+    }
+    
+    if (port) {
+      return `${protocol}//${hostname}:${port}/api`;
+    }
+    
+    return `${protocol}//${hostname}/api`;
+  }
+  return 'http://localhost:3000/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 const api = {
   auth: {

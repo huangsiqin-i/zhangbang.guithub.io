@@ -10,11 +10,32 @@ const pool = mysql.createPool({
   password: process.env.DB_PASSWORD || "",
   database: process.env.DB_NAME || "bondian_platform",
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: parseInt(process.env.DB_CONNECTION_LIMIT) || 5,
   queueLimit: 0,
-  connectTimeout: 10000,
-  acquireTimeout: 10000,
+  connectTimeout: 15000,
   charset: "utf8mb4",
+  ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : false,
 });
 
-module.exports = pool;
+const testConnection = async () => {
+  let retries = 3;
+  while (retries > 0) {
+    try {
+      const connection = await pool.getConnection();
+      await connection.ping();
+      connection.release();
+      console.log("✅ Database connection established successfully");
+      return true;
+    } catch (error) {
+      retries--;
+      console.warn(`⚠️ Database connection attempt failed (${3 - retries}/3):`, error.message);
+      if (retries > 0) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
+  }
+  console.error("❌ Failed to connect to database after multiple attempts");
+  return false;
+};
+
+module.exports = { pool, testConnection };
