@@ -8,11 +8,7 @@ const getApiBaseUrl = () => {
       return 'http://localhost:3000/api';
     }
     
-    if (port) {
-      return `${protocol}//${hostname}:${port}/api`;
-    }
-    
-    return `${protocol}//${hostname}/api`;
+    return '/api';
   }
   return 'http://localhost:3000/api';
 };
