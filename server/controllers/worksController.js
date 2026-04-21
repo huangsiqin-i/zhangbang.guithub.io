@@ -34,10 +34,22 @@ async function createWork(req, res) {
     const colorsJson = colors ? JSON.stringify(colors) : null;
     const width = stripeWidth || 30;
 
+    // 获取当前本地时间（北京时间）
+    const now = new Date();
+    const createdAt = now.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+
     const result = await new Promise((resolve) => {
       db.run(
-        "INSERT INTO works (title, description, author_id, status, colors, stripeWidth, imagePath) VALUES (?, ?, ?, 'approved', ?, ?, ?)",
-        [cleanTitle, cleanDescription, req.user.id, colorsJson, width, imagePath],
+        "INSERT INTO works (title, description, author_id, status, colors, stripeWidth, imagePath, createdAt) VALUES (?, ?, ?, 'approved', ?, ?, ?, ?)",
+        [cleanTitle, cleanDescription, req.user.id, colorsJson, width, imagePath, createdAt],
         function(err) {
           if (err) resolve({ insertId: null });
           else resolve({ insertId: this.lastID });
