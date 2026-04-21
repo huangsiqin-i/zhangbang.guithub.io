@@ -34,17 +34,8 @@ async function createWork(req, res) {
     const colorsJson = colors ? JSON.stringify(colors) : null;
     const width = stripeWidth || 30;
 
-    // 获取当前本地时间（北京时间）
-    const now = new Date();
-    const createdAt = now.toLocaleString('zh-CN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false
-    });
+    // 获取当前时间（ISO 格式，包含时区信息）
+    const createdAt = new Date().toISOString();
 
     const result = await new Promise((resolve) => {
       db.run(

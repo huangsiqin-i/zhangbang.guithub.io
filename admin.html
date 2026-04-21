@@ -1677,6 +1677,18 @@
 
     function formatTime(time) {
       if (!time) return '-';
+      // 检查是否已经是格式化的本地时间字符串（包含中文分隔符或斜杠）
+      if (typeof time === 'string' && (time.includes('/') || time.includes('年') || time.includes('月'))) {
+        // 直接截取日期和时分部分，不做 Date 转换
+        const parts = time.split(' ');
+        if (parts.length >= 2) {
+          const datePart = parts[0];
+          const timePart = parts[1].substring(0, 5); // 获取时分部分
+          return `${datePart} ${timePart}`;
+        }
+        return time.substring(0, 16); // 返回前16个字符（日期+时分）
+      }
+      // 否则按 Date 对象处理
       const date = new Date(time);
       return date.toLocaleString('zh-CN', {
         year: 'numeric',
