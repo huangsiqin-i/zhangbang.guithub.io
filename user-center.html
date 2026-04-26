@@ -399,9 +399,14 @@
     function formatTime(dateStr) {
       if (!dateStr) return '-';
       try {
+        // 确保正确解析UTC时间
         const date = new Date(dateStr);
-        // 转换为本地时间
+        if (isNaN(date.getTime())) return '-';
+        
+        // 获取当前时间（本地时间）
         const now = new Date();
+        
+        // 将日期转换为时间戳进行比较（已自动处理时区）
         const diff = now.getTime() - date.getTime();
         const minutes = Math.floor(diff / 60000);
         const hours = Math.floor(diff / 3600000);
