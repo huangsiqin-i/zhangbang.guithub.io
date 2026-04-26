@@ -1,14 +1,12 @@
 const getApiBaseUrl = () => {
   if (typeof window !== 'undefined') {
-    const protocol = window.location.protocol;
     const hostname = window.location.hostname;
-    const port = window.location.port;
     
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
       return 'http://localhost:3000/api';
     }
     
-    return '/api';
+    return 'https://bangdian-platform-production.up.railway.app/api';
   }
   return 'http://localhost:3000/api';
 };
