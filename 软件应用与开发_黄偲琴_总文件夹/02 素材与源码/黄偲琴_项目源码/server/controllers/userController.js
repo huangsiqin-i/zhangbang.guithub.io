@@ -389,10 +389,14 @@ exports.addHistory = async (req, res) => {
   
   const { type, target_id, title, image_url } = req.body;
   
+  // 获取当前本地时间
+  const now = new Date();
+  const localTime = now.toISOString().replace('T', ' ').substring(0, 19);
+  
   try {
     await new Promise((resolve) => {
-      db.run('INSERT INTO user_history (user_id, type, target_id, title, image_url) VALUES (?, ?, ?, ?, ?)',
-        [auth.decoded.id, type, target_id, title, image_url], () => resolve());
+      db.run('INSERT INTO user_history (user_id, type, target_id, title, image_url, createdAt) VALUES (?, ?, ?, ?, ?, ?)',
+        [auth.decoded.id, type, target_id, title, image_url, localTime], () => resolve());
     });
     
     res.json({
