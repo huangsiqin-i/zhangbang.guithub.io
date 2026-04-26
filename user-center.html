@@ -399,18 +399,12 @@
     function formatTime(dateStr) {
       if (!dateStr) return '-';
       try {
-        // 确保正确解析UTC时间
-        const date = new Date(dateStr);
-        if (isNaN(date.getTime())) return '-';
-        
-        // 显示具体的访问时间（本地时间格式）
-        return date.toLocaleString('zh-CN', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
+        // 后端已经存储了正确的本地时间，直接提取日期和时间部分
+        const match = dateStr.match(/(\d{4})[-/](\d{2})[-/](\d{2})\s+(\d{2}):(\d{2}):?(\d{2})?/);
+        if (match) {
+          return `${match[1]}/${match[2]}/${match[3]} ${match[4]}:${match[5]}`;
+        }
+        return dateStr;
       } catch (error) {
         return '-';
       }
