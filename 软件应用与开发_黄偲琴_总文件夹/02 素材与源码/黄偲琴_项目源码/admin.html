@@ -1,0 +1,1725 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理后台 - 邦典文化平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <style>
+    .sidebar { width: 250px; min-height: 100vh; position: relative; }
+    .main-content { flex: 1; min-height: 100vh; }
+    .nav-item.active { background: linear-gradient(135deg, #9E2A2F, #B84A4F); color: white; }
+    .nav-item:hover:not(.active) { background: #F8F4ED; }
+    
+    .status-approved { background: #D1FAE5; color: #059669; }
+    .status-rejected { background: #FEE2E2; color: #DC2626; }
+    .submenu .nav-item { padding-left: 1rem; }
+    .submenu .nav-item.active { background: rgba(158, 42, 47, 0.2); color: #9E2A2F; }
+    .rotate-180 { transform: rotate(180deg); }
+    .transition-transform { transition: transform 0.2s ease; }
+  </style>
+</head>
+<body class="bg-gray-100 flex">
+  <!-- 侧边栏 -->
+  <aside class="sidebar bg-white shadow-lg hidden lg:block">
+    <div class="p-6 border-b">
+      <h1 class="text-xl font-bold text-red-700 flex items-center">
+        <i class="fa fa-paint-brush mr-2"></i>邦典管理后台
+      </h1>
+    </div>
+    <nav class="p-4">
+      <div class="space-y-1">
+        <button class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3" data-menu="dashboard">
+          <i class="fa fa-tachometer"></i> 数据概览
+        </button>
+        <div class="menu-group">
+          <button class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3" data-menu="bondians">
+            <i class="fa fa-archive"></i> 邦典管理
+            <i class="fa fa-chevron-down ml-auto text-xs"></i>
+          </button>
+          <div class="submenu hidden pl-8 pr-4 space-y-1">
+            <button class="nav-item w-full text-left px-3 py-2 rounded-lg flex items-center gap-2 text-sm" data-menu="patterns">
+              <i class="fa fa-book"></i> 图鉴样式
+            </button>
+            <button class="nav-item w-full text-left px-3 py-2 rounded-lg flex items-center gap-2 text-sm" data-menu="userWorks">
+              <i class="fa fa-image"></i> 用户作品
+            </button>
+          </div>
+        </div>
+        <button class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3" data-menu="users">
+          <i class="fa fa-users"></i> 用户管理
+        </button>
+        <button class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3" data-menu="masters">
+          <i class="fa fa-user-circle"></i> 传承人管理
+        </button>
+      </div>
+    </nav>
+    <div class="absolute bottom-4 left-4 right-4">
+      <button id="logoutBtn" class="w-full px-4 py-2 bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 flex items-center justify-center gap-2">
+        <i class="fa fa-sign-out"></i> 退出登录
+      </button>
+    </div>
+  </aside>
+
+  <!-- 主内容区 -->
+  <main class="main-content">
+    <!-- 顶部导航 -->
+    <header class="bg-white shadow-sm px-6 py-4 flex justify-between items-center">
+      <h2 id="pageTitle" class="text-xl font-bold text-gray-800">数据概览</h2>
+      <div class="flex items-center gap-4">
+        <button id="refreshBtn" class="px-3 py-1.5 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 flex items-center gap-2 transition-colors text-sm">
+          <i class="fa fa-refresh"></i> 刷新
+        </button>
+        <span id="lastRefresh" class="text-sm text-gray-500">最后刷新: --:--:--</span>
+        <span id="currentUser" class="text-gray-600 flex items-center gap-2">
+          <i class="fa fa-user-circle text-red-600"></i> 管理员
+        </span>
+        <button id="logoutBtnTop" class="lg:hidden px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2 transition-colors">
+          <i class="fa fa-sign-out"></i> 退出
+        </button>
+      </div>
+    </header>
+
+    <!-- 登录界面 -->
+    <div id="loginPanel" class="flex flex-col items-center justify-center h-full p-6">
+      <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+        <div class="text-center mb-6">
+          <div class="w-16 h-16 mx-auto bg-gradient-to-br from-red-600 to-amber-500 rounded-full flex items-center justify-center mb-4">
+            <i class="fa fa-lock text-white text-2xl"></i>
+          </div>
+          <h2 class="text-2xl font-bold text-gray-800">管理员登录</h2>
+          <p class="text-gray-500 mt-2">请输入管理员账号密码</p>
+        </div>
+        
+        <form id="loginForm">
+          <div class="mb-4">
+            <label class="block text-gray-600 mb-2">用户名</label>
+            <input type="text" id="username" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="请输入用户名">
+          </div>
+          <div class="mb-6">
+            <label class="block text-gray-600 mb-2">密码</label>
+            <input type="password" id="password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="请输入密码">
+          </div>
+          <button type="submit" class="w-full py-3 bg-gradient-to-r from-red-600 to-amber-500 text-white rounded-lg font-medium hover:from-red-700 hover:to-amber-600 transition-colors">
+            登录
+          </button>
+        </form>
+        
+        <p id="loginMessage" class="mt-4 text-center text-sm"></p>
+        
+        <div class="mt-4 p-3 bg-gray-50 rounded-lg text-xs text-gray-500">
+          <p>测试账号：</p>
+          <p>普通用户：用户名：123 | 密码：123456</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 管理面板 -->
+    <div id="adminPanel" style="display: none;" class="p-6">
+      <!-- 数据概览 -->
+      <div id="dashboard" class="menu-content">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div class="bg-white rounded-xl p-6 shadow-sm">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-gray-500 text-sm">总邦典数</p>
+                <p id="statTotalBondians" class="text-3xl font-bold text-red-600">0</p>
+              </div>
+              <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <i class="fa fa-archive text-red-600"></i>
+              </div>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl p-6 shadow-sm">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-gray-500 text-sm">总用户数</p>
+                <p id="statTotalUsers" class="text-3xl font-bold text-blue-600">0</p>
+              </div>
+              <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                <i class="fa fa-users text-blue-600"></i>
+              </div>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl p-6 shadow-sm">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-gray-500 text-sm">总评论数</p>
+                <p id="statTotalComments" class="text-3xl font-bold text-green-600">0</p>
+              </div>
+              <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                <i class="fa fa-comments text-green-600"></i>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-white rounded-xl p-6 shadow-sm">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-gray-500 text-sm">图鉴样式数</p>
+                <p id="statPatternCount" class="text-3xl font-bold text-cyan-600">0</p>
+              </div>
+              <div class="w-12 h-12 bg-cyan-100 rounded-full flex items-center justify-center">
+                <i class="fa fa-palette text-cyan-600"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          <div class="bg-white rounded-xl p-6 shadow-sm">
+            <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <i class="fa fa-history"></i> 最近添加的邦典
+            </h3>
+            <table class="w-full">
+              <thead>
+                <tr class="border-b">
+                  <th class="text-left py-3 px-4">名称</th>
+                  <th class="text-left py-3 px-4">作者</th>
+                  <th class="text-left py-3 px-4">地域</th>
+                  <th class="text-left py-3 px-4">时间</th>
+                </tr>
+              </thead>
+              <tbody id="recentBondians"></tbody>
+            </table>
+          </div>
+          <div class="bg-white rounded-xl p-6 shadow-sm">
+            <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <i class="fa fa-clock-o"></i> 最近提交的作品
+            </h3>
+            <table class="w-full">
+              <thead>
+                <tr class="border-b">
+                  <th class="text-left py-3 px-4">标题</th>
+                  <th class="text-left py-3 px-4">作者</th>
+                  <th class="text-left py-3 px-4">状态</th>
+                  <th class="text-left py-3 px-4">时间</th>
+                </tr>
+              </thead>
+              <tbody id="recentWorks"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 邦典管理 -->
+      <div id="bondians" class="menu-content hidden">
+        <div class="bg-white rounded-xl shadow-sm mb-6">
+          <div class="p-4 border-b flex justify-between items-center">
+            <h3 class="font-bold text-gray-800">邦典列表</h3>
+            <div class="flex gap-2">
+              <input type="text" id="searchBondian" placeholder="搜索邦典名称..." class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+              <select id="filterRegion" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+                <option value="">全部地域</option>
+              </select>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead>
+                <tr class="border-b bg-gray-50">
+                  <th class="text-left py-3 px-4">ID</th>
+                  <th class="text-left py-3 px-4">名称</th>
+                  <th class="text-left py-3 px-4">类型</th>
+                  <th class="text-left py-3 px-4">地域</th>
+                  <th class="text-left py-3 px-4">状态</th>
+                  <th class="text-left py-3 px-4">操作</th>
+                </tr>
+              </thead>
+              <tbody id="bondiansTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 用户管理 -->
+      <div id="users" class="menu-content hidden">
+        <div class="bg-white rounded-xl shadow-sm">
+          <div class="p-4 border-b flex justify-between items-center">
+            <h3 class="font-bold text-gray-800">用户列表</h3>
+            <input type="text" id="searchUser" placeholder="搜索用户名..." class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead>
+                <tr class="border-b bg-gray-50">
+                  <th class="text-left py-3 px-4">ID</th>
+                  <th class="text-left py-3 px-4">用户名</th>
+                  <th class="text-left py-3 px-4">邮箱</th>
+                  <th class="text-left py-3 px-4">角色</th>
+                  <th class="text-left py-3 px-4">状态</th>
+                  <th class="text-left py-3 px-4">注册时间</th>
+                  <th class="text-left py-3 px-4">操作</th>
+                </tr>
+              </thead>
+              <tbody id="usersTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 图鉴样式管理 -->
+      <div id="patterns" class="menu-content hidden">
+        <div class="bg-white rounded-xl shadow-sm mb-6">
+          <div class="p-4 border-b flex justify-between items-center">
+            <h3 class="font-bold text-gray-800">图鉴样式管理</h3>
+            <button id="addPatternBtn" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2">
+              <i class="fa fa-plus"></i> 添加样式
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead>
+                <tr class="border-b bg-gray-50">
+                  <th class="text-left py-3 px-4">ID</th>
+                  <th class="text-left py-3 px-4">名称</th>
+                  <th class="text-left py-3 px-4">地区</th>
+                  <th class="text-left py-3 px-4">材质</th>
+                  <th class="text-left py-3 px-4">色彩</th>
+                  <th class="text-left py-3 px-4">状态</th>
+                  <th class="text-left py-3 px-4">操作</th>
+                </tr>
+              </thead>
+              <tbody id="patternsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 用户作品管理 -->
+      <div id="userWorks" class="menu-content hidden">
+        <div class="bg-white rounded-xl shadow-sm">
+          <div class="p-4 border-b flex justify-between items-center">
+            <h3 class="font-bold text-gray-800">用户作品管理</h3>
+            <div class="flex gap-2">
+              <select id="filterWorksStatus" class="px-3 py-1 border rounded-lg text-sm" onchange="loadUserWorks()">
+                <option value="all">全部</option>
+                <option value="approved">已发布</option>
+                <option value="rejected">已拒绝</option>
+              </select>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead>
+                <tr class="border-b bg-gray-50">
+                  <th class="text-left py-3 px-4">ID</th>
+                  <th class="text-left py-3 px-4">标题</th>
+                  <th class="text-left py-3 px-4">作者</th>
+                  <th class="text-left py-3 px-4">状态</th>
+                  <th class="text-left py-3 px-4">提交时间</th>
+                  <th class="text-left py-3 px-4">操作</th>
+                </tr>
+              </thead>
+              <tbody id="userWorksTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 传承人管理 -->
+      <div id="masters" class="menu-content hidden">
+        <div class="bg-white rounded-xl shadow-sm mb-6">
+          <div class="p-4 border-b flex justify-between items-center">
+            <h3 class="font-bold text-gray-800">非遗传承人管理</h3>
+            <button id="addMasterBtn" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2">
+              <i class="fa fa-plus"></i> 添加传承人
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead>
+                <tr class="border-b bg-gray-50">
+                  <th class="text-left py-3 px-4">ID</th>
+                  <th class="text-left py-3 px-4">姓名</th>
+                  <th class="text-left py-3 px-4">头衔</th>
+                  <th class="text-left py-3 px-4">地区</th>
+                  <th class="text-left py-3 px-4">从艺年限</th>
+                  <th class="text-left py-3 px-4">排序</th>
+                  <th class="text-left py-3 px-4">操作</th>
+                </tr>
+              </thead>
+              <tbody id="mastersTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- 详情弹窗 -->
+  <div id="detailModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-4">
+        <h3 id="modalTitle" class="text-xl font-bold"></h3>
+        <button id="closeModal" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      </div>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <script>
+    function getApiBaseUrl() {
+      if (typeof window !== 'undefined') {
+        const hostname = window.location.hostname;
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+          return 'http://localhost:3000/api';
+        }
+        return '/api';
+      }
+      return 'http://localhost:3000/api';
+    }
+    const API_BASE = getApiBaseUrl();
+    let currentToken = '';
+    let refreshInterval = null;
+
+    // 检查登录状态
+    function checkLogin() {
+      const token = localStorage.getItem('token');
+      const user = localStorage.getItem('user');
+      if (token && user) {
+        const userData = JSON.parse(user);
+        if (userData.role === 'admin') {
+          currentToken = token;
+          showAdminPanel();
+          return true;
+        }
+      }
+      showLoginPanel();
+      return false;
+    }
+
+    function showLoginPanel() {
+      document.getElementById('loginPanel').style.display = 'flex';
+      document.getElementById('adminPanel').style.display = 'none';
+      if (refreshInterval) {
+        clearInterval(refreshInterval);
+        refreshInterval = null;
+      }
+    }
+
+    function showAdminPanel() {
+      document.getElementById('loginPanel').style.display = 'none';
+      document.getElementById('adminPanel').style.display = 'block';
+      loadDashboard();
+      loadRegions();
+      loadUsers();
+      startAutoRefresh();
+    }
+
+    // 启动自动刷新（每1分钟）
+    function startAutoRefresh() {
+      if (refreshInterval) return;
+      refreshInterval = setInterval(() => {
+        const activeMenu = document.querySelector('.nav-item.active')?.dataset.menu;
+        if (activeMenu === 'dashboard') {
+          loadDashboard();
+        }
+        updateLastRefreshTime();
+      }, 60000);
+    }
+
+    // 更新最后刷新时间
+    function updateLastRefreshTime() {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const el = document.getElementById('lastRefresh');
+      if (el) {
+        el.textContent = `最后刷新: ${timeStr}`;
+      }
+    }
+    
+    // Toast提示
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = `fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 transition-all duration-300 ${
+        type === 'success' ? 'bg-green-500 text-white' :
+        type === 'error' ? 'bg-red-500 text-white' :
+        type === 'warning' ? 'bg-yellow-500 text-white' :
+        'bg-blue-500 text-white'
+      }`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // 登录
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const message = document.getElementById('loginMessage');
+
+      if (!username || !password) {
+        message.textContent = '请输入用户名和密码';
+        message.style.color = 'red';
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await response.json();
+        
+        if (data.success || data.message === 'Login success') {
+          if (data.user && data.user.role === 'admin') {
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            currentToken = data.token;
+            document.getElementById('currentUser').textContent = data.user.username;
+            showAdminPanel();
+            showToast('登录成功', 'success');
+          } else {
+            message.textContent = '您不是管理员，无法访问此页面';
+            message.style.color = 'red';
+          }
+        } else {
+          message.textContent = data.message || '登录失败，请检查账号密码';
+          message.style.color = 'red';
+        }
+      } catch (error) {
+        message.textContent = '网络错误，请稍后重试';
+        message.style.color = 'red';
+      }
+    });
+
+    // 退出登录
+    function handleLogout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      currentToken = '';
+      window.location.href = 'index.html';
+    }
+    
+    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+    const logoutBtnTop = document.getElementById('logoutBtnTop');
+    if (logoutBtnTop) {
+      logoutBtnTop.addEventListener('click', handleLogout);
+    }
+    
+    // 刷新按钮
+    document.getElementById('refreshBtn').addEventListener('click', () => {
+      const activeMenu = document.querySelector('.nav-item.active')?.dataset.menu;
+      if (activeMenu === 'dashboard') {
+        loadDashboard();
+      } else if (activeMenu === 'bondians') {
+        loadBondians();
+      } else if (activeMenu === 'patterns') {
+        loadPatterns();
+      } else if (activeMenu === 'userWorks') {
+        loadUserWorks();
+      } else if (activeMenu === 'users') {
+        loadUsers();
+      } else if (activeMenu === 'masters') {
+        loadMasters();
+      }
+      updateLastRefreshTime();
+      showToast('数据已刷新', 'success');
+    });
+
+    // 子菜单展开/收起
+    document.querySelectorAll('.menu-group').forEach(group => {
+      const parentBtn = group.querySelector('.nav-item');
+      const submenu = group.querySelector('.submenu');
+      parentBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        submenu.classList.toggle('hidden');
+        const icon = parentBtn.querySelector('.fa-chevron-down');
+        if (icon) {
+          icon.classList.toggle('rotate-180');
+        }
+      });
+    });
+
+    // 菜单切换
+    document.querySelectorAll('.nav-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        const menu = btn.dataset.menu;
+        document.querySelectorAll('.menu-content').forEach(c => c.classList.add('hidden'));
+        document.getElementById(menu).classList.remove('hidden');
+        
+        document.getElementById('pageTitle').textContent = getMenuTitle(menu);
+        
+        if (menu === 'dashboard') loadDashboard();
+        else if (menu === 'bondians') loadBondians();
+        else if (menu === 'patterns') loadPatterns();
+        else if (menu === 'userWorks') loadUserWorks();
+        else if (menu === 'users') loadUsers();
+        else if (menu === 'masters') loadMasters();
+      });
+    });
+
+    function getMenuTitle(menu) {
+      const titles = {
+        dashboard: '数据概览',
+        bondians: '邦典管理',
+        patterns: '图鉴样式管理',
+        userWorks: '用户作品管理',
+        users: '用户管理',
+        masters: '传承人管理'
+      };
+      return titles[menu] || '数据概览';
+    }
+
+    // 加载仪表盘
+    async function loadDashboard() {
+      try {
+        // 从后端API获取统计数据（禁用缓存确保获取最新数据）
+        const [statsResponse, worksResponse] = await Promise.all([
+          fetch(`${API_BASE}/stats/admin`, {
+            headers: { 'Authorization': `Bearer ${currentToken}` },
+            cache: 'no-store'
+          }),
+          fetch(`${API_BASE}/works/admin`, {
+            headers: { 'Authorization': `Bearer ${currentToken}` },
+            cache: 'no-store'
+          })
+        ]);
+        
+        const statsData = await statsResponse.json();
+        const worksData = await worksResponse.json();
+        
+        // 调试日志：检查获取到的数据
+        console.log('=== 数据概览 - 作品数据 ===');
+        console.log('作品总数:', worksData.works?.length || 0);
+        console.log('前5条作品:', worksData.works?.slice(0, 5).map(w => ({ id: w.id, title: w.title, time: w.createdAt })));
+        
+        // 更新统计数字
+        if (statsData.success && statsData.data) {
+          document.getElementById('statTotalBondians').textContent = statsData.data.totalBondians || 0;
+          document.getElementById('statTotalUsers').textContent = statsData.data.totalUsers || 0;
+          document.getElementById('statPatternCount').textContent = statsData.data.patternCount || 0;
+          document.getElementById('statTotalComments').textContent = statsData.data.totalComments || 0;
+        }
+        
+        // 生成类型分布数据
+        const typeStats = [
+          { name: '色卡', count: statsData.success ? (statsData.data.patternCount || 0) : 0 },
+          { name: '邦典图片', count: statsData.success ? (statsData.data.totalBondians || 0) : 0 },
+          { name: '宣言', count: statsData.success ? (statsData.data.declarationCount || 0) : 0 }
+        ];
+        
+        // 生成地域分布数据
+        const regionStats = statsData.success && statsData.data.regionStats 
+          ? statsData.data.regionStats 
+          : [];
+        
+        // 生成类型统计数据
+        const typeChartStats = statsData.success && statsData.data.typeStats 
+          ? statsData.data.typeStats 
+          : [];
+        
+        // 生成最近添加的邦典
+        let recentBondiansData = [];
+        if (statsData.success && statsData.data.recentBondians && statsData.data.recentBondians.length > 0) {
+          recentBondiansData = statsData.data.recentBondians.slice(0, 10).map(b => ({
+            name: b.name || '未命名邦典',
+            username: b.username || '未知',
+            region: b.region || '-',
+            created_at: b.created_at
+          }));
+        } else {
+          // API 无数据时生成模拟邦典数据
+          const regions = ['拉萨', '山南', '日喀则', '那曲', '阿里', '昌都'];
+          const names = ['雪域彩虹', '高原华章', '吉祥锦缎', '五彩祥云', '雪山神韵', '草原之歌'];
+          recentBondiansData = Array.from({ length: 5 }, (_, i) => ({
+            name: names[i % names.length] + (i + 1),
+            username: '邦典爱好者',
+            region: regions[i % regions.length],
+            created_at: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toLocaleString()
+          }));
+        }
+        
+        // 生成最近添加的作品
+        let recentWorksData = [];
+        if (worksData.works && worksData.works.length > 0) {
+          // API 返回的数据已经按 createdAt DESC 排序，直接取前10条
+          recentWorksData = worksData.works.slice(0, 10).map(w => ({
+            title: w.title || '未命名作品',
+            username: w.author_name || '未知',
+            status: w.status || 'approved',
+            created_at: w.createdAt || w.created_at
+          }));
+        } else {
+          // API 无数据时从 localStorage 获取作品数据（按时间排序）
+          const localWorks = JSON.parse(localStorage.getItem('works') || '[]');
+          if (localWorks.length > 0) {
+            // 按时间降序排序，确保最新的在前
+            const sortedWorks = [...localWorks].sort((a, b) => {
+              const timeA = new Date(a.time || 0).getTime();
+              const timeB = new Date(b.time || 0).getTime();
+              return timeB - timeA;
+            });
+            recentWorksData = sortedWorks.slice(0, 10).map(w => ({
+              title: w.title || '未命名作品',
+              username: w.username || '未知',
+              status: 'approved',
+              created_at: w.time || new Date().toLocaleString()
+            }));
+          }
+        }
+        
+        renderTypeChart(typeStats);
+        renderRegionChart(regionStats);
+        renderTypeStatsChart(typeChartStats);
+        renderRecentBondians(recentBondiansData);
+        renderRecentWorks(recentWorksData);
+      } catch (error) {
+        console.error('加载仪表盘失败:', error);
+        // API 请求失败时显示模拟数据
+        const regions = ['拉萨', '山南', '日喀则', '那曲', '阿里', '昌都'];
+        const names = ['雪域彩虹', '高原华章', '吉祥锦缎', '五彩祥云', '雪山神韵', '草原之歌'];
+        const mockBondians = Array.from({ length: 5 }, (_, i) => ({
+          name: names[i % names.length] + (i + 1),
+          username: '邦典爱好者',
+          region: regions[i % regions.length],
+          created_at: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toLocaleString()
+        }));
+        const localWorks = JSON.parse(localStorage.getItem('works') || '[]');
+        const mockWorks = localWorks.length > 0 
+          ? localWorks.slice(0, 10).map(w => ({
+              title: w.title || '未命名作品',
+              username: w.username || '未知',
+              status: 'approved',
+              created_at: w.time || new Date().toLocaleString()
+            }))
+          : Array.from({ length: 5 }, (_, i) => ({
+              title: '邦典作品' + (i + 1),
+              username: '邦典爱好者',
+              status: 'approved',
+              created_at: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toLocaleString()
+            }));
+        renderRecentBondians(mockBondians);
+        renderRecentWorks(mockWorks);
+      }
+    }
+
+    function renderTypeChart(data) {
+      const container = document.getElementById('typeChart');
+      if (!container) {
+        console.warn('renderTypeChart: typeChart element not found');
+        return;
+      }
+      if (!data || data.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-center py-4">暂无数据</p>';
+        return;
+      }
+      container.innerHTML = data.map(item => `
+        <div class="flex items-center gap-3">
+          <span class="w-20 text-sm text-gray-600">${item.name}</span>
+          <div class="flex-1 h-4 bg-gray-200 rounded-full overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-red-500 to-amber-500" style="width: ${(item.count / Math.max(...data.map(d => d.count))) * 100}%"></div>
+          </div>
+          <span class="text-sm font-medium">${item.count}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderRegionChart(data) {
+      const container = document.getElementById('regionChart');
+      if (!container) {
+        console.warn('renderRegionChart: regionChart element not found');
+        return;
+      }
+      if (!data || data.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-center py-4">暂无数据</p>';
+        return;
+      }
+      container.innerHTML = data.map(item => `
+        <div class="flex items-center gap-3">
+          <span class="w-20 text-sm text-gray-600">${item.region}</span>
+          <div class="flex-1 h-4 bg-gray-200 rounded-full overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-blue-500 to-cyan-500" style="width: ${(item.count / Math.max(...data.map(d => d.count))) * 100}%"></div>
+          </div>
+          <span class="text-sm font-medium">${item.count}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderTypeStatsChart(data) {
+      const container = document.getElementById('typeStatsChart');
+      if (!container) {
+        console.warn('renderTypeStatsChart: typeStatsChart element not found');
+        return;
+      }
+      if (!data || data.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-center py-4">暂无数据</p>';
+        return;
+      }
+      const maxCount = Math.max(...data.map(d => d.count));
+      container.innerHTML = data.map((item, index) => `
+        <div class="flex items-center gap-3">
+          <span class="w-20 text-sm text-gray-600 truncate" title="${item.name}">${item.name}</span>
+          <div class="flex-1 h-4 bg-gray-200 rounded-full overflow-hidden">
+            <div class="h-full" style="width: ${(item.count / maxCount) * 100}%; background: linear-gradient(90deg, ${getColorByIndex(index)});"></div>
+          </div>
+          <span class="text-sm font-medium">${item.count}</span>
+        </div>
+      `).join('');
+    }
+
+    function getColorByIndex(index) {
+      const colors = [
+        '#EF4444',
+        '#F97316',
+        '#EAB308',
+        '#22C55E',
+        '#14B8A6',
+        '#3B82F6',
+        '#8B5CF6',
+        '#EC4899'
+      ];
+      return colors[index % colors.length];
+    }
+
+    function renderRecentBondians(data) {
+      const tbody = document.getElementById('recentBondians');
+      if (!tbody) {
+        console.warn('renderRecentBondians: recentBondians element not found');
+        return;
+      }
+      if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-gray-500 text-center py-4">暂无数据</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.map(item => `
+        <tr class="border-b hover:bg-gray-50">
+          <td class="py-3 px-4">${item.name}</td>
+          <td class="py-3 px-4">${item.username || '未知'}</td>
+          <td class="py-3 px-4">${item.region || '-'}</td>
+          <td class="py-3 px-4 text-sm text-gray-500">${formatTime(item.created_at)}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderRecentWorks(data) {
+      const tbody = document.getElementById('recentWorks');
+      if (!tbody) {
+        console.warn('renderRecentWorks: recentWorks element not found');
+        return;
+      }
+      if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-gray-500 text-center py-4">暂无数据</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.map(item => `
+        <tr class="border-b hover:bg-gray-50">
+          <td class="py-3 px-4">${item.title}</td>
+          <td class="py-3 px-4">${item.username || '未知'}</td>
+          <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs ${getStatusClass(item.status)}">${getStatusText(item.status)}</span></td>
+          <td class="py-3 px-4 text-sm text-gray-500">${formatTime(item.created_at)}</td>
+        </tr>
+      `).join('');
+    }
+
+    // 加载邦典列表
+    async function loadBondians() {
+      try {
+        const response = await fetch(`${API_BASE}/bondians`, {
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        const data = await response.json();
+        renderBondiansTable(data.success ? data.data : []);
+      } catch (error) {
+        console.error('加载邦典失败:', error);
+      }
+    }
+
+    function renderBondiansTable(data) {
+      const tbody = document.getElementById('bondiansTable');
+      if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-gray-500 text-center py-4">暂无数据</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.map((item, index) => `
+        <tr class="border-b hover:bg-gray-50">
+          <td class="py-3 px-4">${item.id || index + 1}</td>
+          <td class="py-3 px-4 font-medium">${item.name || '邦典图片'}</td>
+          <td class="py-3 px-4">${item.category || '邦典图片'}</td>
+          <td class="py-3 px-4">${item.region || '-'}</td>
+          <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-600">已上架</span></td>
+          <td class="py-3 px-4">
+            <button onclick="viewBondian('${item.id}')" class="text-blue-600 hover:text-blue-800 mr-2">查看</button>
+            <button onclick="deleteBondian('${item.id}')" class="text-red-600 hover:text-red-800">删除</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+
+
+    // 加载用户
+    async function loadUsers() {
+      try {
+        const response = await fetch(`${API_BASE}/stats/users`, {
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('API Error:', response.status, errorData);
+          document.getElementById('usersTable').innerHTML = `<tr><td colspan="7" class="text-red-500 text-center py-4">加载失败: ${errorData.message || '网络错误'}</td></tr>`;
+          return;
+        }
+        
+        const data = await response.json();
+        
+        const tbody = document.getElementById('usersTable');
+        if (!data.success || !data.data || data.data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" class="text-gray-500 text-center py-4">暂无用户数据</td></tr>';
+          return;
+        }
+        
+        tbody.innerHTML = data.data.map(item => {
+          const isAdmin = item.role === 'admin';
+          const isBanned = item.status === 'banned';
+          return `
+            <tr class="border-b hover:bg-gray-50">
+              <td class="py-3 px-4">${item.id}</td>
+              <td class="py-3 px-4 font-medium">${item.username}</td>
+              <td class="py-3 px-4">${item.email || '-'}</td>
+              <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs ${isAdmin ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}">${isAdmin ? '管理员' : '普通用户'}</span></td>
+              <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs ${isBanned ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}">${isBanned ? '已封禁' : '正常'}</span></td>
+              <td class="py-3 px-4 text-sm text-gray-500">${formatTime(item.created_at)}</td>
+              <td class="py-3 px-4">
+                ${isBanned ? `
+                  <button onclick="toggleUserBan('${item.id}', true)" class="text-green-600 hover:text-green-800 mr-2">解封</button>
+                  <button onclick="deleteUser('${item.id}')" class="text-red-600 hover:text-red-800">删除</button>
+                ` : isAdmin ? `
+                  <button onclick="demoteUser('${item.id}')" class="text-orange-600 hover:text-orange-800 mr-2">降级</button>
+                  <button onclick="deleteUser('${item.id}')" class="text-red-600 hover:text-red-800">删除</button>
+                ` : `
+                  <button onclick="promoteUser('${item.id}')" class="text-green-600 hover:text-green-800 mr-2">设为管理员</button>
+                  <button onclick="toggleUserBan('${item.id}', false)" class="text-orange-600 hover:text-orange-800 mr-2">封禁</button>
+                  <button onclick="deleteUser('${item.id}')" class="text-red-600 hover:text-red-800">删除</button>
+                `}
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (error) {
+        console.error('加载用户失败:', error);
+      }
+    }
+
+    // 加载地域列表
+    async function loadRegions() {
+      try {
+        const response = await fetch(`${API_BASE}/bondians/regions/all`);
+        const data = await response.json();
+        
+        if (data.success) {
+          const select = document.getElementById('filterRegion');
+          data.data.forEach(region => {
+            const option = document.createElement('option');
+            option.value = region.name;
+            option.textContent = region.name;
+            select.appendChild(option);
+          });
+        }
+      } catch (error) {
+        console.error('加载地域失败:', error);
+      }
+    }
+
+    // 删除操作
+    async function deleteBondian(id) {
+      if (!confirm('确定删除该邦典吗？')) return;
+      try {
+        const response = await fetch(`${API_BASE}/bondians/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        const data = await response.json();
+        if (data.success) {
+          loadBondians();
+          loadDashboard();
+          showToast('删除成功', 'success');
+        } else {
+          showToast(data.message || '操作失败', 'error');
+        }
+      } catch (error) {
+        showToast('操作失败', 'error');
+      }
+    }
+
+    // 删除用户
+    async function deleteUser(id) {
+      if (!confirm('确定删除该用户吗？此操作将删除该用户的所有作品、评论和收藏，且无法撤销！')) return;
+      try {
+        const response = await fetch(`${API_BASE}/stats/users/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        const data = await response.json();
+        if (data.success) {
+          loadUsers();
+          loadDashboard();
+          showToast('删除成功', 'success');
+        } else {
+          showToast(data.message || '操作失败', 'error');
+        }
+      } catch (error) {
+        showToast('操作失败', 'error');
+      }
+    }
+
+
+    
+    // 用户权限操作
+    async function promoteUser(id) {
+      if (!confirm('确定将该用户设为管理员吗？')) return;
+      try {
+        const response = await fetch(`${API_BASE}/stats/users/${id}/promote`, {
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        const data = await response.json();
+        if (data.success) {
+          loadUsers();
+          showToast('操作成功', 'success');
+        } else {
+          showToast(data.message || '操作失败', 'error');
+        }
+      } catch (error) {
+        showToast('操作失败', 'error');
+      }
+    }
+    
+    async function demoteUser(id) {
+      if (!confirm('确定将该管理员降级为普通用户吗？')) return;
+      try {
+        const response = await fetch(`${API_BASE}/stats/users/${id}/demote`, {
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        const data = await response.json();
+        if (data.success) {
+          loadUsers();
+          showToast('操作成功', 'success');
+        } else {
+          showToast(data.message || '操作失败', 'error');
+        }
+      } catch (error) {
+        showToast('操作失败', 'error');
+      }
+    }
+
+    // 封禁/解封用户
+    async function toggleUserBan(id, isBanned) {
+      const confirmMsg = isBanned ? '确定解封该用户吗？' : '确定封禁该用户吗？';
+      if (!confirm(confirmMsg)) return;
+      try {
+        const endpoint = isBanned ? 'unban' : 'ban';
+        const response = await fetch(`${API_BASE}/stats/users/${id}/${endpoint}`, {
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        const data = await response.json();
+        if (data.success) {
+          loadUsers();
+          showToast(isBanned ? '已解封' : '已封禁', 'success');
+        } else {
+          showToast(data.message || '操作失败', 'error');
+        }
+      } catch (error) {
+        showToast('操作失败', 'error');
+      }
+    }
+
+    // 图鉴样式管理
+    async function loadPatterns() {
+      try {
+        const response = await fetch(`${API_BASE}/patterns`, {
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        const data = await response.json();
+        
+        const tbody = document.getElementById('patternsTable');
+        if (!data.success || !data.data || data.data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" class="text-gray-500 text-center py-4">暂无数据</td></tr>';
+          return;
+        }
+        
+        tbody.innerHTML = data.data.map((item, index) => `
+          <tr class="border-b hover:bg-gray-50">
+            <td class="py-3 px-4">${item.id || index + 1}</td>
+            <td class="py-3 px-4 font-medium">${item.name || item.region || '未命名'}</td>
+            <td class="py-3 px-4">${item.region || '-'}</td>
+            <td class="py-3 px-4">${item.material || '-'}</td>
+            <td class="py-3 px-4">${item.color || item.colors || '-'}</td>
+            <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-600">上架</span></td>
+            <td class="py-3 px-4">
+              <button onclick="editPattern('${item.id}')" class="text-blue-600 hover:text-blue-800 mr-2">编辑</button>
+              <button onclick="deletePattern('${item.id}')" class="text-red-600 hover:text-red-800">删除</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (error) {
+        console.error('加载图鉴样式失败:', error);
+      }
+    }
+
+    async function addPattern() {
+      document.getElementById('modalTitle').textContent = '添加图鉴样式';
+      document.getElementById('modalContent').innerHTML = `
+        <form id="patternForm">
+          <div class="space-y-4">
+            <div>
+              <label class="block text-gray-600 mb-1">名称</label>
+              <input type="text" id="patternName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="请输入样式名称">
+            </div>
+            <div>
+              <label class="block text-gray-600 mb-1">地区</label>
+              <input type="text" id="patternRegion" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="请输入地区">
+            </div>
+            <div>
+              <label class="block text-gray-600 mb-1">材质</label>
+              <input type="text" id="patternMaterial" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="请输入材质">
+            </div>
+            <div>
+              <label class="block text-gray-600 mb-1">色彩</label>
+              <input type="text" id="patternColor" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="请输入色彩描述">
+            </div>
+            <div>
+              <label class="block text-gray-600 mb-1">排序</label>
+              <input type="number" id="patternSortOrder" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="排序数字" value="0">
+            </div>
+            <div>
+              <label class="block text-gray-600 mb-1">描述</label>
+              <textarea id="patternDescription" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" rows="3" placeholder="请输入描述"></textarea>
+            </div>
+            <div class="flex gap-3">
+              <button type="button" id="cancelPatternBtn" class="flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-100">取消</button>
+              <button type="submit" class="flex-1 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">保存</button>
+            </div>
+          </div>
+        </form>
+      `;
+      
+      document.getElementById('patternForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+          const response = await fetch(`${API_BASE}/patterns`, {
+            method: 'POST',
+            headers: { 
+              'Authorization': `Bearer ${currentToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              name: document.getElementById('patternName').value,
+              region: document.getElementById('patternRegion').value,
+              material: document.getElementById('patternMaterial').value,
+              color: document.getElementById('patternColor').value,
+              sort_order: parseInt(document.getElementById('patternSortOrder').value) || 0,
+              description: document.getElementById('patternDescription').value
+            })
+          });
+          const data = await response.json();
+          if (data.success) {
+            document.getElementById('detailModal').style.display = 'none';
+            loadPatterns();
+            showToast('添加成功', 'success');
+          } else {
+            showToast(data.message || '添加失败', 'error');
+          }
+        } catch (error) {
+          showToast('添加失败', 'error');
+        }
+      });
+      
+      document.getElementById('cancelPatternBtn').addEventListener('click', () => {
+        document.getElementById('detailModal').style.display = 'none';
+      });
+      
+      document.getElementById('detailModal').style.display = 'flex';
+    }
+
+    async function editPattern(id) {
+      try {
+        const response = await fetch(`${API_BASE}/patterns/${id}`, {
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        const data = await response.json();
+        
+        if (!data.success) {
+          showToast('获取数据失败', 'error');
+          return;
+        }
+        
+        const pattern = data.data;
+        
+        document.getElementById('modalTitle').textContent = '编辑图鉴样式';
+        document.getElementById('modalContent').innerHTML = `
+          <form id="patternForm">
+            <input type="hidden" id="patternId" value="${pattern.id}">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-gray-600 mb-1">名称</label>
+                <input type="text" id="patternName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" value="${pattern.name || ''}">
+              </div>
+              <div>
+                <label class="block text-gray-600 mb-1">地区</label>
+                <input type="text" id="patternRegion" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" value="${pattern.region || ''}">
+              </div>
+              <div>
+                <label class="block text-gray-600 mb-1">材质</label>
+                <input type="text" id="patternMaterial" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" value="${pattern.material || ''}">
+              </div>
+              <div>
+                <label class="block text-gray-600 mb-1">色彩</label>
+                <input type="text" id="patternColor" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" value="${pattern.color || pattern.colors || ''}">
+              </div>
+              <div>
+                <label class="block text-gray-600 mb-1">排序</label>
+                <input type="number" id="patternSortOrder" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" value="${pattern.sort_order || 0}">
+              </div>
+              <div>
+                <label class="block text-gray-600 mb-1">描述</label>
+                <textarea id="patternDescription" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" rows="3">${pattern.description || ''}</textarea>
+              </div>
+              <div class="flex gap-3">
+                <button type="button" id="cancelPatternBtn" class="flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-100">取消</button>
+                <button type="submit" class="flex-1 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">保存</button>
+              </div>
+            </div>
+          </form>
+        `;
+        
+        document.getElementById('patternForm').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          try {
+            const response = await fetch(`${API_BASE}/patterns/${document.getElementById('patternId').value}`, {
+              method: 'PUT',
+              headers: { 
+                'Authorization': `Bearer ${currentToken}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                name: document.getElementById('patternName').value,
+                region: document.getElementById('patternRegion').value,
+                material: document.getElementById('patternMaterial').value,
+                color: document.getElementById('patternColor').value,
+                sort_order: parseInt(document.getElementById('patternSortOrder').value) || 0,
+                description: document.getElementById('patternDescription').value
+              })
+            });
+            const data = await response.json();
+            if (data.success) {
+              document.getElementById('detailModal').style.display = 'none';
+              loadPatterns();
+              showToast('更新成功', 'success');
+            } else {
+              showToast(data.message || '更新失败', 'error');
+            }
+          } catch (error) {
+            showToast('更新失败', 'error');
+          }
+        });
+        
+        document.getElementById('cancelPatternBtn').addEventListener('click', () => {
+          document.getElementById('detailModal').style.display = 'none';
+        });
+        
+        document.getElementById('detailModal').style.display = 'flex';
+      } catch (error) {
+        showToast('获取数据失败', 'error');
+      }
+    }
+
+    async function deletePattern(id) {
+      if (!confirm('确定删除该图鉴样式吗？')) return;
+      try {
+        const response = await fetch(`${API_BASE}/patterns/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        const data = await response.json();
+        if (data.success) {
+          loadPatterns();
+          showToast('删除成功', 'success');
+        } else {
+          showToast(data.message || '操作失败', 'error');
+        }
+      } catch (error) {
+        showToast('操作失败', 'error');
+      }
+    }
+
+    // 用户作品管理
+    async function loadUserWorks() {
+      const status = document.getElementById('filterWorksStatus').value || '';
+      try {
+        const response = await fetch(`${API_BASE}/works/admin${status ? `?status=${status}` : ''}`, {
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        const data = await response.json();
+        
+        const tbody = document.getElementById('userWorksTable');
+        if (!data.works || data.works.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="text-gray-500 text-center py-4">暂无数据</td></tr>';
+          return;
+        }
+        
+        tbody.innerHTML = data.works.map(item => `
+          <tr class="border-b hover:bg-gray-50">
+            <td class="py-3 px-4">${item.id}</td>
+            <td class="py-3 px-4 font-medium">${item.title || '未命名作品'}</td>
+            <td class="py-3 px-4">${item.author_name || '未知'}</td>
+            <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs ${getStatusClass(item.status)}">${getStatusText(item.status)}</span></td>
+            <td class="py-3 px-4 text-sm text-gray-500">${formatTime(item.createdAt || item.created_at)}</td>
+            <td class="py-3 px-4">
+              <button onclick="viewWork('${item.id}')" class="text-blue-600 hover:text-blue-800 mr-2">查看</button>
+              <button onclick="deleteWork('${item.id}')" class="text-red-600 hover:text-red-800">删除</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (error) {
+        console.error('加载用户作品失败:', error);
+      }
+    }
+
+    async function deleteWork(id) {
+      if (!confirm('确定删除该作品吗？')) return;
+      try {
+        const response = await fetch(`${API_BASE}/works/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        const data = await response.json();
+        if (data.success) {
+          loadUserWorks();
+          loadDashboard();
+          showToast('删除成功', 'success');
+        } else {
+          showToast(data.message || '操作失败', 'error');
+        }
+      } catch (error) {
+        showToast('操作失败', 'error');
+      }
+    }
+
+    async function viewWork(id) {
+      try {
+        const response = await fetch(`${API_BASE}/works/admin/${id}`, {
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        const data = await response.json();
+        
+        if (data.success && data.data) {
+          const item = data.data;
+          document.getElementById('modalTitle').textContent = item.title || '作品详情';
+          document.getElementById('modalContent').innerHTML = `
+            <div class="space-y-4">
+              ${item.image_url ? `<img src="${item.image_url}" class="w-full rounded-lg" alt="${item.title}">` : ''}
+              <div>
+                <p class="text-sm text-gray-500">作者</p>
+                <p class="font-medium">${item.username || '-'}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500">描述</p>
+                <p>${item.description || '-'}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500">状态</p>
+                <p><span class="px-2 py-1 rounded-full text-xs ${getStatusClass(item.status)}">${getStatusText(item.status)}</span></p>
+              </div>
+            </div>
+          `;
+          document.getElementById('detailModal').style.display = 'flex';
+        } else {
+          alert('作品不存在');
+        }
+      } catch (error) {
+        alert('加载失败');
+      }
+    }
+
+    // 传承人管理
+    async function loadMasters() {
+      try {
+        const response = await fetch(`${API_BASE}/masters`, {
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+          const tbody = document.getElementById('mastersTable');
+          if (!data.data || data.data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-gray-500 text-center py-4">暂无数据</td></tr>';
+            return;
+          }
+          tbody.innerHTML = data.data.map(item => `
+            <tr class="border-b hover:bg-gray-50">
+              <td class="py-3 px-4">${item.id}</td>
+              <td class="py-3 px-4 font-medium">${item.name}</td>
+              <td class="py-3 px-4">${item.title || '-'}</td>
+              <td class="py-3 px-4">${item.region || '-'}</td>
+              <td class="py-3 px-4">${item.experience_years || '-'}</td>
+              <td class="py-3 px-4">${item.sort_order || 0}</td>
+              <td class="py-3 px-4">
+                <button onclick="editMaster(${item.id})" class="text-blue-600 hover:text-blue-800 mr-2">编辑</button>
+                <button onclick="deleteMaster(${item.id})" class="text-red-600 hover:text-red-800">删除</button>
+              </td>
+            </tr>
+          `).join('');
+        }
+      } catch (error) {
+        console.error('加载传承人失败:', error);
+      }
+    }
+
+    async function deleteMaster(id) {
+      if (!confirm('确定删除该传承人吗？')) return;
+      try {
+        const response = await fetch(`${API_BASE}/masters/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        const data = await response.json();
+        if (data.success) {
+          loadMasters();
+          showToast('删除成功', 'success');
+        } else {
+          showToast('删除失败: ' + (data.message || '未知错误'), 'error');
+        }
+      } catch (error) {
+        showToast('操作失败', 'error');
+      }
+    }
+
+    // 添加传承人
+    function showAddMasterForm() {
+      document.getElementById('modalTitle').textContent = '添加传承人';
+      document.getElementById('modalContent').innerHTML = `
+        <form id="masterForm">
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">姓名</label>
+              <input type="text" id="masterName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" required>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">头衔</label>
+              <input type="text" id="masterTitle" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">地区</label>
+              <input type="text" id="masterRegion" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">出生年份</label>
+              <input type="number" id="masterBirthYear" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">从艺年限</label>
+              <input type="number" id="masterExperience" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">个人故事</label>
+              <textarea id="masterStory" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" rows="3"></textarea>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">荣誉成就</label>
+              <input type="text" id="masterAwards" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="用逗号分隔">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">代表作品</label>
+              <input type="text" id="masterWorks" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">照片URL</label>
+              <input type="text" id="masterPhoto" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">排序</label>
+              <input type="number" id="masterSortOrder" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" value="0">
+            </div>
+            <div class="flex gap-2 pt-4">
+              <button type="button" id="cancelMasterBtn" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">取消</button>
+              <button type="submit" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">保存</button>
+            </div>
+          </div>
+        </form>
+      `;
+      document.getElementById('detailModal').style.display = 'flex';
+      
+      document.getElementById('masterForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+          const response = await fetch(`${API_BASE}/masters`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${currentToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: document.getElementById('masterName').value,
+              title: document.getElementById('masterTitle').value,
+              region: document.getElementById('masterRegion').value,
+              birth_year: document.getElementById('masterBirthYear').value,
+              experience_years: document.getElementById('masterExperience').value,
+              story: document.getElementById('masterStory').value,
+              achievements: document.getElementById('masterAwards').value,
+              works: document.getElementById('masterWorks').value,
+              avatarUrl: document.getElementById('masterPhoto').value,
+              sort_order: document.getElementById('masterSortOrder').value
+            })
+          });
+          const data = await response.json();
+          if (data.success) {
+            loadMasters();
+            document.getElementById('detailModal').style.display = 'none';
+            showToast('添加成功', 'success');
+          } else {
+            showToast('添加失败: ' + (data.message || '未知错误'), 'error');
+          }
+        } catch (error) {
+          showToast('操作失败', 'error');
+        }
+      });
+      
+      document.getElementById('cancelMasterBtn').addEventListener('click', () => {
+        document.getElementById('detailModal').style.display = 'none';
+      });
+    }
+
+    // 编辑传承人
+    async function editMaster(id) {
+      try {
+        const response = await fetch(`${API_BASE}/masters/${id}`, {
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        const data = await response.json();
+        if (data.success) {
+          const item = data.data;
+          document.getElementById('modalTitle').textContent = '编辑传承人';
+          document.getElementById('modalContent').innerHTML = `
+            <form id="masterForm">
+              <input type="hidden" id="masterId" value="${item.id}">
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">姓名</label>
+                  <input type="text" id="masterName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" value="${item.name}" required>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">头衔</label>
+                  <input type="text" id="masterTitle" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" value="${item.title || ''}">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">地区</label>
+                  <input type="text" id="masterRegion" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" value="${item.region || ''}">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">出生年份</label>
+                  <input type="number" id="masterBirthYear" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" value="${item.birth_year || ''}">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">从艺年限</label>
+                  <input type="number" id="masterExperience" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" value="${item.experience_years || ''}">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">个人故事</label>
+                  <textarea id="masterStory" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" rows="3">${item.story || ''}</textarea>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">荣誉成就</label>
+                  <input type="text" id="masterAwards" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" value="${item.achievements || ''}" placeholder="用逗号分隔">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">代表作品</label>
+                  <input type="text" id="masterWorks" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" value="${item.works || ''}">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">照片URL</label>
+                  <input type="text" id="masterPhoto" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" value="${item.avatarUrl || ''}">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">排序</label>
+                  <input type="number" id="masterSortOrder" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" value="${item.sort_order || 0}">
+                </div>
+                <div class="flex gap-2 pt-4">
+                  <button type="button" id="cancelMasterBtn" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">取消</button>
+                  <button type="submit" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">保存</button>
+                </div>
+              </div>
+            </form>
+          `;
+          document.getElementById('detailModal').style.display = 'flex';
+          
+          document.getElementById('masterForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+              const response = await fetch(`${API_BASE}/masters/${id}`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${currentToken}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  name: document.getElementById('masterName').value,
+                  title: document.getElementById('masterTitle').value,
+                  region: document.getElementById('masterRegion').value,
+                  birth_year: document.getElementById('masterBirthYear').value,
+                  experience_years: document.getElementById('masterExperience').value,
+                  story: document.getElementById('masterStory').value,
+                  achievements: document.getElementById('masterAwards').value,
+                  works: document.getElementById('masterWorks').value,
+                  avatarUrl: document.getElementById('masterPhoto').value,
+                  sort_order: document.getElementById('masterSortOrder').value
+                })
+              });
+              const data = await response.json();
+              if (data.success) {
+                loadMasters();
+                document.getElementById('detailModal').style.display = 'none';
+                showToast('修改成功', 'success');
+              } else {
+                showToast('修改失败: ' + (data.message || '未知错误'), 'error');
+              }
+            } catch (error) {
+              showToast('操作失败', 'error');
+            }
+          });
+          
+          document.getElementById('cancelMasterBtn').addEventListener('click', () => {
+            document.getElementById('detailModal').style.display = 'none';
+          });
+        }
+      } catch (error) {
+        console.error('获取传承人信息失败:', error);
+      }
+    }
+
+    // 添加样式按钮事件
+    document.getElementById('addPatternBtn').addEventListener('click', addPattern);
+
+    // 添加传承人按钮事件
+    document.getElementById('addMasterBtn').addEventListener('click', showAddMasterForm);
+
+    // 查看详情
+    async function viewBondian(id) {
+      try {
+        const response = await fetch(`${API_BASE}/bondians/${id}`, {
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+          const item = data.data;
+          document.getElementById('modalTitle').textContent = item.name;
+          document.getElementById('modalContent').innerHTML = `
+            <div class="space-y-4">
+              ${item.image_url ? `<img src="${item.image_url}" class="w-full rounded-lg" alt="${item.name}">` : ''}
+              <div>
+                <p class="text-sm text-gray-500">类型</p>
+                <p class="font-medium">${item.type_name || '-'}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500">地域</p>
+                <p class="font-medium">${item.region || '-'}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500">材质</p>
+                <p class="font-medium">${item.material || '-'}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500">工艺</p>
+                <p class="font-medium">${item.craftsmanship || '-'}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500">色彩描述</p>
+                <p>${item.color_description || '-'}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500">纹样描述</p>
+                <p>${item.pattern_description || '-'}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-500">文化意义</p>
+                <p>${item.cultural_significance || '-'}</p>
+              </div>
+            </div>
+          `;
+          document.getElementById('detailModal').style.display = 'flex';
+        }
+      } catch (error) {
+        alert('加载失败');
+      }
+    }
+
+    document.getElementById('closeModal').addEventListener('click', () => {
+      document.getElementById('detailModal').style.display = 'none';
+    });
+
+    // 辅助函数
+    function getStatusClass(status) {
+      const classes = {
+        approved: 'bg-green-100 text-green-700',
+        rejected: 'bg-red-100 text-red-700'
+      };
+      return classes[status] || 'bg-green-100 text-green-700';
+    }
+
+    function getStatusText(status) {
+      const texts = {
+        approved: '已发布',
+        rejected: '已拒绝'
+      };
+      return texts[status] || '已发布';
+    }
+
+    function formatTime(time) {
+      if (!time) return '-';
+      // 检查是否已经是格式化的本地时间字符串（包含中文分隔符或斜杠）
+      if (typeof time === 'string' && (time.includes('/') || time.includes('年') || time.includes('月'))) {
+        // 直接截取日期和时分部分，不做 Date 转换
+        const parts = time.split(' ');
+        if (parts.length >= 2) {
+          const datePart = parts[0];
+          const timePart = parts[1].substring(0, 5); // 获取时分部分
+          return `${datePart} ${timePart}`;
+        }
+        return time.substring(0, 16); // 返回前16个字符（日期+时分）
+      }
+      // 否则按 Date 对象处理
+      const date = new Date(time);
+      return date.toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    // 设为管理员
+    async function promoteUser(id) {
+      try {
+        const response = await fetch(`${API_BASE}/stats/users/${id}/promote`, {
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        const data = await response.json();
+        if (data.success) {
+          loadUsers();
+          alert('操作成功');
+        } else {
+          alert(data.message || '操作失败');
+        }
+      } catch (error) {
+        alert('操作失败');
+      }
+    }
+
+    // 初始化
+    checkLogin();
+  </script>
+</body>
+</html>

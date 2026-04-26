@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>作品广场 - 邦典·藏族文化数字平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --tibetan-red: #9E2A2F;
+      --turquoise: #2C9678;
+      --earth-brown: #8B5A2B;
+      --cream-white: #F5F5DC;
+      --light-gold: #E6C8A0;
+      --warm-gray: #F8F4ED;
+      --dark-text: #2C2C2C;
+      --tibetan-blue: #1E3A5F;
+      --tibetan-yellow: #D4A84B;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Noto Sans SC', sans-serif; 
+      background-color: var(--warm-gray);
+      min-height: 100vh;
+    }
+    
+    .font-serif { font-family: 'Noto Serif SC', serif; }
+
+    .nav-header {
+      position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
+      background: rgba(248, 244, 237, 0.95); backdrop-filter: blur(20px);
+      padding: 1rem 2rem; box-shadow: 0 4px 30px rgba(0,0,0,0.08);
+    }
+
+    .nav-link { 
+      color: var(--dark-text); 
+      font-weight: 500; 
+      margin: 0 1rem; 
+      text-decoration: none;
+      position: relative;
+      transition: color 0.3s ease;
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--tibetan-red);
+      transition: width 0.3s ease;
+    }
+
+    .nav-link:hover::after, .nav-link.active::after { width: 100%; }
+    .nav-link.active { color: var(--tibetan-red); font-weight: 600; }
+
+    .card-hover { 
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+    }
+
+    .card-hover:hover { 
+      transform: translateY(-8px); 
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+
+    .modal { 
+      display: none; 
+      position: fixed; 
+      inset: 0; 
+      background: rgba(0,0,0,0.6); 
+      z-index: 2000; 
+      justify-content: center; 
+      align-items: center;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-content { 
+      background: white; 
+      border-radius: 1rem; 
+      max-width: 600px; 
+      width: 90%; 
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 1.5rem;
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.1);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .modal-close:hover {
+      background: rgba(0,0,0,0.2);
+    }
+
+    .like-btn {
+      transition: transform 0.2s;
+    }
+
+    .like-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .like-btn.liked {
+      color: var(--tibetan-red);
+    }
+
+    .color-tag {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      margin-right: 4px;
+      border: 1px solid rgba(0,0,0,0.1);
+    }
+
+    .comment-item {
+      border-bottom: 1px solid #f0f0f0;
+      padding: 0.75rem 0;
+    }
+
+    .comment-item:last-child {
+      border-bottom: none;
+    }
+
+    .fade-in {
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 3000;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--tibetan-red);
+      box-shadow: 0 0 0 3px rgba(158, 42, 47, 0.1);
+    }
+
+    .btn-primary {
+      background-color: var(--tibetan-red);
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(158, 42, 47, 0.3);
+    }
+
+    .work-image {
+      transition: transform 0.5s ease;
+    }
+
+    .work-image:hover {
+      transform: scale(1.05);
+    }
+
+    .avatar-initial {
+      background-color: var(--tibetan-red);
+    }
+
+    .gradient-text {
+      color: var(--tibetan-red);
+      background-clip: text;
+    }
+  </style>
+</head>
+<body class="pt-20">
+  <!-- 导航栏 -->
+  <header class="nav-header">
+    <div class="container mx-auto flex justify-between items-center">
+      <a href="index.html" class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center shadow-lg">
+          <i class="fa fa-paint-brush text-white"></i>
+        </div>
+        <span class="font-bold text-xl" style="color: #9E2A2F;">邦典文化</span>
+      </a>
+      <nav class="hidden md:flex gap-6 text-base">
+        <a href="index.html" class="nav-link">首页</a>
+        <a href="culture.html" class="nav-link">文化解码</a>
+        <a href="patterns.html" class="nav-link">邦典图鉴</a>
+        <a href="design.html" class="nav-link">设计工坊</a>
+        <a href="gallery.html" class="nav-link active">作品广场</a>
+        <a href="map.html" class="nav-link">数据洞察</a>
+      </nav>
+      <div id="userInfo" class="hidden flex items-center gap-3">
+        <a href="user-center.html" class="flex items-center gap-2 hover:text-red-700 transition-colors">
+          <div class="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-white">
+            <i class="fa fa-user"></i>
+          </div>
+          <span id="userName" class="text-slate-700 font-medium"></span>
+        </a>
+        <button id="logoutBtn" class="px-3 py-1 text-sm text-slate-600 hover:text-red-700 transition-colors">退出</button>
+      </div>
+      <button id="loginBtn" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all font-medium shadow-md hover:shadow-lg">
+        <i class="fa fa-user-circle mr-2"></i> 登录
+      </button>
+    </div>
+  </header>
+
+  <main class="container mx-auto px-4 py-8 max-w-7xl">
+    <!-- 页面标题 -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+      <div>
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-800 font-serif flex items-center gap-3">
+          <i class="fa fa-picture-o text-red-600"></i>邦典作品广场
+        </h1>
+        <p class="text-gray-500 mt-2">探索创作者们精心设计的邦典作品，感受传统与创新的融合</p>
+      </div>
+    </div>
+
+    <!-- 筛选 -->
+    <div class="flex flex-wrap justify-center gap-2 mb-6">
+      <div class="flex flex-wrap gap-2">
+        <button id="sortTimeBtn" class="px-4 py-2 bg-white rounded-full shadow-md text-sm font-medium hover:shadow-lg transition-all active">
+          <i class="fa fa-clock-o mr-1"></i>最新
+        </button>
+        <button id="sortHotBtn" class="px-4 py-2 bg-white rounded-full shadow-md text-sm font-medium hover:shadow-lg transition-all">
+          <i class="fa fa-fire mr-1"></i>最热
+        </button>
+        <div class="flex items-center gap-1 bg-white rounded-full shadow-md px-3 py-2">
+          <span class="text-sm text-gray-500 mr-2">颜色:</span>
+          <button class="color-filter-btn w-6 h-6 rounded-full border-2 border-gray-200 hover:scale-110 transition-transform" style="background: #FFFFFF;" title="白色" data-color="白"></button>
+          <button class="color-filter-btn w-6 h-6 rounded-full border-2 border-gray-200 hover:scale-110 transition-transform" style="background: #F59E0B;" title="黄色" data-color="黄"></button>
+          <button class="color-filter-btn w-6 h-6 rounded-full border-2 border-gray-200 hover:scale-110 transition-transform" style="background: #DC2626;" title="红色" data-color="红"></button>
+          <button class="color-filter-btn w-6 h-6 rounded-full border-2 border-gray-200 hover:scale-110 transition-transform" style="background: #2563EB;" title="蓝色" data-color="蓝"></button>
+          <button class="color-filter-btn w-6 h-6 rounded-full border-2 border-gray-200 hover:scale-110 transition-transform" style="background: #16A34A;" title="绿色" data-color="绿"></button>
+          <button class="color-filter-btn w-6 h-6 rounded-full border-2 border-gray-200 hover:scale-110 transition-transform" style="background: #1F2937;" title="黑色" data-color="黑"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 统计信息 -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-50">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
+            <i class="fa fa-image text-red-600"></i>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-gray-800" id="totalWorks">0</div>
+            <div class="text-sm text-gray-500">作品总数</div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-50">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+            <i class="fa fa-heart text-amber-600"></i>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-gray-800" id="totalLikes">0</div>
+            <div class="text-sm text-gray-500">总点赞数</div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-50">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+            <i class="fa fa-comment text-blue-600"></i>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-gray-800" id="totalComments">0</div>
+            <div class="text-sm text-gray-500">总评论数</div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-50">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+            <i class="fa fa-users text-green-600"></i>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-gray-800" id="totalCreators">0</div>
+            <div class="text-sm text-gray-500">创作者数</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 作品网格 -->
+    <div id="gallery" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+
+    <!-- 加载更多 -->
+    <div id="loadMore" class="hidden text-center py-8">
+      <button id="loadMoreBtn" class="px-8 py-3 bg-white border border-gray-200 rounded-full shadow-sm hover:shadow-md transition-all">
+        <i class="fa fa-refresh mr-2"></i>加载更多作品
+      </button>
+    </div>
+  </main>
+
+  <!-- Toast 提示 -->
+  <div id="toast" class="toast"></div>
+
+  <!-- 作品详情模态框 -->
+  <div id="detailModal" class="modal">
+    <div class="modal-content max-w-4xl">
+      <button class="modal-close" onclick="closeDetailModal()">
+        <i class="fa fa-times text-gray-600"></i>
+      </button>
+      <div id="detailContent">
+        <!-- 动态填充 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 评论模态框 -->
+  <div id="commentModal" class="modal">
+    <div class="modal-content max-w-lg">
+      <button class="modal-close" onclick="closeCommentModal()">
+        <i class="fa fa-times text-gray-600"></i>
+      </button>
+      <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+        <i class="fa fa-comment text-red-600"></i>添加评论
+      </h3>
+      <textarea id="commentText" rows="4" class="w-full border border-gray-200 rounded-lg p-3 mb-4 resize-none focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" placeholder="写下你的想法..."></textarea>
+      <div class="flex justify-end gap-2">
+        <button id="closeModalBtn" class="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors">取消</button>
+        <button id="submitCommentBtn" class="px-4 py-2 btn-primary text-white rounded-lg">提交</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 发布作品模态框 -->
+  <div id="uploadModal" class="modal">
+    <div class="modal-content max-w-lg">
+      <button class="modal-close" onclick="closeUploadModal()">
+        <i class="fa fa-times text-gray-600"></i>
+      </button>
+      <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+        <i class="fa fa-upload text-red-600"></i>发布作品
+      </h3>
+      <form id="uploadForm">
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">作品标题</label>
+          <input type="text" id="workTitle" class="w-full border border-gray-200 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="给你的作品起个名字">
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">作品描述</label>
+          <textarea id="workDesc" rows="3" class="w-full border border-gray-200 rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="描述你的作品理念..."></textarea>
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">颜色标签</label>
+          <div class="flex flex-wrap gap-2">
+            <label class="flex items-center gap-1 cursor-pointer">
+              <input type="checkbox" name="colors" value="红色" class="w-4 h-4 text-red-600">
+              <span class="color-tag" style="background: #9E2A2F"></span>红色
+            </label>
+            <label class="flex items-center gap-1 cursor-pointer">
+              <input type="checkbox" name="colors" value="黄色" class="w-4 h-4 text-amber-600">
+              <span class="color-tag" style="background: #D4A84B"></span>黄色
+            </label>
+            <label class="flex items-center gap-1 cursor-pointer">
+              <input type="checkbox" name="colors" value="蓝色" class="w-4 h-4 text-blue-600">
+              <span class="color-tag" style="background: #1E3A5F"></span>蓝色
+            </label>
+            <label class="flex items-center gap-1 cursor-pointer">
+              <input type="checkbox" name="colors" value="绿色" class="w-4 h-4 text-green-600">
+              <span class="color-tag" style="background: #2C9678"></span>绿色
+            </label>
+            <label class="flex items-center gap-1 cursor-pointer">
+              <input type="checkbox" name="colors" value="白色" class="w-4 h-4 text-gray-300">
+              <span class="color-tag" style="background: #FFFFFF; border-color: #ccc"></span>白色
+            </label>
+            <label class="flex items-center gap-1 cursor-pointer">
+              <input type="checkbox" name="colors" value="金色" class="w-4 h-4 text-yellow-500">
+              <span class="color-tag" style="background: #FFD700"></span>金色
+            </label>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2">
+          <button type="button" onclick="closeUploadModal()" class="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors">取消</button>
+          <button type="submit" class="px-4 py-2 btn-primary text-white rounded-lg">发布</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function getApiBaseUrl() {
+      if (typeof window !== 'undefined') {
+        const hostname = window.location.hostname;
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+          return 'http://localhost:3000/api';
+        }
+        return '/api';
+      }
+      return 'http://localhost:3000/api';
+    }
+    const API_BASE = getApiBaseUrl();
+    let currentWorkId = null;
+    let currentSort = 'time'; // time / hot
+    let currentColorFilter = ''; // 当前选中的颜色筛选
+    let works = [];
+    let allWorks = []; // 保存完整的作品列表，用于评论查找
+    let displayCount = 8;
+
+    // 显示提示消息
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    // 保存作品到 localStorage
+    function saveWorks() {
+      localStorage.setItem('works', JSON.stringify(works));
+    }
+
+    // 获取作品列表
+    async function fetchWorks() {
+      console.log('=== fetchWorks 开始 ===');
+      try {
+        const response = await fetch(`${API_BASE}/works`);
+        console.log('fetchWorks 响应状态:', response.status);
+        const data = await response.json();
+        console.log('fetchWorks 响应数据:', JSON.stringify(data));
+        
+        // 保存总作品数
+        if (data.pagination && data.pagination.total) {
+          window.totalWorksCount = data.pagination.total;
+          console.log('保存总作品数:', window.totalWorksCount);
+        }
+        
+        if (data.works && data.works.length > 0) {
+          const regions = ['拉萨', '山南', '日喀则', '那曲', '阿里', '昌都'];
+          works = data.works.map((item, index) => {
+            // 确保 colors 字段格式正确
+            let colors = item.colors;
+            
+            // 尝试解析 JSON 字符串
+            if (typeof colors === 'string') {
+              try {
+                colors = JSON.parse(colors);
+              } catch (e) {
+                console.warn('Failed to parse colors JSON:', e);
+                colors = null;
+              }
+            }
+            
+            if (!colors || !Array.isArray(colors) || colors.length === 0) {
+              colors = getRandomColors();
+            } else if (colors.length > 0 && typeof colors[0] === 'string') {
+              // 如果是字符串数组，转换为对象数组
+              colors = colors.map(c => ({ name: colorNames[c] || '自定义', hex: c }));
+            }
+            return {
+              id: item.id,
+              imageUrl: item.imagePath && item.imagePath.startsWith('data:image/') ? item.imagePath : (item.imagePath ? `images/${item.imagePath}` : generateBondianImageWithColors(colors, item.stripeWidth, item.id)),
+              username: item.author_name || '邦典爱好者',
+              time: item.createdAt ? new Date(item.createdAt).toLocaleString() : new Date().toLocaleString(),
+              title: item.title || '邦典作品',
+              colors: colors,
+              declaration: item.description || '这件邦典展现了独特的藏族文化魅力',
+              likes: Math.floor(Math.random() * 100),
+              comments: [],
+              isLiked: false
+            };
+          });
+          allWorks = [...works];
+          console.log('API works loaded, colors sample:', works[0]?.colors);
+          updateStats();
+          renderGallery();
+        } else {
+          // API 返回空数据，加载本地模拟数据
+          loadLocalWorks();
+        }
+      } catch (error) {
+        console.error('加载作品失败:', error);
+        // API 请求失败，加载本地模拟数据
+        loadLocalWorks();
+      }
+    }
+
+    // 合并作品数据
+    function mergeWorks(apiWorks, localWorks) {
+      const result = [...apiWorks];
+      localWorks.forEach(localWork => {
+        const index = result.findIndex(w => w.id === localWork.id);
+        if (index !== -1) {
+          result[index] = { ...result[index], ...localWork };
+        } else {
+          result.push(localWork);
+        }
+      });
+      return result;
+    }
+
+    // 加载本地模拟数据
+    function loadLocalWorks() {
+      let localWorks = JSON.parse(localStorage.getItem('works') || '[]');
+      if (localWorks.length > 0) {
+        // 检查现有数据是否有颜色字段，没有则补充
+        localWorks = localWorks.map(work => {
+          if (!work.colors || !Array.isArray(work.colors)) {
+            return { ...work, colors: getRandomColors() };
+          }
+          return work;
+        });
+        works = localWorks;
+        saveWorks(); // 保存更新后的数据
+      } else {
+        // 生成模拟数据
+        works = generateMockWorks();
+        saveWorks();
+      }
+      allWorks = [...works]; // 保存完整列表
+      updateStats();
+      renderGallery();
+    }
+
+    // 生成模拟作品数据
+    function generateMockWorks() {
+      const regions = ['拉萨', '山南', '日喀则', '那曲', '阿里', '昌都'];
+      const declarations = [
+        '传统与现代的完美融合，展现藏族文化的独特魅力',
+        '传承千年的技艺，在当代绽放新的光彩',
+        '每一道色彩都诉说着高原的故事',
+        '用丝线编织梦想，让邦典焕发新生',
+        '经典配色，永恒的美感',
+        '创新设计，致敬传统',
+        '雪域高原的色彩传奇',
+        '匠心独运，编织美好',
+        '藏式美学的现代演绎',
+        '色彩斑斓的文化传承',
+        '传统工艺与现代设计的碰撞',
+        '来自高原的艺术瑰宝',
+        '蓝天白云下的色彩诗篇',
+        '藏地风情，尽在其中',
+        '千年传承，匠心之作',
+        '一针一线，编织梦想',
+        '高原上的彩虹赞歌',
+        '藏式美学的极致呈现',
+        '非遗技艺的当代诠释',
+        '色彩的交响乐，文化的传承',
+        '传统纹样与现代审美完美结合',
+        '雪域高原的艺术瑰宝',
+        '编织岁月，传承经典',
+        '每一道色彩都是故事'
+      ];
+      
+      const titles = [
+        '雪域彩虹', '高原华章', '吉祥锦缎', '五彩祥云',
+        '雪山神韵', '草原之歌', '藏地风情', '雅鲁藏布',
+        '珠穆朗玛', '纳木错蓝', '念青唐古拉', '羌塘草原',
+        '冈仁波齐', '玛旁雍错', '羊卓雍措', '雅拉香布',
+        '色季拉山', '南迦巴瓦', '唐古拉风', '可可西里',
+        '柴达木韵', '青海湖畔', '香格里拉', '茶马古道'
+      ];
+
+      const usernames = [
+        '次仁曲珍', '卓玛', '拉姆', '丹增', '白玛', '格桑',
+        '达娃', '尼玛', '央金', '扎西', '顿珠', '曲尼',
+        '桑珠', '平措', '多吉', '德吉', '旺姆', '洛桑'
+      ];
+
+      const commentTexts = [
+        '这件作品太美了！', '配色很有特色！', '传承经典，创新未来！',
+        '非常喜欢这个设计！', '色彩搭配太棒了！', '工艺精湛！',
+        '很有民族特色！', '太棒了，支持！', '文化传承的典范！',
+        '美轮美奂！', '色彩丰富，构图完美！', '太惊艳了！',
+        '喜欢这种传统风格！', '很有艺术感！', '匠心独具！',
+        '收藏了！', '转发给朋友了！', '期待更多作品！'
+      ];
+
+      const commentUsernames = [
+        '游客A', '用户B', '邦典爱好者', '雪域行者', '文化传承者',
+        '藏文化爱好者', '非遗守护者', '传统文化迷', '手工艺爱好者',
+        '色彩设计师', '艺术鉴赏家', '旅行摄影师'
+      ];
+
+      return Array.from({ length: 24 }, (_, i) => ({
+        id: i + 1,
+        imageUrl: generateBondianImage(regions[i % regions.length], i),
+        username: usernames[i % usernames.length],
+        time: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toLocaleString(),
+        title: titles[i],
+        colors: getRandomColors(),
+        declaration: declarations[i],
+        likes: Math.floor(Math.random() * 300) + 50,
+        comments: Array.from({ length: Math.floor(Math.random() * 8) + 1 }, () => ({
+          username: commentUsernames[Math.floor(Math.random() * commentUsernames.length)],
+          text: commentTexts[Math.floor(Math.random() * commentTexts.length)],
+          time: new Date(Date.now() - Math.random() * 14 * 24 * 60 * 60 * 1000).toLocaleString()
+        })),
+        isLiked: Math.random() > 0.7
+      }));
+    }
+
+    // 生成邦典图案
+    function generateBondianImage(region, index) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 320;
+      canvas.height = 200;
+      const ctx = canvas.getContext('2d');
+
+      const colorSchemes = {
+        '拉萨': [['#8B7355', '#A08060', '#C4A574', '#D4B896', '#E8D5B7', '#F5E6D3']],
+        '山南': [['#D4A574', '#9E2A2F', '#2C9678', '#1E3A5F', '#FFFFFF', '#FFD700']],
+        '日喀则': [['#2C9678', '#3DB48E', '#4ECDC4', '#1E3A5F', '#FF6B8A', '#D4A574']],
+        '那曲': [['#D4A574', '#E6C8A0', '#F0D8B8', '#D4B896', '#C8A888', '#4A4A4A']],
+        '阿里': [['#FF6B8A', '#FF8FA3', '#FFA0B3', '#2C9678', '#1E3A5F', '#D4A574']],
+        '昌都': [['#FFFFFF', '#F5F5F5', '#E8E8E8', '#D4A574', '#C73E3E', '#3DB48E']]
+      };
+
+      const colors = colorSchemes[region]?.[0] || colorSchemes['拉萨'][0];
+      const stripePatterns = [15, 25, 10, 35, 15, 40, 12, 28];
+
+      // 绘制顶部装饰
+      ctx.fillStyle = '#D4A574';
+      ctx.fillRect(0, 0, 320, 5);
+
+      // 绘制条纹
+      let y = 10;
+      stripePatterns.forEach((height, i) => {
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.fillRect(0, y, 320, height);
+        
+        // 添加纹理
+        ctx.globalAlpha = 0.03;
+        for (let tx = 0; tx < 320; tx += 4) {
+          for (let ty = y; ty < y + height; ty += 4) {
+            ctx.fillStyle = Math.random() > 0.6 ? '#fff' : '#000';
+            ctx.fillRect(tx, ty, 2, 2);
+          }
+        }
+        ctx.globalAlpha = 1;
+        
+        y += height;
+        if (y >= 195) return;
+      });
+
+      return canvas.toDataURL('image/png');
+    }
+
+    // 使用用户自定义配色生成邦典图片
+    function generateBondianImageWithColors(colors, stripeWidth, index) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 320;
+      canvas.height = 200;
+      const ctx = canvas.getContext('2d');
+
+      // 使用用户配色，如果没有则使用默认配色
+      let userColors = [];
+      if (colors && Array.isArray(colors)) {
+        userColors = colors.map(c => typeof c === 'string' ? c : (c.hex || c));
+      }
+
+      // 如果用户没有设置配色，使用默认配色
+      if (userColors.length === 0) {
+        const regions = ['拉萨', '山南', '日喀则', '那曲', '阿里', '昌都'];
+        const colorSchemes = {
+          '拉萨': ['#8B7355', '#A08060', '#C4A574', '#D4B896', '#E8D5B7', '#F5E6D3'],
+          '山南': ['#D4A574', '#9E2A2F', '#2C9678', '#1E3A5F', '#FFFFFF', '#FFD700'],
+          '日喀则': ['#2C9678', '#3DB48E', '#4ECDC4', '#1E3A5F', '#FF6B8A', '#D4A574'],
+          '那曲': ['#D4A574', '#E6C8A0', '#F0D8B8', '#D4B896', '#C8A888', '#4A4A4A'],
+          '阿里': ['#FF6B8A', '#FF8FA3', '#FFA0B3', '#2C9678', '#1E3A5F', '#D4A574'],
+          '昌都': ['#FFFFFF', '#F5F5F5', '#E8E8E8', '#D4A574', '#C73E3E', '#3DB48E']
+        };
+        userColors = colorSchemes[regions[index % regions.length]];
+      }
+
+      const width = stripeWidth || 30;
+
+      // 绘制顶部装饰
+      ctx.fillStyle = '#D4A574';
+      ctx.fillRect(0, 0, 320, 5);
+
+      // 绘制条纹
+      let y = 10;
+      let colorIndex = 0;
+      while (y < 195) {
+        ctx.fillStyle = userColors[colorIndex % userColors.length];
+        ctx.fillRect(0, y, 320, width);
+        
+        // 添加纹理
+        ctx.globalAlpha = 0.03;
+        for (let i = 0; i < 320; i += 20) {
+          for (let j = y; j < y + width; j += 15) {
+            ctx.fillRect(i, j, 15, 10);
+          }
+        }
+        ctx.globalAlpha = 1;
+        
+        y += width;
+        colorIndex++;
+      }
+
+      // 绘制底部装饰
+      ctx.fillStyle = '#D4A574';
+      ctx.fillRect(0, 195, 320, 5);
+
+      return canvas.toDataURL('image/png');
+    }
+
+    // 颜色名称映射
+    const colorNames = {
+      '#FFFFFF': '白色',
+      '#D4A84B': '黄色',
+      '#9E2A2F': '红色',
+      '#1E3A5F': '蓝色',
+      '#2C9678': '绿色',
+      '#2C2C2C': '黑色',
+      '#FF6B6B': '珊瑚红',
+      '#FFD93D': '金色',
+      '#6BCB77': '翠绿色',
+      '#4D96FF': '天蓝色',
+      '#FF9F43': '橙色',
+      '#A855F7': '紫色',
+      '#FFD700': '金色'
+    };
+
+    // 格式化颜色数据（兼容旧格式）
+    function formatColor(color) {
+      if (typeof color === 'string') {
+        return { name: colorNames[color] || '自定义', hex: color };
+      }
+      return color;
+    }
+
+    // 提取颜色标签
+    function extractColors(description) {
+      if (!description) return [{ name: '多彩', hex: '#C4A574' }];
+      const colorMap = {
+        '红': '#9E2A2F', '黄': '#D4A84B', '蓝': '#1E3A5F', '绿': '#2C9678',
+        '白': '#FFFFFF', '黑': '#2C2C2C', '橙': '#FF8C00', '紫': '#8B5CF6',
+        '金': '#FFD700', '灰': '#808080'
+      };
+      const colors = [];
+      for (const [name, hex] of Object.entries(colorMap)) {
+        if (description.includes(name)) {
+          colors.push({ name, hex });
+        }
+      }
+      return colors.length > 0 ? colors.slice(0, 3) : [{ name: '多彩', hex: '#C4A574' }];
+    }
+
+    // 获取随机颜色
+    function getRandomColors() {
+      const colorOptions = [
+        [{ name: '红色', hex: '#9E2A2F' }, { name: '黄色', hex: '#D4A84B' }],
+        [{ name: '蓝色', hex: '#1E3A5F' }, { name: '绿色', hex: '#2C9678' }],
+        [{ name: '白色', hex: '#FFFFFF' }, { name: '金色', hex: '#FFD700' }],
+        [{ name: '橙色', hex: '#FF8C00' }, { name: '紫色', hex: '#8B5CF6' }],
+        [{ name: '绿色', hex: '#2C9678' }, { name: '蓝色', hex: '#1E3A5F' }, { name: '红色', hex: '#9E2A2F' }],
+        [{ name: '金色', hex: '#FFD700' }, { name: '红色', hex: '#9E2A2F' }, { name: '蓝色', hex: '#1E3A5F' }],
+        [{ name: '黑色', hex: '#1F2937' }, { name: '白色', hex: '#FFFFFF' }],
+        [{ name: '黑色', hex: '#1F2937' }, { name: '金色', hex: '#FFD700' }],
+        [{ name: '红色', hex: '#9E2A2F' }, { name: '白色', hex: '#FFFFFF' }, { name: '蓝色', hex: '#1E3A5F' }],
+        [{ name: '绿色', hex: '#2C9678' }, { name: '黄色', hex: '#D4A84B' }, { name: '白色', hex: '#FFFFFF' }],
+        [{ name: '橙色', hex: '#FF8C00' }, { name: '黑色', hex: '#1F2937' }],
+        [{ name: '蓝色', hex: '#1E3A5F' }, { name: '白色', hex: '#FFFFFF' }, { name: '绿色', hex: '#2C9678' }],
+        [{ name: '黄色', hex: '#D4A84B' }, { name: '红色', hex: '#9E2A2F' }],
+        [{ name: '白色', hex: '#FFFFFF' }, { name: '红色', hex: '#9E2A2F' }],
+        [{ name: '绿色', hex: '#2C9678' }, { name: '黑色', hex: '#1F2937' }],
+        [{ name: '蓝色', hex: '#1E3A5F' }, { name: '黄色', hex: '#D4A84B' }]
+      ];
+      return colorOptions[Math.floor(Math.random() * colorOptions.length)];
+    }
+
+    // 更新统计信息
+    function updateStats() {
+      // 使用API返回的总作品数，而不是当前页的作品数
+      const totalFromApi = window.totalWorksCount || works.length;
+      document.getElementById('totalWorks').textContent = totalFromApi;
+      document.getElementById('totalLikes').textContent = works.reduce((sum, w) => sum + (parseInt(w.likes) || 0), 0);
+      document.getElementById('totalComments').textContent = works.reduce((sum, w) => sum + (w.comments?.length || 0), 0);
+      document.getElementById('totalCreators').textContent = new Set(works.map(w => w.username || '未知')).size;
+    }
+
+    // 渲染广场
+    function renderGallery() {
+      console.log('renderGallery called - currentColorFilter:', currentColorFilter, 'works length:', works.length);
+      let filteredWorks = [...works];
+      
+      // 搜索过滤
+      // 颜色筛选
+      if (currentColorFilter) {
+        console.log('Applying color filter:', currentColorFilter);
+        filteredWorks = filteredWorks.filter(w => {
+          const match = w.colors && w.colors.some(c => c.name && c.name.includes(currentColorFilter));
+          if (match) {
+            console.log('Work matched:', w.title, 'colors:', w.colors);
+          }
+          return match;
+        });
+        console.log('Filtered works count:', filteredWorks.length);
+      }
+
+      // 排序
+      filteredWorks = filteredWorks.sort((a, b) => 
+        currentSort === 'hot' ? b.likes - a.likes : new Date(b.time) - new Date(a.time)
+      );
+
+      const container = document.getElementById('gallery');
+      const loadMoreBtn = document.getElementById('loadMore');
+
+      // 判断是否显示加载更多
+      if (filteredWorks.length > displayCount) {
+        loadMoreBtn.style.display = 'block';
+        filteredWorks = filteredWorks.slice(0, displayCount);
+      } else {
+        loadMoreBtn.style.display = 'none';
+      }
+
+      if (filteredWorks.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full text-center py-16">
+            <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+              <i class="fa fa-picture-o text-gray-400 text-3xl"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-600 mb-2">暂无作品</h3>
+            <p class="text-gray-400">快去设计你的邦典并发布吧！</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filteredWorks.map(work => {
+        // 确保所有字段都有默认值
+        const title = work.title || work.name || '未命名作品';
+        const username = work.username || work.author || '未知作者';
+        const likes = parseInt(work.likes) || 0;
+        const comments = work.comments || [];
+        const isLiked = work.isLiked || false;
+        const declaration = work.declaration || work.description || '暂无描述';
+        const colors = work.colors || [];
+        const rawUrl = work.imageUrl || work.image;
+        let imageUrl;
+        if (!rawUrl || rawUrl.startsWith('data:image/')) {
+          imageUrl = rawUrl || 'images/default.jpg';
+        } else if (rawUrl.startsWith('images/')) {
+          imageUrl = rawUrl;
+        } else {
+          imageUrl = `images/${rawUrl}`;
+        }
+        
+        return `
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover" onclick="openDetailModal(${work.id})">
+          <div class="relative overflow-hidden">
+            <img src="${imageUrl}" class="w-full h-52 object-cover work-image" alt="${title}">
+            <div class="absolute top-3 right-3">
+              <span class="px-2 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium text-gray-700">
+                <i class="fa ${isLiked ? 'fa-heart text-red-500' : 'fa-heart-o text-gray-500'} mr-1"></i>${likes}
+              </span>
+            </div>
+          </div>
+          <div class="p-4">
+            <h3 class="font-bold text-gray-800 mb-2 line-clamp-1">${title}</h3>
+            <div class="flex justify-between items-start mb-2">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full avatar-initial flex items-center justify-center text-white text-sm">
+                  ${username.charAt(0)}
+                </div>
+                <div>
+                  <p class="font-medium text-gray-800 text-sm">${username}</p>
+                  <p class="text-xs text-gray-400">${formatTime(work.time)}</p>
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-1 mb-2">
+              ${colors.length > 0 ? colors.map(c => { const fc = formatColor(c); return `<span class="color-tag" style="background: ${fc.hex}" title="${fc.name}"></span>`; }).join('') : '<span class="color-tag" style="background: #C4A574" title="多彩"></span>'}
+            </div>
+            <p class="text-gray-600 text-sm line-clamp-2">${declaration}</p>
+            <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+              <button onclick="event.stopPropagation(); openCommentModal(${work.id})" class="flex items-center gap-1 text-gray-500 hover:text-blue-600 transition-colors text-sm">
+                <i class="fa fa-comment"></i> ${comments.length}
+              </button>
+              <button onclick="event.stopPropagation(); likeWork(${work.id})" class="flex items-center gap-1 transition-colors text-sm ${isLiked ? 'text-red-600' : 'text-gray-500 hover:text-red-600'}">
+                <i class="fa ${isLiked ? 'fa-heart' : 'fa-heart-o'}"></i> ${isLiked ? '已赞' : '点赞'}
+              </button>
+              </div>
+          </div>
+        </div>
+      `;
+      }).join('');
+    }
+
+    // 加载更多
+    document.getElementById('loadMoreBtn').onclick = () => {
+      displayCount += 8;
+      renderGallery();
+    };
+
+    // 格式化时间
+    function formatTime(timeStr) {
+      try {
+        const date = new Date(timeStr);
+        const now = new Date();
+        const diff = now - date;
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        if (days === 0) return '今天';
+        if (days === 1) return '昨天';
+        if (days < 7) return `${days}天前`;
+        if (days < 30) return `${Math.floor(days / 7)}周前`;
+        return date.toLocaleDateString();
+      } catch {
+        return timeStr;
+      }
+    }
+
+    // 点赞
+    window.likeWork = function(id) {
+      const user = localStorage.getItem('user');
+      if (!user) {
+        showToast('请先登录');
+        return;
+      }
+      
+      const work = works.find(w => w.id === id);
+      if (work) {
+        if (work.isLiked) {
+          work.likes--;
+          work.isLiked = false;
+          showToast('已取消点赞');
+        } else {
+          work.likes++;
+          work.isLiked = true;
+          showToast('点赞成功');
+        }
+        saveWorks();
+        updateStats();
+        renderGallery();
+      }
+    };
+
+    // 打开详情模态框
+    window.openDetailModal = function(id) {
+      const work = works.find(w => w.id === id);
+      if (!work) return;
+
+      // 确保所有字段都有默认值
+      const title = work.title || work.name || '未命名作品';
+      const username = work.username || work.author || '未知作者';
+      const likes = parseInt(work.likes) || 0;
+      const comments = work.comments || [];
+      const isLiked = work.isLiked || false;
+      const declaration = work.declaration || work.description || '暂无描述';
+      const colors = work.colors || [];
+      const rawUrl = work.imageUrl || work.image;
+        let imageUrl;
+        if (!rawUrl || rawUrl.startsWith('data:image/')) {
+          imageUrl = rawUrl || 'images/default.jpg';
+        } else if (rawUrl.startsWith('images/')) {
+          imageUrl = rawUrl;
+        } else {
+          imageUrl = `images/${rawUrl}`;
+        }
+
+      document.getElementById('detailContent').innerHTML = `
+        <div class="space-y-4">
+          <!-- 作品图片 -->
+          <div class="relative rounded-xl overflow-hidden">
+            <img src="${imageUrl}" class="w-full h-64 md:h-80 object-cover" alt="${title}">
+            <div class="absolute bottom-4 left-4 right-4 flex justify-between items-end">
+              <div>
+                <div class="flex items-center gap-2">
+                  <div class="w-10 h-10 rounded-full avatar-initial flex items-center justify-center text-white">
+                    ${username.charAt(0)}
+                  </div>
+                  <div>
+                    <p class="font-bold text-white">${username}</p>
+                    <p class="text-white/80 text-sm">${formatTime(work.time)}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <span class="px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-full text-white text-sm">
+                  <i class="fa ${isLiked ? 'fa-heart text-red-400' : 'fa-heart-o'} mr-1"></i>${likes}
+                </span>
+                <span class="px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-full text-white text-sm">
+                  <i class="fa fa-comment mr-1"></i>${comments.length}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 作品标题 -->
+          <h2 class="text-2xl font-bold text-gray-800">${title}</h2>
+
+          <!-- 颜色标签 -->
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-gray-500">配色：</span>
+            ${colors.length > 0 ? colors.map(c => { const fc = formatColor(c); return `
+              <span class="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded-full text-xs">
+                <span class="color-tag" style="background: ${fc.hex}"></span>${fc.name}
+              </span>
+            `; }).join('') : '<span class="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded-full text-xs"><span class="color-tag" style="background: #C4A574"></span>多彩</span>'}
+          </div>
+
+          <!-- 作品描述 -->
+          <div>
+            <h3 class="font-bold text-gray-800 mb-2">作品理念</h3>
+            <p class="text-gray-600 leading-relaxed">${declaration}</p>
+          </div>
+
+          <!-- 操作按钮 -->
+          <div class="flex gap-3">
+            <button onclick="likeWork(${work.id}); refreshDetailModal(${work.id})" class="flex-1 py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2 ${isLiked ? 'bg-gray-100 text-gray-600' : 'btn-primary text-white'}">
+              <i class="fa ${isLiked ? 'fa-heart text-red-500' : 'fa-heart'}"></i> ${isLiked ? '已赞' : '点赞'}
+            </button>
+            <button onclick="openCommentModal(${work.id}); closeDetailModal()" class="flex-1 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
+              <i class="fa fa-comment"></i> 评论
+            </button>
+            </div>
+
+          <!-- 评论列表 -->
+          <div>
+            <h3 class="font-bold text-gray-800 mb-3 flex items-center gap-2">
+              <i class="fa fa-comments text-gray-400"></i>评论 (${comments.length})
+            </h3>
+            ${comments.length > 0 ? `
+              <div class="space-y-3 max-h-64 overflow-y-auto">
+                ${comments.map((comment, idx) => `
+                  <div class="comment-item fade-in">
+                    <div class="flex items-center gap-2 mb-1">
+                      <div class="w-6 h-6 rounded-full avatar-initial flex items-center justify-center text-white text-xs">
+                        ${(comment.username || '匿名').charAt(0)}
+                      </div>
+                      <span class="text-sm font-medium text-gray-700">${comment.username || '匿名'}</span>
+                      <span class="text-xs text-gray-400">${formatTime(comment.time)}</span>
+                    </div>
+                    <p class="text-gray-600 text-sm ml-8">${comment.text || ''}</p>
+                  </div>
+                `).join('')}
+              </div>
+            ` : `
+              <div class="text-center py-6 text-gray-400">
+                <i class="fa fa-comment-o text-3xl mb-2"></i>
+                <p>暂无评论，快来发表第一条评论吧！</p>
+              </div>
+            `}
+          </div>
+        </div>
+      `;
+
+      document.getElementById('detailModal').style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    };
+
+    // 刷新详情模态框
+    function refreshDetailModal(id) {
+      closeDetailModal();
+      setTimeout(() => openDetailModal(id), 100);
+    }
+
+    // 关闭详情模态框
+    function closeDetailModal() {
+      document.getElementById('detailModal').style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
+    // 打开评论模态框
+    let activeWorkId = null;
+    window.openCommentModal = function(id) {
+      const user = localStorage.getItem('user');
+      if (!user) { 
+        showToast('请先登录'); 
+        return; 
+      }
+      activeWorkId = id;
+      document.getElementById('commentModal').style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    };
+
+    // 关闭评论模态框
+    function closeCommentModal() {
+      document.getElementById('commentModal').style.display = 'none';
+      document.getElementById('commentText').value = '';
+      document.body.style.overflow = '';
+    }
+
+    document.getElementById('closeModalBtn').onclick = closeCommentModal;
+    document.getElementById('submitCommentBtn').onclick = () => {
+      const text = document.getElementById('commentText').value.trim();
+      if (!text) { 
+        showToast('请输入评论内容'); 
+        return; 
+      }
+      const user = JSON.parse(localStorage.getItem('user'));
+      // 使用 allWorks 查找，支持数字和字符串 ID 匹配
+      const work = allWorks.find(w => String(w.id) === String(activeWorkId));
+      if (work) {
+        if (!work.comments) work.comments = [];
+        work.comments.push({ 
+          username: user.username, 
+          text: text, 
+          time: new Date().toLocaleString() 
+        });
+        saveWorks();
+        updateStats();
+        showToast('评论成功');
+        closeCommentModal();
+        renderGallery();
+      } else {
+        showToast('未找到作品，请刷新页面');
+      }
+    };
+
+    // 排序
+    document.getElementById('sortTimeBtn').onclick = () => { 
+      currentSort = 'time'; 
+      document.getElementById('sortTimeBtn').classList.add('active');
+      document.getElementById('sortHotBtn').classList.remove('active');
+      displayCount = 8;
+      renderGallery(); 
+    };
+    document.getElementById('sortHotBtn').onclick = () => { 
+      currentSort = 'hot'; 
+      document.getElementById('sortHotBtn').classList.add('active');
+      document.getElementById('sortTimeBtn').classList.remove('active');
+      displayCount = 8;
+      renderGallery(); 
+    };
+
+    // 登录状态检查
+    function checkLogin() {
+      const user = localStorage.getItem('user');
+      if (user) {
+        document.getElementById('userInfo').classList.remove('hidden');
+        document.getElementById('loginBtn').classList.add('hidden');
+        document.getElementById('userName').innerText = JSON.parse(user).username;
+      } else {
+        document.getElementById('userInfo').classList.add('hidden');
+        document.getElementById('loginBtn').classList.remove('hidden');
+      }
+    }
+
+    // 登录/注册弹窗
+    const loginBtn = document.getElementById('loginBtn');
+    if (loginBtn) {
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden';
+      modal.innerHTML = `
+        <div class="bg-white rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl">
+          <div class="text-center mb-6">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-red-500 to-amber-500 flex items-center justify-center">
+              <i class="fa fa-paint-brush text-white text-2xl"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800">欢迎来到邦典文化</h2>
+            <p class="text-gray-500 mt-2">登录或注册账户</p>
+          </div>
+          
+          <div class="flex mb-6">
+            <button id="tabLogin" class="flex-1 py-2.5 bg-red-600 text-white rounded-lg font-medium">登录</button>
+            <button id="tabRegister" class="flex-1 py-2.5 bg-gray-100 text-gray-600 rounded-lg font-medium">注册</button>
+          </div>
+          
+          <form id="authForm">
+            <div class="mb-4">
+              <label class="block text-gray-600 mb-2 text-sm font-medium">用户名</label>
+              <input type="text" id="username" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all" placeholder="请输入用户名">
+            </div>
+            <div class="mb-6">
+              <label class="block text-gray-600 mb-2 text-sm font-medium">密码</label>
+              <input type="password" id="password" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all" placeholder="请输入密码">
+            </div>
+            <button type="submit" id="submitBtn" class="w-full py-3 bg-gradient-to-r from-red-600 to-amber-500 text-white rounded-lg font-medium hover:from-red-700 hover:to-amber-600 transition-all shadow-md hover:shadow-lg">
+              登录
+            </button>
+          </form>
+          
+          <p id="message" class="mt-4 text-center text-sm"></p>
+          
+          <button id="closeModal" class="mt-4 w-full py-2 text-gray-500 hover:text-gray-700 transition-colors">关闭</button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      const tabLogin = modal.querySelector('#tabLogin');
+      const tabRegister = modal.querySelector('#tabRegister');
+      const submitBtn = modal.querySelector('#submitBtn');
+      const message = modal.querySelector('#message');
+      const closeModal = modal.querySelector('#closeModal');
+
+      loginBtn.addEventListener('click', () => {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      });
+
+      closeModal.addEventListener('click', () => {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+        message.textContent = '';
+      });
+
+      tabLogin.addEventListener('click', () => {
+        tabLogin.className = 'flex-1 py-2.5 bg-red-600 text-white rounded-lg font-medium';
+        tabRegister.className = 'flex-1 py-2.5 bg-gray-100 text-gray-600 rounded-lg font-medium';
+        submitBtn.textContent = '登录';
+        message.textContent = '';
+      });
+
+      tabRegister.addEventListener('click', () => {
+        tabRegister.className = 'flex-1 py-2.5 bg-red-600 text-white rounded-lg font-medium';
+        tabLogin.className = 'flex-1 py-2.5 bg-gray-100 text-gray-600 rounded-lg font-medium';
+        submitBtn.textContent = '注册';
+        message.textContent = '';
+      });
+
+      const authForm = modal.querySelector('#authForm');
+      authForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = modal.querySelector('#username').value;
+        const password = modal.querySelector('#password').value;
+        
+        if (!username || !password) {
+          message.textContent = '请输入用户名和密码';
+          message.style.color = '#EF4444';
+          return;
+        }
+
+        const isLogin = tabLogin.classList.contains('bg-red-600');
+        const url = isLogin ? `${API_BASE}/auth/login` : `${API_BASE}/auth/register`;
+        
+        try {
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+          });
+          const data = await response.json();
+          
+          if (data.success || data.message === 'Login success' || data.message === 'Register success') {
+            message.textContent = isLogin ? '登录成功！' : '注册成功！';
+            message.style.color = '#22C55E';
+            if (data.token) {
+              // 清空旧的本地数据，确保新账号不会看到旧数据
+              localStorage.removeItem('history');
+              localStorage.removeItem('favorites');
+              localStorage.removeItem('savedDesigns');
+              localStorage.setItem('token', data.token);
+              localStorage.setItem('user', JSON.stringify(data.user));
+            }
+            setTimeout(() => {
+              modal.classList.add('hidden');
+              document.body.style.overflow = '';
+              checkLogin();
+              // 管理员登录后跳转到管理员页面
+              if (isLogin && data.user?.role === 'admin') {
+                window.location.href = 'admin.html';
+              }
+            }, 1500);
+          } else {
+            message.textContent = data.message || '操作失败';
+            message.style.color = '#EF4444';
+          }
+        } catch (error) {
+          message.textContent = '网络错误，请稍后重试';
+          message.style.color = '#EF4444';
+        }
+      });
+    }
+
+    document.getElementById('logoutBtn').onclick = () => { 
+      localStorage.removeItem('user'); 
+      localStorage.removeItem('token');
+      window.location.href = 'index.html'; 
+    };
+
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('workTitle').value.trim();
+      const desc = document.getElementById('workDesc').value.trim();
+
+      if (!title) {
+        showToast('请输入作品标题');
+        return;
+      }
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showToast('请先登录');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/works`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            title: title,
+            description: desc || '这件邦典展现了独特的藏族文化魅力'
+          })
+        });
+
+        const data = await response.json();
+        if (response.ok && (data.success || data.message)) {
+          showToast('发布成功');
+          closeUploadModal();
+          fetchWorks();
+        } else {
+          showToast(data.message || '发布失败');
+        }
+      } catch (error) {
+        console.error('发布作品失败:', error);
+        showToast('发布失败，请稍后重试');
+      }
+    });
+
+    // 点击模态框外部关闭
+    document.getElementById('detailModal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('detailModal')) {
+        closeDetailModal();
+      }
+    });
+
+    document.getElementById('commentModal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('commentModal')) {
+        closeCommentModal();
+      }
+    });
+
+    document.getElementById('uploadModal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('uploadModal')) {
+        closeUploadModal();
+      }
+    });
+
+    // ESC键关闭模态框
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeDetailModal();
+        closeCommentModal();
+        closeUploadModal();
+      }
+    });
+
+    // 上报浏览记录
+    function reportHistory() {
+      const user = localStorage.getItem('user');
+      if (!user) return;
+      
+      const history = JSON.parse(localStorage.getItem('history') || '[]');
+      const newRecord = {
+        id: Date.now(),
+        type: 'page',
+        target_id: 'gallery',
+        title: '作品广场',
+        image_url: '',
+        createdAt: new Date().toISOString()
+      };
+      
+      // 添加到开头，保持最新的在前面
+      history.unshift(newRecord);
+      
+      // 只保留最近20条记录
+      if (history.length > 20) {
+        history.pop();
+      }
+      
+      localStorage.setItem('history', JSON.stringify(history));
+    }
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', () => {
+      
+      // 绑定颜色筛选事件
+      document.querySelectorAll('.color-filter-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const color = e.target.getAttribute('data-color');
+          // 切换颜色筛选状态
+          if (currentColorFilter === color) {
+            currentColorFilter = '';
+            btn.style.borderColor = '#E5E7EB';
+            btn.style.transform = 'scale(1)';
+          } else {
+            // 清除其他按钮的选中状态
+            document.querySelectorAll('.color-filter-btn').forEach(b => {
+              b.style.borderColor = '#E5E7EB';
+              b.style.transform = 'scale(1)';
+            });
+            currentColorFilter = color;
+            btn.style.borderColor = '#9E2A2F';
+            btn.style.transform = 'scale(1.15)';
+          }
+          displayCount = 8;
+          renderGallery();
+        });
+      });
+      
+      checkLogin();
+      fetchWorks();
+      reportHistory();
+    });
+  </script>
+</body>
+</html>

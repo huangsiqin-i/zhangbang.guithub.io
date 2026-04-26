@@ -1017,17 +1017,31 @@
       });
     }
 
-    // 记录最近浏览
-    const raw = localStorage.getItem('user');
-    if (raw) {
+    // 上报浏览记录
+    async function reportHistory() {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      
       try {
-        const user = JSON.parse(raw);
-        const visits = Array.isArray(user.recentVisits) ? user.recentVisits : [];
-        visits.unshift({ page: '人生历程', time: new Date().toLocaleString('zh-CN') });
-        user.recentVisits = visits.slice(0, 20);
-        localStorage.setItem('user', JSON.stringify(user));
-      } catch (error) {}
+        await fetch('/api/user/history', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            type: 'page',
+            target_id: 'gam',
+            title: '人生历程',
+            image_url: ''
+          })
+        });
+      } catch (error) {
+        console.log('上报浏览记录失败:', error);
+      }
     }
+
+    reportHistory();
 </script>
 </body>
 </html>

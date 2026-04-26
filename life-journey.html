@@ -1080,6 +1080,33 @@
         }
       });
     }
+
+    // 上报浏览记录
+    async function reportHistory() {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      
+      try {
+        await fetch('/api/user/history', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            type: 'page',
+            target_id: 'life-journey',
+            title: '人生历程',
+            image_url: ''
+          })
+        });
+      } catch (error) {
+        console.log('上报浏览记录失败:', error);
+      }
+    }
+
+    checkLogin();
+    reportHistory();
   </script>
 </body>
 </html>

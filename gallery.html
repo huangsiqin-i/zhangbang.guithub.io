@@ -1368,29 +1368,27 @@
     });
 
     // 上报浏览记录
-    function reportHistory() {
-      const user = localStorage.getItem('user');
-      if (!user) return;
+    async function reportHistory() {
+      const token = localStorage.getItem('token');
+      if (!token) return;
       
-      const history = JSON.parse(localStorage.getItem('history') || '[]');
-      const newRecord = {
-        id: Date.now(),
-        type: 'page',
-        target_id: 'gallery',
-        title: '作品广场',
-        image_url: '',
-        createdAt: new Date().toISOString()
-      };
-      
-      // 添加到开头，保持最新的在前面
-      history.unshift(newRecord);
-      
-      // 只保留最近20条记录
-      if (history.length > 20) {
-        history.pop();
+      try {
+        await fetch('/api/user/history', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            type: 'page',
+            target_id: 'gallery',
+            title: '作品广场',
+            image_url: ''
+          })
+        });
+      } catch (error) {
+        console.log('上报浏览记录失败:', error);
       }
-      
-      localStorage.setItem('history', JSON.stringify(history));
     }
 
     // 初始化
