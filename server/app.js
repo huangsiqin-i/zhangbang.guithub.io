@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const path = require("path");
 
 const { initDatabase, testConnection } = require("./db/sqliteConnection");
 
@@ -86,6 +87,10 @@ app.use('/images', express.static('../images'));
 app.use(express.static('../'));
 
 app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, '../index.html'));
+});
+
+app.get("/api", (req, res) => {
   res.json({
     message: "邦典文化传承平台 - Backend server is running.",
     environment: NODE_ENV,

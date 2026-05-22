@@ -152,7 +152,7 @@ async function login(req, res) {
         id: user.id,
         username: user.username,
         role: user.role,
-        nickname: user.nickname
+        nickname: user.nickname || null
       }
     });
   } catch (error) {
