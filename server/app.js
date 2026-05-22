@@ -57,7 +57,8 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
       "http://localhost:3000", 
       "http://127.0.0.1:3000",
       "https://bangdian-platform-production.up.railway.app",
-      "https://huangsiqin-i.github.io"
+      "https://huangsiqin-i.github.io",
+      "http://47.97.221.133:3000"
     ];
 
 app.use(cors({
